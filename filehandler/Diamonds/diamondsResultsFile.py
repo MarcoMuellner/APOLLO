@@ -1,5 +1,6 @@
 import glob
 import numpy as np
+from scipy.signal import butter, filtfilt
 
 from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
 from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
@@ -14,7 +15,7 @@ from support.strings import *
 class Results:
     m_summary = None
     m_evidence = None
-    m_backgroundParameter = {}
+    m_backgroundParameter = []
     m_marginalDistributions = []
     m_prior = None
     m_backgroundPriors = None
@@ -25,6 +26,11 @@ class Results:
     m_units = []
     m_nyq = None
     m_dataFolder = None
+    m_smoothedData = None
+    m_hg = None
+    m_numax = None
+    m_sigma = None
+
 
     def __init__(self,kicID,runID):
         self.m_kicID = kicID
@@ -42,8 +48,8 @@ class Results:
                   '$b_\mathrm{gran,1}$', '$\sigma_\mathrm{gran,2}$', '$b_\mathrm{gran,2}$',
                   '$H_\mathrm{osc}$','$f_\mathrm{max}$ ', '$\sigma_\mathrm{env}$']
 
-        self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz','(ppm$^2$/$\mu$Hz)',
-                        '($\mu$Hz)','($\mu$Hz)']
+        self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz','ppm$^2$/$\mu$Hz',
+                        '$\mu$Hz','$\mu$Hz']
 
         for i in range(0,10):
             par_median = self.m_summary.getData(strSummaryMedian)[i]  # median values
@@ -51,20 +57,22 @@ class Results:
             par_ue = self.m_summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
             backGroundParameters = np.vstack((par_median, par_le, par_ue))
 
-            self.m_backgroundParameter[self.m_names[i]] = BackgroundParameter(self.m_names[i],self.m_units[i],kicID,runID,i)
+            self.m_backgroundParameter.append(BackgroundParameter(self.m_names[i],self.m_units[i],kicID,runID,i))
 
             self.m_marginalDistributions.append(MarginalDistribution(self.m_names[i], self.m_units[i], kicID, runID, i))
-            print(self.m_names[i])
             self.m_marginalDistributions[i].setBackgroundParameters(backGroundParameters)
 
     def getBackgroundParameters(self,key = None):
         if key is None:
             return self.m_backgroundParameter
         else:
-            if key in self.m_backgroundParameter.keys():
-                return self.m_backgroundParameter[key]
-            else:
-                return self.m_backgroundParameter
+            for i in self.m_backgroundParameter:
+                if i.getName == key:
+                    return self.m_backgroundParameter[i]
+
+            print("Found no background parameter for '"+key+"'")
+            print("Returning full list")
+            return self.m_backgroundParameter
 
     def getPrior(self):
         return self.m_prior
@@ -85,10 +93,30 @@ class Results:
         return self.m_dataFile.getPSD()
 
     def getSmoothing(self):
-        return None #TODO return useful value here
+        return self.__butter_lowpass_filtfilt()
 
     def getKicID(self):
         return self.m_kicID
+
+    def getNuMax(self):
+        return self.m_numax
+
+    def getHg(self):
+        return self.m_hg
+
+    def getSigma(self):
+        return self.m_sigma
+
+    def __butter_lowpass_filtfilt(self,order=5):
+        b, a = self.__butter_lowpass(0.7, order=order) # todo 0.7 is just empirical, this may work better with something else?
+        psd = self.m_dataFile.getPSD()[1]
+        self.m_smoothedData = filtfilt(b, a,psd)
+        return self.m_smoothedData
+
+    def __butter_lowpass(self,cutoff, order=5):#todo these should be reworked and understood properly!
+        normal_cutoff = cutoff / self.m_nyq
+        b, a = butter(order, normal_cutoff, btype='low', analog=False)
+        return b, a
 
 
     def createBackgroundModel(self, runGauss):
@@ -97,14 +125,14 @@ class Results:
         par_le = self.m_summary.getData(strSummaryLowCredLim)  # lower credible limits
         par_ue = self.m_summary.getData(strSummaryUpCredlim) # upper credible limits
         if runGauss:
-            hg = par_median[
+            self.m_hg = par_median[
                 7]  # third last parameter
-            numax = par_median[8]  # second last parameter
-            sigma = par_median[9]  # last parameter
+            self.m_numax = par_median[8]  # second last parameter
+            self.m_sigma = par_median[9]  # last parameter
 
-            print("Height is '" + str(hg) + "'")
-            print("Numax is '" + str(numax) + "'")
-            print("Sigma is '" + str(sigma) + "'")
+            print("Height is '" + str(self.m_hg) + "'")
+            print("Numax is '" + str(self.m_numax) + "'")
+            print("Sigma is '" + str(self.m_sigma) + "'")
 
         zeta = 2. * np.sqrt(2.) / np.pi  # !DPI is the pigreca value in double precision
         r = (np.sin(np.pi / 2. * freq / self.m_nyq) / (
@@ -112,7 +140,7 @@ class Results:
         w = par_median[0]  # White noise component
         g = 0
         if runGauss:
-            g = hg * np.exp(-(numax - freq) ** 2 / (2. * sigma ** 2))  ## Gaussian envelope TODO this too
+            g = self.m_hg * np.exp(-(self.m_numax - freq) ** 2 / (2. * self.m_sigma ** 2))  ## Gaussian envelope
 
         ## Long-trend variations
         sigma_long = par_median[1]
@@ -146,4 +174,8 @@ class Results:
             for i in self.m_marginalDistributions:
                 if i.getName() == key:
                     return self.m_marginalDistributions[i]
+
+            print("Found no marginal Distribution for '"+key+"'")
+            print("Returning full list")
+            return self.m_marginalDistributions
 

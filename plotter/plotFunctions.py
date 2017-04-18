@@ -2,7 +2,7 @@ import pylab as pl
 import numpy as np
 
 from support.strings import *
-
+#Todo maybe use a different plotting device, pylab is fairly ugly
 def plotPSD(results,runGauss,psdOnly):
     psd = results.getPSD()
     backgroundModel = results.createBackgroundModel(runGauss)
@@ -11,7 +11,7 @@ def plotPSD(results,runGauss,psdOnly):
     pl.figure(figsize=(16,9))
     pl.loglog(psd[0],psd[1],'k',alpha=0.5)
     if smoothedData is not None:
-        pl.plot(psd[0], smoothedData,'blue')
+        pl.plot(psd[0],smoothedData)
 
     if(psdOnly is not True):
         pl.plot(psd[0], backgroundModel[0], 'b', linestyle='dashed', linewidth=2)
@@ -51,7 +51,16 @@ def plotMarginalDistributions(results):
         pl.plot(par, marg,linewidth=2,c='k')
         pl.fill_between(fill_x,fill_y,0,alpha=0.5,facecolor='green')
         pl.axvline(par_median[iii],c='r')
-        pl.xlabel(marginalDists[iii].getName() + ' ' + marginalDists[iii].getUnit(),fontsize=16)
+        pl.xlabel(marginalDists[iii].getName() + ' (' + marginalDists[iii].getUnit()+')',fontsize=16)
+
+def plotParameterTrend(results):
+    backgroundParameters = results.getBackgroundParameters()
+
+    for iii in range(0,len(backgroundParameters)):
+        par = backgroundParameters[iii].getData()
+        pl.subplot(2, 5, iii + 1)
+        pl.plot(par, linewidth=2, c='k')
+        pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
 
 def show():
     pl.show()

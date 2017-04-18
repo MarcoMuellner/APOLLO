@@ -6,8 +6,9 @@ from plotter.plotFunctions import *
 loghandler.setup_logging()
 
 result = Results('002436458','00')
-#plotPSD(result,True,False)
-plotMarginalDistributions(result)
+plotPSD(result,True,False)
+#plotMarginalDistributions(result)
+#plotParameterTrend(result)
 
 show()
 
