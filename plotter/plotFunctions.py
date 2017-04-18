@@ -1,0 +1,57 @@
+import pylab as pl
+import numpy as np
+
+from support.strings import *
+
+def plotPSD(results,runGauss,psdOnly):
+    psd = results.getPSD()
+    backgroundModel = results.createBackgroundModel(runGauss)
+    smoothedData = results.getSmoothing()
+
+    pl.figure(figsize=(16,9))
+    pl.loglog(psd[0],psd[1],'k',alpha=0.5)
+    if smoothedData is not None:
+        pl.plot(psd[0], smoothedData,'blue')
+
+    if(psdOnly is not True):
+        pl.plot(psd[0], backgroundModel[0], 'b', linestyle='dashed', linewidth=2)
+        pl.plot(psd[0], backgroundModel[1], 'b', linestyle='dashed', linewidth=2)
+        pl.plot(psd[0], backgroundModel[2], 'b', linestyle='dashed', linewidth=2)
+        pl.plot(psd[0], backgroundModel[3], 'b', linestyle='dashed', linewidth=2)
+        pl.plot(psd[0], backgroundModel[4], 'b', linestyle='dashed', linewidth=2)
+        withoutGaussianBackground = np.sum(backgroundModel[0:4],axis=0)
+        fullBackground = np.sum(backgroundModel,axis=0)
+        pl.plot(psd[0],fullBackground,'c',linestyle='dashed',linewidth=2)
+        pl.plot(psd[0],withoutGaussianBackground,'r',linestyle='solid',linewidth=3)
+
+    pl.xlim(0.1,max(psd[0]))
+    pl.ylim(min(psd[1]*0.95),max(psd[1])*1.2)
+    pl.xticks(fontsize=16)  ;pl.yticks(fontsize=16)
+    pl.xlabel(r'Frequency [$\mu$Hz]',fontsize=18)
+    pl.ylabel(r'PSD [ppm$^2$/$\mu$Hz]',fontsize=18)
+    title = "Standardmodel" if runGauss else "Noise Backgroundmodel"
+    title += ' KIC'+results.getKicID()
+    pl.title(title)
+
+def plotMarginalDistributions(results):
+    pl.figure(figsize=(23,12))
+    marginalDists = results.createMarginalDistribution()
+    summary = results.getSummary()
+
+    par_median = summary.getData(strSummaryMedian)  # median values
+    par_le = summary.getData(strSummaryLowCredLim)  # lower credible limits
+    par_ue = summary.getData(strSummaryUpCredlim)  # upper credible limits
+
+    for iii in range(0,len(marginalDists)):
+        pl.subplot(2,5,iii+1)
+        par, marg, fill_x, fill_y, par_err = marginalDists[iii].createMarginalDistribution()
+
+        pl.xlim([par_median[iii]-5*par_err,par_median[iii]+5*par_err])
+        pl.ylim([0,max(marg)*1.2])
+        pl.plot(par, marg,linewidth=2,c='k')
+        pl.fill_between(fill_x,fill_y,0,alpha=0.5,facecolor='green')
+        pl.axvline(par_median[iii],c='r')
+        pl.xlabel(marginalDists[iii].getName() + ' ' + marginalDists[iii].getUnit(),fontsize=16)
+
+def show():
+    pl.show()
