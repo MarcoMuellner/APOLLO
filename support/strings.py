@@ -16,4 +16,12 @@ strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'
 strOptionSection    = 'GUI Section'
 strOptionValue      = 'Value'
+#ParameterSummaryStrings
+strSummaryMean = "I Moment (Mean)"
+strSummaryMedian = "Median"
+strSummaryMode = "Mode"
+strSummaryIIMoment = "II Moment (Variance if Normal distribution)"
+strSummaryLowCredLim = "Lower Credible Limit"
+strSummaryUpCredlim = "Upper Credible Limit"
+strSummarySkew = "Skewness"
 
