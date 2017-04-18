@@ -10,6 +10,7 @@ from filehandler.Diamonds.diamondsPriorsFile import Priors
 from filehandler.Diamonds.dataFile import DataFile
 from settings.settings import Settings
 from support.strings import *
+from calculations.deltaNuCalculations import DeltaNuCalculator
 
 
 class Results:
@@ -30,6 +31,8 @@ class Results:
     m_hg = None
     m_numax = None
     m_sigma = None
+    m_gaussBoundaries = None
+    m_deltaNuCalculator = None
 
 
     def __init__(self,kicID,runID):
@@ -93,7 +96,7 @@ class Results:
         return self.m_dataFile.getPSD()
 
     def getSmoothing(self):
-        return self.__butter_lowpass_filtfilt()
+        return self.__butter_lowpass_filtfilt(self.m_dataFile.getPSD()[1])
 
     def getKicID(self):
         return self.m_kicID
@@ -107,9 +110,26 @@ class Results:
     def getSigma(self):
         return self.m_sigma
 
-    def __butter_lowpass_filtfilt(self,order=5):
+    def getGaussBoundaries(self):
+        return self.m_gaussBoundaries
+
+    def calculateDeltaNu(self):
+        backgroundModel = self.createBackgroundModel(True)
+        par_median = self.m_summary.getData(strSummaryMedian)  # median values
+        par_le = self.m_summary.getData(strSummaryLowCredLim)  # lower credible limits
+        par_ue = self.m_summary.getData(strSummaryUpCredlim)   # upper credible limits
+        backGroundParameters = np.vstack((par_median, par_le, par_ue))
+
+        self.m_deltaNuCalculator = DeltaNuCalculator(self.m_numax,self.m_sigma,self.m_dataFile.getPSD(),
+                                                     self.m_nyq,backGroundParameters,backgroundModel)
+        self.m_deltaNuCalculator.calculateFit()
+
+    def getDeltaNuCalculator(self):
+        return self.m_deltaNuCalculator
+
+    def __butter_lowpass_filtfilt(self,data,order=5):
         b, a = self.__butter_lowpass(0.7, order=order) # todo 0.7 is just empirical, this may work better with something else?
-        psd = self.m_dataFile.getPSD()[1]
+        psd = data
         self.m_smoothedData = filtfilt(b, a,psd)
         return self.m_smoothedData
 
@@ -166,6 +186,7 @@ class Results:
             return zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
         else:
             return zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
+
 
     def createMarginalDistribution(self,key = None):
         if key is None:

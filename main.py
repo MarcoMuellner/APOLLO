@@ -6,9 +6,12 @@ from plotter.plotFunctions import *
 loghandler.setup_logging()
 
 result = Results('002436458','00')
-plotPSD(result,True,False)
+#plotPSD(result,True,False)
 #plotMarginalDistributions(result)
 #plotParameterTrend(result)
+result.calculateDeltaNu()
+calc = result.getDeltaNuCalculator()
+
 
 show()
 
