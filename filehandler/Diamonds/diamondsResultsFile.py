@@ -1,12 +1,15 @@
+import glob
+import numpy as np
+
 from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
 from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
 from filehandler.Diamonds.InternalStructure.backgroundParameterFile import BackgroundParameter
 from filehandler.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
 from filehandler.Diamonds.diamondsPriorsFile import Priors
 from filehandler.Diamonds.dataFile import DataFile
-import glob
 from settings.settings import Settings
-import numpy as np
+from support.strings import *
+
 
 class Results:
     m_summary = None
@@ -31,14 +34,16 @@ class Results:
         self.m_evidence = Evidence(kicID,runID)
         self.m_prior = Priors(kicID)
         self.m_backgroundPriors = Priors(kicID,runID)
-        self.m_dataFolder = Settings.Instance().getSetting("Files", "dataFolder")
-        nyqFile = glob.glob(self.m_dataFolder + 'KIC*{}*/NyquistFrequency.txt'.format(kicID))[0]
+        self.m_dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+        nyqFile = glob.glob(self.m_dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]
         self.m_nyq = np.loadtxt(nyqFile)
 
         self.m_names = ['w', '$\sigma_\mathrm{long}$', '$b_\mathrm{long}$','$\sigma_\mathrm{gran,1}$',
-                  '$b_\mathrm{gran,1}$', '$\sigma_\mathrm{gran,2}$', '$b_\mathrm{gran,2}$']
+                  '$b_\mathrm{gran,1}$', '$\sigma_\mathrm{gran,2}$', '$b_\mathrm{gran,2}$',
+                  '$H_\mathrm{osc}$','$f_\mathrm{max}$ ', '$\sigma_\mathrm{env}$']
 
-        self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz']
+        self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz','(ppm$^2$/$\mu$Hz)',
+                        '($\mu$Hz)','($\mu$Hz)']
 
         for i in range(0,9):
             self.m_backgroundParameter[self.m_names[i]] = BackgroundParameter(self.m_names[i],self.m_units[i],kicID,runID,i)

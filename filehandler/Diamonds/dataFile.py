@@ -40,9 +40,7 @@ class DataFile():
         '''
         self. m_kicID = kicID
         self.m_dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundDataPath).value
-        filename = self.m_dataFolder+'KIC{}.txt'.format(kicID)
-        print(filename)
-        self.m_psdFile = glob.glob(filename)[0]
+        self.m_psdFile = glob.glob(self.m_dataFolder+'KIC{}.txt'.format(kicID))[0]
         self.m_psd = np.loadtxt(self.m_psdFile).T
         return self.getPSD()
 

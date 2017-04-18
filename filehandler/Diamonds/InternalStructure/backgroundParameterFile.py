@@ -1,6 +1,7 @@
 import glob
 import numpy as np
 from settings.settings import Settings
+from support.strings import *
 
 class BackgroundParameter:
     m_kicID = None
@@ -93,14 +94,14 @@ class BackgroundParameter:
         '''
         Reads the Data. Should be only used internally
         '''
+        self.m_dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
         try:
-            self.m_dataFolder = Settings.Instance().getSetting("Files","dataFolder")  # todo change this to strings in strings
-            mpFile = glob.glob(self.m_dataFolder+'KIC*{}*/{}/background_parameter*{}.txt'
-                               .format(self.m_KicID, self.m_runId, '00'+str(self.m_id)))[0]
+            mpFile = glob.glob(self.m_dataFolder+'KIC{}/{}/background_parameter*{}.txt'
+                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]
             self.m_parameters = np.loadtxt(mpFile).T
         except:
             print("Failed to open File '"+glob.glob(self.m_dataFolder+'KIC*{}*/{}/background_parameter*{}.txt'
-                               .format(self.m_KicID, self.m_runId, '00'+str(self.m_id)))[0]+"'")
+                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]+"'")
             print("Setting Data to None")
             self.m_parameters = None
 
