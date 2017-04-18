@@ -1,36 +1,19 @@
 import os
-##CI
-#commands
-strCmdNewFrame = 'New Frame available'
-strCmdNewClient = 'New Client connected'
-strCmdClientSettingChanged = 'Client Setting Changed'
-#OS
+##OS
 #Paths
-strPathSettings = os.path.join(os.path.expanduser('~'),'LightCurveAnalyzer.cfg')
+strPathSettings = os.path.join(os.path.expanduser('~'),'lightCurveAnalyzer.json')
+strPathDefSettings = 'res/default_settings.json'
 ##GUI
 #GUITypes
 strGUITypeTextEdit = 'textEdit'
-strGUITypeCheckBox = 'checkBox'
-##settings
-##GUINames
-#StaticSettingsWidget
-txtBtnConnect = 'Connect to server'
-txtBtnDisconnect = 'Disconnect from server'
-txtLabelIPAdress = 'IP Adress'
-txtLabelPort = 'Port'
-#StatusWidget
-txtLabelStatusDescr = 'Software Status: '
-txtStatusNotConnected ='Not connected'
-txtStatusConnected = 'Connected'
-styleNotConnected = 'color: red'
-styleConnected = 'color: green'
-#LogWidget
-txtLabelLog ='Server Log'
-#VideoWidget
-txtLabelVideo = 'Videostream:'
+##Settings
+strDataSettings= 'Data Settings'
+#strDataSettings
+strSectBackgroundResPath   = 'Background Results Path'
+strSectBackgroundDataPath   = 'Background Data Path'
 #SettingOptions
-strOptionName       = 'GUI Name'
-strOptionType       = 'GUI Type'
+strOptionName       = 'GUI_Name'
+strOptionType       = 'GUI_Type'
 strOptionSection    = 'GUI Section'
 strOptionValue      = 'Value'
 
