@@ -1,13 +1,14 @@
 from settings.settings import Settings
 import numpy as np
 import glob
-
+from support.strings import *
 
 class Evidence:
     m_kicID = None
     m_runId = None
     m_dataFolder = None
     m_evidence = {}
+    m_kicID = None
 
     def __init__(self,kicID = None,runID = None):
         self.m_kicID = kicID
@@ -55,16 +56,16 @@ class Evidence:
 
     def __readData(self):
         try:
-            self.m_dataFolder = Settings.Instance().getSetting("Files",
-                                                               "dataFolder")  # todo change this to strings in strings
-            mpFile = glob.glob(self.m_dataFolder + 'KIC*{}*/{}/background_evidenceInformation.txt'
-                               .format(self.m_KicID, self.m_runId))[0]
+            self.m_dataFolder = Settings.Instance().getSetting(strDataSettings,
+                                                               strSectBackgroundResPath).value
+            mpFile = glob.glob(self.m_dataFolder + 'KIC{}/{}/background_evidenceInformation.txt'
+                               .format(self.m_kicID, self.m_runId))[0]
             values = np.loadtxt(mpFile).T
-            self.m_evidence["Skilling's log(Evidence)"] = values[0] #todo replace with string
-            self.m_evidence["Skilling's Error log(Evidence)"] = values[1] #todo replace with string
-            self.m_evidence["Skilling's Information Gain"] = values[2] #todo replace with string
+            self.m_evidence[strEvidenceSkillLog] = values[0] 
+            self.m_evidence[strEvidenceSkillErrLog] = values[1] 
+            self.m_evidence[strEvidenceSkillInfLog] = values[2] 
         except:
             print("Failed to open File '" + glob.glob(self.m_dataFolder +
-                    'KIC*{}*/{}/background_evidenceInformation.txt'.format(self.m_KicID, self.m_runId))[0] + "'")
+                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_KicID, self.m_runId))[0] + "'")
             print("Setting Data to None")
             self.m_evidence = {}
