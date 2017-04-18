@@ -15,7 +15,7 @@ class Results:
     m_summary = None
     m_evidence = None
     m_backgroundParameter = {}
-    m_marginalDistributions = {}
+    m_marginalDistributions = []
     m_prior = None
     m_backgroundPriors = None
     m_kicID = None
@@ -45,9 +45,17 @@ class Results:
         self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz','(ppm$^2$/$\mu$Hz)',
                         '($\mu$Hz)','($\mu$Hz)']
 
-        for i in range(0,9):
+        for i in range(0,10):
+            par_median = self.m_summary.getData(strSummaryMedian)[i]  # median values
+            par_le = self.m_summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
+            par_ue = self.m_summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
+            backGroundParameters = np.vstack((par_median, par_le, par_ue))
+
             self.m_backgroundParameter[self.m_names[i]] = BackgroundParameter(self.m_names[i],self.m_units[i],kicID,runID,i)
-            self.m_marginalDistributions[self.m_names[i]] = MarginalDistribution(self.m_names[i], self.m_units[i], kicID, runID, i)
+
+            self.m_marginalDistributions.append(MarginalDistribution(self.m_names[i], self.m_units[i], kicID, runID, i))
+            print(self.m_names[i])
+            self.m_marginalDistributions[i].setBackgroundParameters(backGroundParameters)
 
     def getBackgroundParameters(self,key = None):
         if key is None:
@@ -57,15 +65,6 @@ class Results:
                 return self.m_backgroundParameter[key]
             else:
                 return self.m_backgroundParameter
-
-    def getMarginalDistributions(self,key = None):
-        if key is None:
-            return self.m_marginalDistributions
-        else:
-            if key in self.m_marginalDistributions.keys():
-                return self.m_marginalDistributions[key]
-            else:
-                return self.m_marginalDistributions
 
     def getPrior(self):
         return self.m_prior
@@ -82,15 +81,24 @@ class Results:
     def getNyquistFrequency(self):
         return self.m_nyq
 
+    def getPSD(self):
+        return self.m_dataFile.getPSD()
+
+    def getSmoothing(self):
+        return None #TODO return useful value here
+
+    def getKicID(self):
+        return self.m_kicID
+
 
     def createBackgroundModel(self, runGauss):
         freq, psd = self.m_dataFile.getPSD()
-        par_median = self.m_backgroundParameter[1].getData()
-        par_le = self.m_backgroundParameter[4].getData()
-        par_ue = self.m_backgroundParameter[5].getData()
+        par_median = self.m_summary.getData(strSummaryMedian)  # median values
+        par_le = self.m_summary.getData(strSummaryLowCredLim)  # lower credible limits
+        par_ue = self.m_summary.getData(strSummaryUpCredlim) # upper credible limits
         if runGauss:
             hg = par_median[
-                7]  # third last parameter TODO these Parameters need to be added when plotting with gaussian
+                7]  # third last parameter
             numax = par_median[8]  # second last parameter
             sigma = par_median[9]  # last parameter
 
@@ -130,3 +138,12 @@ class Results:
             return zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
         else:
             return zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
+
+    def createMarginalDistribution(self,key = None):
+        if key is None:
+            return self.m_marginalDistributions
+        else:
+            for i in self.m_marginalDistributions:
+                if i.getName() == key:
+                    return self.m_marginalDistributions[i]
+

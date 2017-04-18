@@ -8,7 +8,6 @@ class ParameterSummary:
     m_runId = None
     m_dataFolder = None
     m_id = None
-    m_data = None
     m_name = None
     m_unit = None
     m_kicID = None
@@ -52,13 +51,13 @@ class ParameterSummary:
             self.__readData()
 
         if key is None:
-            return self.m_data
+            return self.m_values
         else:
             try:
-                return self.m_data[key]
+                return self.m_values[key]
             except:
                 print("No value for key '" + key + "', returning full dict")
-                return self.m_data
+                return self.m_values
 
     def __readData(self):
         try:
@@ -73,7 +72,7 @@ class ParameterSummary:
             self.m_values[strSummaryIIMoment] = values[3]  
             self.m_values[strSummaryLowCredLim] = values[4]  
             self.m_values[strSummaryUpCredlim] = values[5]  
-            self.m_values[strSummarySkew] = values[6]  
+            self.m_values[strSummarySkew] = values[6]
         except:
             print("Failed to open File '" + glob.glob(self.m_dataFolder +
                     'KIC{}/{}/background_parameterSummary.txt'.format(self.m_KicID, self.m_runId))[0] + "'")

@@ -11,6 +11,7 @@ class MarginalDistribution:
     m_data = None
     m_name = None
     m_unit = None
+    m_backgroundData = None
 
     def __init__(self,name, unit, kickId=None,runID = 00,id = None):
         '''
@@ -89,6 +90,26 @@ class MarginalDistribution:
             self.__readData()
 
         return self.m_data
+
+    def setBackgroundParameters(self,backgroundData):
+        self.m_backgroundData = backgroundData
+
+    def createMarginalDistribution(self):
+        if self.m_backgroundData is None:
+            print("BackgroundData is not set, returning")
+            return
+
+        par_median, par_le, par_ue = self.m_backgroundData
+        par, marg = self.m_data
+
+        par_err_le = par_median - par_le
+        par_err_ue = par_ue - par_median
+        par_err = (par_err_le ** 2 + par_err_ue ** 2) ** (0.5) / 2 ** (0.5)
+
+        fill_x = par[(par >= par_le) & (par <= par_ue)]
+        fill_y = marg[(par >= par_le) & (par <= par_ue)]
+
+        return (par,marg,fill_x,fill_y,par_err)
 
     def __readData(self):
         '''
