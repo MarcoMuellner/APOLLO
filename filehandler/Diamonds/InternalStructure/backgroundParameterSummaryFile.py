@@ -76,6 +76,6 @@ class ParameterSummary:
             self.m_values[strSummarySkew] = values[6]  
         except:
             print("Failed to open File '" + glob.glob(self.m_dataFolder +
-                    'KIC*{}*/{}/background_parameterSummary.txt'.format(self.m_KicID, self.m_runId))[0] + "'")
+                    'KIC{}/{}/background_parameterSummary.txt'.format(self.m_KicID, self.m_runId))[0] + "'")
             print("Setting Data to None")
             self.m_values = {}
