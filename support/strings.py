@@ -24,4 +24,20 @@ strSummaryIIMoment = "II Moment (Variance if Normal distribution)"
 strSummaryLowCredLim = "Lower Credible Limit"
 strSummaryUpCredlim = "Upper Credible Limit"
 strSummarySkew = "Skewness"
+#EvidenceFileStrings
+strEvidenceSkillLog = "Skilling's log(Evidence)"
+strEvidenceSkillErrLog = "Skilling's Error log(Evidence)"
+strEvidenceSkillInfLog = "Skilling's Information Gain"
+#PriorFileStrings
+strPriorFlatNoise = "Flatnoiselevel"
+strPriorAmpHarvey1 = "AmplitudeHarvey1"
+strPriorFreqHarvey1 = "FrequencyHarvey1"
+strPriorAmpHarvey2 = "AmplitudeHarvey2"
+strPriorFreqHarvey2 = "FrequencyHarvey2"
+strPriorAmpHarvey3  = "AmplitudeHarvey3"
+strPriorFreqHarvey3 = "FrequencyHarvey3"
+strPriorHeight = "HeightOscillation"
+strPriorNuMax = "NuMax"
+strPriorSigma = "Sigma"
+
 
