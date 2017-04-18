@@ -1,0 +1,16 @@
+{
+    "Settings":{
+        "Data Settings":{
+            "Background Data Path":{
+                "GUI Name":"Data Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/data/"
+            },
+            "Background Results Path":{
+                "GUI Name":"Results Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/results/solved/"
+            }
+        }
+    }
+}
