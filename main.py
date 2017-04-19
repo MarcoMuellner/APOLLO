@@ -5,15 +5,38 @@ from plotter.plotFunctions import *
 
 loghandler.setup_logging()
 
-result = Results('002436458','00')
-#plotPSD(result,True,False)
-#plotMarginalDistributions(result)
-#plotParameterTrend(result)
-result.calculateDeltaNu()
-calc = result.getDeltaNuCalculator()
+'''
+kicList =   [
+            '002436458',
+            '008196817',
+            '008263801',
+            '008264006',
+            '008264079',
+            '008329894',
+            '008366239'
+            ]
+'''
+kicList = ['008264074']
 
+for i in kicList:
+    result = Results(i,'00')
+    plotPSD(result,True,result.getPSDOnly())
+    #plotMarginalDistributions(result)
+    #plotParameterTrend(result)
+    if result.getPSDOnly() is False:
+        result.calculateDeltaNu()
+        calc = result.getDeltaNuCalculator()
+        plotDeltaNuFit(calc)
 
-show()
+        print("------------FINAL RESULTS-------------------")
+        nuMax = result.getNuMax()
+        sigma = result.getSigma()
+        deltaNu = calc.getCen()
+        print("NuMax = '"+str(nuMax)+"', Sigma = '"+str(sigma)+"'")
+        print("DeltaNu = '"+str(deltaNu[0])+"', Sigma = '"+str(deltaNu[1])+"'")
+        print("--------------------------------------------")
+
+    show()
 
 
 

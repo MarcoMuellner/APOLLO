@@ -33,6 +33,7 @@ class Results:
     m_sigma = None
     m_gaussBoundaries = None
     m_deltaNuCalculator = None
+    m_PDSOnly = False
 
 
     def __init__(self,kicID,runID):
@@ -54,16 +55,26 @@ class Results:
         self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz','ppm$^2$/$\mu$Hz',
                         '$\mu$Hz','$\mu$Hz']
 
+        #todo this should happen again if Diamondsrun is finished!
         for i in range(0,10):
-            par_median = self.m_summary.getData(strSummaryMedian)[i]  # median values
-            par_le = self.m_summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
-            par_ue = self.m_summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
-            backGroundParameters = np.vstack((par_median, par_le, par_ue))
+            try:
+                par_median = self.m_summary.getData(strSummaryMedian)[i]  # median values
+                par_le = self.m_summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
+                par_ue = self.m_summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
+                backGroundParameters = np.vstack((par_median, par_le, par_ue))
+            except:
+                par_median = 0  # median values
+                par_le = 0  # lower credible limits
+                par_ue = 0  # upper credible limits
+                backGroundParameters = np.vstack((par_median, par_le, par_ue))
+                print("Problem creating median,le,ue values. Creating them with 0")
 
             self.m_backgroundParameter.append(BackgroundParameter(self.m_names[i],self.m_units[i],kicID,runID,i))
 
             self.m_marginalDistributions.append(MarginalDistribution(self.m_names[i], self.m_units[i], kicID, runID, i))
             self.m_marginalDistributions[i].setBackgroundParameters(backGroundParameters)
+            if self.m_backgroundParameter[i].getData() is None:
+                self.m_PSDOnly = True
 
     def getBackgroundParameters(self,key = None):
         if key is None:
@@ -112,6 +123,9 @@ class Results:
 
     def getGaussBoundaries(self):
         return self.m_gaussBoundaries
+
+    def getPSDOnly(self):
+        return self.m_PSDOnly
 
     def calculateDeltaNu(self):
         backgroundModel = self.createBackgroundModel(True)

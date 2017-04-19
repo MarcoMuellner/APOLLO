@@ -57,8 +57,7 @@ class DeltaNuCalculator:
         for i in range(0, len(self.m_deltaF)):
             self.m_deltaF[i] = i * stepFreq
 
-        self.m_corrs = self.butter_lowpass_filtfilt(self.m_corrs, self.m_nyq, 30*abs(np.log10(self.m_deltaNuEst)))
-        #self.m_corrs = self.butter_lowpass_filtfilt(self.m_corrs, self.m_nyq, 10*self.m_deltaNuEst)
+        self.m_corrs = self.butter_lowpass_filtfilt(self.m_corrs, self.m_nyq, 30*abs(np.log10(self.m_deltaNuEst)))#Calculation of cutoff frequency purely on gueswork
 
         # calculate Fit
         self.scipyFit(np.array((self.m_deltaF, self.m_corrs)), self.m_deltaNuEst)

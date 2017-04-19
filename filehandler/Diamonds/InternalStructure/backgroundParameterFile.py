@@ -100,8 +100,8 @@ class BackgroundParameter:
                                .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]
             self.m_parameters = np.loadtxt(mpFile).T
         except:
-            print("Failed to open File '"+glob.glob(self.m_dataFolder+'KIC*{}*/{}/background_parameter*{}.txt'
-                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]+"'")
+            print("Failed to open File '"+self.m_dataFolder+'KIC*{}*/{}/background_parameter*{}.txt'
+                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id))+"'")
             print("Setting Data to None")
             self.m_parameters = None
 

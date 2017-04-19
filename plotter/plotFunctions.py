@@ -5,7 +5,9 @@ from support.strings import *
 #Todo maybe use a different plotting device, pylab is fairly ugly
 def plotPSD(results,runGauss,psdOnly):
     psd = results.getPSD()
-    backgroundModel = results.createBackgroundModel(runGauss)
+    backgroundModel = None
+    if psdOnly is False:
+        backgroundModel = results.createBackgroundModel(runGauss)
     smoothedData = results.getSmoothing()
 
     pl.figure(figsize=(16,8))
