@@ -10,11 +10,13 @@ class DeltaNuCalculator:
     m_backgroundParameters = None
     m_gaussBoundaries = None
     m_deltaNuEst = None
+    m_deltaF =None
     m_nyq = None
     m_y0 = (0,0)
     m_amp = (0,0)
     m_cen = (0,0)
     m_wid = (0,0)
+    m_corrs = None
     m_multiplicator = 2
 
     def __init__(self,nuMax,sigma,psd,nyq,backGroundParameters,backGroundModel):
@@ -50,12 +52,12 @@ class DeltaNuCalculator:
 
         # Calculte stepsize and x-Axis for Autocorrelation
         stepFreq = self.m_psd[0][2] - self.m_psd[0][1]
-        deltaF = np.zeros(len(corrs))
-        for i in range(0, len(deltaF)):
-            deltaF[i] = i * stepFreq
+        self.m_deltaF = np.zeros(len(corrs))
+        for i in range(0, len(self.m_deltaF)):
+            self.m_deltaF[i] = i * stepFreq
 
         # calculate Fit
-        self.scipyFit(np.array((deltaF, corrs)), self.m_deltaNuEst)
+        self.scipyFit(np.array((self.m_deltaF, corrs)), self.m_deltaNuEst)
 
     def findGaussBoundaries(self,multiplicator,data = None,cen = None,sigma = None):
         minima = 0
@@ -106,11 +108,11 @@ class DeltaNuCalculator:
 
         corrs2 = np.correlate(oscillatingData[1], oscillatingData[1], mode='full')
         N = len(corrs2)
-        corrs2 = corrs2[N // 2:]
+        self.m_corrs = corrs2[N // 2:]
         lengths = range(N, N // 2, -1)
-        corrs2 /= lengths
-        corrs2 /= corrs2[0]
-        return corrs2
+        self.m_corrs /= lengths
+        self.m_corrs /= corrs2[0]
+        return self.m_corrs
 
     def estimateDeltaNu(self,nuMax = None):
         nuMax = nuMax if nuMax is not None else self.m_nuMax
@@ -163,4 +165,14 @@ class DeltaNuCalculator:
     def getWid(self):
         return self.m_wid
 
+    def getDeltaNuEst(self):
+        return self.m_deltaNuEst
 
+    def getDeltaF(self):
+        return self.m_deltaF
+
+    def getBestFit(self):
+        return self.m_popt
+
+    def getCorrelations(self):
+        return self.m_corrs

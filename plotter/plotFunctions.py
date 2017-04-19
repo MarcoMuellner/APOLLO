@@ -62,5 +62,20 @@ def plotParameterTrend(results):
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
 
+def plotDeltaNuFit(deltaNuCalculator):
+    deltaNuEst = deltaNuCalculator.getDeltaNuEst()
+    deltaF = deltaNuCalculator.getDeltaF()
+    best_fit = deltaNuCalculator.getBestFit()
+    corrs = deltaNuCalculator.getCorrelations()
+
+    pl.figure()
+    pl.axvline(x=deltaNuEst, linestyle='dotted')
+    pl.xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
+    pl.plot(deltaF, corrs, 'b', linewidth=2)
+    pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *best_fit), 'r', linestyle='dotted')
+    pl.xlabel("Delta nu (uHz)")
+    pl.ylabel("ACF")
+    pl.title("Autocorrelation Delta Nu")
+
 def show():
     pl.show()
