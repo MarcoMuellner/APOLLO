@@ -18,6 +18,7 @@ class DeltaNuCalculator:
     m_wid = (0,0)
     m_corrs = None
     m_multiplicator = 2
+    m_initFit = None
 
     def __init__(self,nuMax,sigma,psd,nyq,backGroundParameters,backGroundModel):
         self.m_nuMax = nuMax
@@ -44,20 +45,23 @@ class DeltaNuCalculator:
         self.m_deltaNuEst = self.estimateDeltaNu()
 
         # smooth data
-        clearedData = self.butter_lowpass_filtfilt(clearedData, self.m_nyq, self.m_deltaNuEst)
+        clearedData = self.butter_lowpass_filtfilt(clearedData, self.m_nyq, self.m_deltaNuEst*10)
         oscillatingData = np.vstack((self.m_psd[0][indexMin:indexMax], clearedData[indexMin:indexMax]))
 
         # calculate autocorrelation
-        corrs = self.calculateAutocorrelation(oscillatingData)
+        self.m_corrs = self.calculateAutocorrelation(oscillatingData)
 
         # Calculte stepsize and x-Axis for Autocorrelation
         stepFreq = self.m_psd[0][2] - self.m_psd[0][1]
-        self.m_deltaF = np.zeros(len(corrs))
+        self.m_deltaF = np.zeros(len(self.m_corrs))
         for i in range(0, len(self.m_deltaF)):
             self.m_deltaF[i] = i * stepFreq
 
+        self.m_corrs = self.butter_lowpass_filtfilt(self.m_corrs, self.m_nyq, 30*abs(np.log10(self.m_deltaNuEst)))
+        #self.m_corrs = self.butter_lowpass_filtfilt(self.m_corrs, self.m_nyq, 10*self.m_deltaNuEst)
+
         # calculate Fit
-        self.scipyFit(np.array((self.m_deltaF, corrs)), self.m_deltaNuEst)
+        self.scipyFit(np.array((self.m_deltaF, self.m_corrs)), self.m_deltaNuEst)
 
     def findGaussBoundaries(self,multiplicator,data = None,cen = None,sigma = None):
         minima = 0
@@ -130,13 +134,23 @@ class DeltaNuCalculator:
         index = np.where(y == np.amax(y[indexMin:indexMax]))
 
         initY0 = np.mean(y[indexMin:indexMax])
-        initAmp = np.amax(y[indexMin:indexMax] / 4)
+        initWid = 0.05
+        initAmp = (np.amax(y[indexMin:indexMax]) - initY0)*(np.sqrt(2 * np.pi) * initWid)
         initCen = data[0][index[0]]
-        initWid = 0.10
         arr = [initY0, initAmp, initCen, initWid]
+        self.m_initFit = arr
 
-        bounds = ([np.mean(y[indexMin:indexMax]) - 0.05, np.amax(y[indexMin:indexMax]) / 8, initCen - 0.01, 0.05]
-                  , [np.mean(y[indexMin:indexMax]) + 0.05, np.amax(y[indexMin:indexMax]) / 2, initCen + 0.01, 0.3])
+        bounds = (  #LowerBound
+                    [ np.mean(y[indexMin:indexMax]) - 0.05,
+                    (np.amax(y[indexMin:indexMax]) - initY0) / 8,
+                    initCen - 0.05,
+                    0.05],
+                    #UpperBound
+                    [np.mean(y[indexMin:indexMax]) + 0.05,
+                    (np.amax(y[indexMin:indexMax]) - initY0) / 2,
+                    initCen + 0.01,
+                    0.3]
+                )
 
         self.m_popt, pcov = optimize.curve_fit(self.gaussian, x, y, p0=arr, bounds=bounds)
         self.m_perr = np.sqrt(np.diag(pcov))
@@ -176,3 +190,6 @@ class DeltaNuCalculator:
 
     def getCorrelations(self):
         return self.m_corrs
+
+    def getInitFit(self):
+        return self.m_initFit
