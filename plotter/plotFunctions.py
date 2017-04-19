@@ -8,7 +8,7 @@ def plotPSD(results,runGauss,psdOnly):
     backgroundModel = results.createBackgroundModel(runGauss)
     smoothedData = results.getSmoothing()
 
-    pl.figure(figsize=(16,9))
+    pl.figure(figsize=(16,8))
     pl.loglog(psd[0],psd[1],'k',alpha=0.5)
     if smoothedData is not None:
         pl.plot(psd[0],smoothedData)
@@ -67,12 +67,14 @@ def plotDeltaNuFit(deltaNuCalculator):
     deltaF = deltaNuCalculator.getDeltaF()
     best_fit = deltaNuCalculator.getBestFit()
     corrs = deltaNuCalculator.getCorrelations()
+    init_fit = deltaNuCalculator.getInitFit()
 
-    pl.figure()
+    pl.figure(figsize=(16, 8))
     pl.axvline(x=deltaNuEst, linestyle='dotted')
     pl.xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
     pl.plot(deltaF, corrs, 'b', linewidth=2)
-    pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *best_fit), 'r', linestyle='dotted')
+    pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *best_fit), 'r', linestyle='dotted',label='Best Fit')
+    pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *init_fit), 'g', linestyle='dashed',label='Init Fit')
     pl.xlabel("Delta nu (uHz)")
     pl.ylabel("ACF")
     pl.title("Autocorrelation Delta Nu")
