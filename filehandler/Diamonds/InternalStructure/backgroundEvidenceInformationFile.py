@@ -65,7 +65,7 @@ class Evidence:
             self.m_evidence[strEvidenceSkillErrLog] = values[1] 
             self.m_evidence[strEvidenceSkillInfLog] = values[2] 
         except:
-            print("Failed to open File '" + glob.glob(self.m_dataFolder +
-                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_KicID, self.m_runId))[0] + "'")
+            print("Failed to open File '" + self.m_dataFolder +
+                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId) + "'")
             print("Setting Data to None")
             self.m_evidence = {}

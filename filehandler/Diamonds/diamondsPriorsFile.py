@@ -79,8 +79,8 @@ class Priors:
             self.m_priors[strPriorNuMax] = (values[0][8], values[1][8])
             self.m_priors[strPriorSigma] = (values[0][9], values[1][9])
         except:
-            print("Failed to open File '" + glob.glob(self.m_dataFolder +
-                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId))[0] + "'")
+            print("Failed to open File '" + self.m_dataFolder +
+                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId) + "'")
             print("Setting Data to None")
             self.m_priors = {}
 
