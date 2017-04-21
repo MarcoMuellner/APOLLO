@@ -1,5 +1,12 @@
 {
     "Settings":{
+        "Calculation Settings":{
+            "Mode used to calculate Powerspectra (scipy,numpy)":{
+                "GUI Name":"Mode used to calculate Powerspectra (scipy,numpy)",
+                "GUI Type":"textEdit",
+                "Value":"scipy"
+            }
+        },
         "Data Settings":{
             "Background Data Path":{
                 "GUI Name":"Data Path for diamonds",

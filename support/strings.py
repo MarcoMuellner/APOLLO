@@ -8,14 +8,19 @@ strPathDefSettings = 'res/default_settings.json'
 strGUITypeTextEdit = 'textEdit'
 ##Settings
 strDataSettings= 'Data Settings'
+strCalcSettings= 'Calculation Settings'
 #strDataSettings
 strSectBackgroundResPath   = 'Background Results Path'
 strSectBackgroundDataPath   = 'Background Data Path'
+strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
 #SettingOptions
 strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'
 strOptionSection    = 'GUI Section'
 strOptionValue      = 'Value'
+#SettingValues
+strPowerModeNumpy = "numpy"
+strPowerModeSciPy = 'scipy'
 #ParameterSummaryStrings
 strSummaryMean = "I Moment (Mean)"
 strSummaryMedian = "Median"

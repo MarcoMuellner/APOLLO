@@ -10,10 +10,12 @@ def plotPSD(results,runGauss,psdOnly):
         backgroundModel = results.createBackgroundModel(runGauss)
     smoothedData = results.getSmoothing()
 
-    pl.figure(figsize=(16,8))
+    pl.figure(figsize=(16,7))
     pl.loglog(psd[0],psd[1],'k',alpha=0.5)
     if smoothedData is not None:
         pl.plot(psd[0],smoothedData)
+    else:
+        print("Smoothingdata is None!")
 
     if(psdOnly is not True):
         pl.plot(psd[0], backgroundModel[0], 'b', linestyle='dashed', linewidth=2)
@@ -27,13 +29,15 @@ def plotPSD(results,runGauss,psdOnly):
         pl.plot(psd[0],withoutGaussianBackground,'r',linestyle='solid',linewidth=3)
 
     pl.xlim(0.1,max(psd[0]))
-    pl.ylim(min(psd[1]*0.95),max(psd[1])*1.2)
+    pl.ylim(np.mean(psd[1])/10**6,max(psd[1])*1.2)
     pl.xticks(fontsize=16)  ;pl.yticks(fontsize=16)
     pl.xlabel(r'Frequency [$\mu$Hz]',fontsize=18)
     pl.ylabel(r'PSD [ppm$^2$/$\mu$Hz]',fontsize=18)
     title = "Standardmodel" if runGauss else "Noise Backgroundmodel"
     title += ' KIC'+results.getKicID()
     pl.title(title)
+    fig = pl.gcf()
+    fig.canvas.set_window_title('Powerspectrum')
 
 def plotMarginalDistributions(results):
     pl.figure(figsize=(23,12))
@@ -64,22 +68,25 @@ def plotParameterTrend(results):
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
 
-def plotDeltaNuFit(deltaNuCalculator):
+def plotDeltaNuFit(deltaNuCalculator,kicID):
     deltaNuEst = deltaNuCalculator.getDeltaNuEst()
     deltaF = deltaNuCalculator.getDeltaF()
     best_fit = deltaNuCalculator.getBestFit()
     corrs = deltaNuCalculator.getCorrelations()
     init_fit = deltaNuCalculator.getInitFit()
 
-    pl.figure(figsize=(16, 8))
+    pl.figure(figsize=(16, 7))
     pl.axvline(x=deltaNuEst, linestyle='dotted')
     pl.xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
-    pl.plot(deltaF, corrs, 'b', linewidth=2)
-    pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *best_fit), 'r', linestyle='dotted',label='Best Fit')
-    pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *init_fit), 'g', linestyle='dashed',label='Init Fit')
+    data = pl.plot(deltaF, corrs, 'b', linewidth=2,label='ACF')
+    final_fit = pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *best_fit), 'r', linestyle='dotted',label='Best Fit')
+    start_fit = pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *init_fit), 'g', linestyle='dashed',label='Init Fit')
+    pl.legend()
     pl.xlabel("Delta nu (uHz)")
     pl.ylabel("ACF")
-    pl.title("Autocorrelation Delta Nu")
+    pl.title("Autocorrelation Delta Nu KIC"+str(kicID))
+    fig = pl.gcf()
+    fig.canvas.set_window_title('DeltaNuFit')
 
 def show():
     pl.show()

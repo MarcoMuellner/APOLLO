@@ -33,7 +33,7 @@ class Results:
     m_sigma = None
     m_gaussBoundaries = None
     m_deltaNuCalculator = None
-    m_PDSOnly = False
+    m_PDSOnly = None
 
 
     def __init__(self,kicID,runID):
@@ -54,6 +54,8 @@ class Results:
 
         self.m_units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz','ppm','$\mu$Hz', 'ppm', '$\mu$Hz','ppm$^2$/$\mu$Hz',
                         '$\mu$Hz','$\mu$Hz']
+
+        self.m_PSDOnly = False
 
         #todo this should happen again if Diamondsrun is finished!
         for i in range(0,10):
