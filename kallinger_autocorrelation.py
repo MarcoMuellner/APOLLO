@@ -41,13 +41,26 @@ powerCalc.setKicID(input)
 nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.getPSD())
 
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
+initLowIndex = nuMaxCalc.getNearestIndex() + 10
+corr_2,best_fit_2 = nuMaxCalc.calculateIterativeFilterFrequency()
+initLowIndex_2 = nuMaxCalc.getNearestIndex() + 10
 
 best_fit[1]*=24*60
 corr[0] *=24*60
 pl.figure()
-pl.plot(corr[0][1:],corr[1][1:])
+pl.title("First fit")
+pl.plot(corr[0],corr[1])
 pl.plot(corr[0], nuMaxCalc.sinc(corr[0], *best_fit), 'r', linestyle='dotted')
-pl.xlim(0,10)
+print(corr[0][initLowIndex])
+pl.xlim(0,corr[0][initLowIndex])
+pl.xlabel("Tau_ACF (min)")
+pl.ylabel("ACF^2")
+pl.axhline(0)
+pl.figure()
+pl.title("Second fit")
+pl.plot(corr_2[0],corr[1])
+pl.plot(corr_2[0], nuMaxCalc.sinc(corr_2[0], *best_fit_2), 'r', linestyle='dotted')
+pl.xlim(0,corr_2[0][initLowIndex_2])
 pl.xlabel("Tau_ACF (min)")
 pl.ylabel("ACF^2")
 pl.axhline(0)

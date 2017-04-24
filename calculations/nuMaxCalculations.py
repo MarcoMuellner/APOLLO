@@ -1,5 +1,5 @@
 import numpy as np
-from math import log10
+from math import log10,log,exp
 import time as t
 from scipy.signal import butter, filtfilt
 from scipy import optimize
@@ -86,12 +86,12 @@ class NuMaxCalculator:
         best_fit = self.scipyFit(np.array((deltaF, corr)))
         tauACF = best_fit[1]*24*60
 
-        print(tauACF)
+        print("Tau_ACF is '"+str(tauACF)+"'")
 
         self.__iterativeNuFilter = 10**(3.098-0.932*log10(tauACF)-0.025*log10(tauACF)**2)
         #self.__iterativeNuFilter *=10**6
-        if abs(filterFrequency - self.__initNuFilter) < 10**-4:
-            self.__iterativeNuFilter = (1/(tauACF*60))*10**6
+        #if abs(filterFrequency - self.__initNuFilter) < 10**-4:
+        #    self.__iterativeNuFilter = (1/(tauACF*60))*10**6
         print("Second iterative filter is '"+str(self.__iterativeNuFilter)+"'")
         return np.array((deltaF,corr)),best_fit
 
@@ -124,17 +124,17 @@ class NuMaxCalculator:
         return a * np.sinc(4 * x / tau_acf)**2
 
     def scipyFit(self,data):
-        y = data[1][1:100]
-        x = data[0][1:100]
+        y = data[1][0:100]
+        x = data[0][0:100]
 
-        nearestIndex = self.find_nearest(y,0)
+        self.__nearestIndex = self.find_first_index(y, 0)
 
-        print("Nearest index is '"+str(nearestIndex)+"'")
-        print("x-Value is '"+str(x[nearestIndex]*24*60))
-        print("y-Value is '"+str(x[nearestIndex])+"'")
+        print("Nearest index is '"+str(self.__nearestIndex)+"'")
+        print("x-Value is '"+str(x[self.__nearestIndex]*24*60))
+        print("y-Value is '"+str(x[self.__nearestIndex])+"'")
 
         initA = np.amax(y)
-        initTau_acf = x[nearestIndex]
+        initTau_acf = x[self.__nearestIndex]
         arr = [initA, initTau_acf]
 
         bounds = ([initA - 0.1, initTau_acf - 0.05]
@@ -148,7 +148,7 @@ class NuMaxCalculator:
 
         return popt
 
-    def find_nearest(self,array, value):
+    def find_first_index(self, array, value):
         delta = 0.01
 
         for i in array:
@@ -175,4 +175,7 @@ class NuMaxCalculator:
 
     def getSecondFilteredPSD(self):
         return self.__secondFilteredPSD
+
+    def getNearestIndex(self):
+        return self.__nearestIndex[0]
 
