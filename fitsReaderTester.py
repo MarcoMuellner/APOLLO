@@ -10,5 +10,20 @@ file = FitsReader(filename)
 #powerCalc = PowerspectraCalculator(file.getLightCurve())
 #powerCalc.setKicID(input)
 
-pl.plot(file.getLightCurve()[0],file.getLightCurve()[1])
+npArrs = file.getLightCurve()
+counter = 1
+
+print(npArrs.shape)
+
+pl.plot(npArrs[0],npArrs[1])
+
+'''
+for i in npArrs:
+    pl.title(str(counter)+" Array")
+    print(npArrs)
+    pl.plot(i[0],i[1])
+    pl.figure()
+    counter +=1
+'''
+
 pl.show()
