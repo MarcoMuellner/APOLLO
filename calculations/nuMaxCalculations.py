@@ -72,9 +72,6 @@ class NuMaxCalculator:
 
         psd = PowerspectraCalculator(np.array((self.__lightCurve[0],smoothed)))
 
-        plotPSD(psd,True,True)
-
-
         corr = self.calculateAutocorrelation(smoothed) #todo this seems to be a bottleneck here...
 
         corr = np.power(corr,2)
@@ -89,10 +86,9 @@ class NuMaxCalculator:
         print("Tau_ACF is '"+str(tauACF)+"'")
 
         self.__iterativeNuFilter = 10**(3.098-0.932*log10(tauACF)-0.025*log10(tauACF)**2)
-        #self.__iterativeNuFilter *=10**6
-        #if abs(filterFrequency - self.__initNuFilter) < 10**-4:
-        #    self.__iterativeNuFilter = (1/(tauACF*60))*10**6
+        self.__photonNoise = np.mean(self.__powerSpectra[1])*(1-best_fit[0]) if best_fit[0] < 1 else np.mean(self.__powerSpectra[1])
         print("Second iterative filter is '"+str(self.__iterativeNuFilter)+"'")
+        print("Photon noise is '"+str(self.__photonNoise))
         return np.array((deltaF,corr)),best_fit
 
     def butter_lowpass_filtfilt(self,data, f, nyq, order=5):
@@ -170,6 +166,9 @@ class NuMaxCalculator:
     def getInitNuFilter(self):
         return self.__initNuFilter
 
+    def getNuFilterFitted(self):
+        return self.__iterativeNuFilter
+
     def getFirstFilteredPSD(self):
         return self.__firstFilteredPSD
 
@@ -178,4 +177,7 @@ class NuMaxCalculator:
 
     def getNearestIndex(self):
         return self.__nearestIndex[0]
+
+    def getPhotonNoise(self):
+        return self.__photonNoise
 

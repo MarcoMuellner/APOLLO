@@ -4,7 +4,7 @@ from plotter.plotFunctions import *
 
 
 loghandler.setup_logging()
-
+'''
 kicList =   [
             '002436458',
             '008196817',
@@ -15,8 +15,8 @@ kicList =   [
             '008366239',
             '008264074'
             ]
-
-#kicList = ['008264074']
+'''
+kicList = ['004346201']
 resultList = []
 
 for i in kicList:
@@ -39,6 +39,8 @@ for i in kicList:
 for i in resultList:
     print('--------------Result KIC'+i.getKicID()+'------------')
     print('nuMax = '+str(i.getNuMax())+'('+str(i.getSigma())+')')
+    print('Amplitude = '+str(i.getHg())+"'")
+    print('Sigma = '+str(i.getSigma())+"'")
     print('DeltaNu = '+str(i.getDeltaNuCalculator().getCen()[0])+'('+str(i.getDeltaNuCalculator().getCen()[1])+')')
     print('----------------------------------------------------------------')
 

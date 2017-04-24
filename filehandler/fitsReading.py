@@ -17,6 +17,7 @@ class FitsReader:
         time = np.zeros(scidata.shape[0])
         flux = np.zeros(scidata.shape[0])
 
+
         prevTime = scidata[0, 0]
         for i in range(0, scidata.shape[0] - 1):
             prevTime = scidata[i][0]

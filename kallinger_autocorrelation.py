@@ -30,7 +30,7 @@ def smoothTriangle(data, degree, dropVals=False):
     return smoothed
 
 
-input = '004346201_18'
+input = '004351319_19'
 powerSpectrum = False
 filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
     "PSD_" if powerSpectrum else "") + "filt_inp.fits"
