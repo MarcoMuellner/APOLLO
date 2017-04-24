@@ -18,6 +18,13 @@
                 "GUI Type":"textEdit",
                 "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/results/solved/"
             }
+        },
+        "Diamonds Settings":{
+            "Diamonds binary path":{
+                "GUI Name":"Diamonds path to binaries",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/build/"
+            }
         }
     }
 }

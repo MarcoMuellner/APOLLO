@@ -37,19 +37,6 @@ filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)
-'''
-smoothing = smoothTriangle(powerCalc.getLightcurve()[1],1500)
-smoothing = powerCalc.getLightcurve()[1]-smoothing
-
-powerCalc1 = PowerspectraCalculator(np.array((file.getLightCurve()[0],smoothing)))
-
-plotPSD(powerCalc,True,True)
-plotPSD(powerCalc1,True,True)
-show()
-'''
-
-#pl.plot(file.getLightCurve()[0],file.getLightCurve()[1])
-#plotPSD(powerCalc,True,True)
 
 nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.getPSD())
 
@@ -64,9 +51,5 @@ pl.xlim(0,10)
 pl.xlabel("Tau_ACF (min)")
 pl.ylabel("ACF^2")
 pl.axhline(0)
-#pl.ylim(0,max(corr[1])+0.1)
-#pl.axhline(y=0,linestyle='dotted')
-#pl.axvline(x=best_fit[1],linestyle='dotted')
 plotPSD(powerCalc,True,True)
-#plotPSD(nuMaxCalc.getFirstFilteredPSD(),True,True)
 show()

@@ -9,10 +9,12 @@ strGUITypeTextEdit = 'textEdit'
 ##Settings
 strDataSettings= 'Data Settings'
 strCalcSettings= 'Calculation Settings'
+strDiamondsSettings ='Diamonds Settings'
 #strDataSettings
 strSectBackgroundResPath   = 'Background Results Path'
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
+strSectDiamondsBinaryPath = 'Diamonds binary path'
 #SettingOptions
 strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'
@@ -44,5 +46,8 @@ strPriorFreqHarvey3 = "FrequencyHarvey3"
 strPriorHeight = "HeightOscillation"
 strPriorNuMax = "NuMax"
 strPriorSigma = "Sigma"
+#DiamondsBinaryNames
+strDiamondsNoGaussian = "multirun_noise"
+strDiamondsGaussian = "multirun"
 
 
