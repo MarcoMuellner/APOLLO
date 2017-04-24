@@ -4,8 +4,12 @@ from calculations.nuMaxCalculations import NuMaxCalculator
 from calculations.priorCalculations import PriorCalculator
 from plotter.plotFunctions import *
 from filehandler.Diamonds.diamondsFileCreating import FileCreater
+from diamonds.diamondsProcesses import DiamondsProcess
 
-input = '004346201_18'
+#003656476_12
+#004346201_18
+#004351319_19
+input = '004351319_19'
 powerSpectrum = False
 filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
     "PSD_" if powerSpectrum else "") + "filt_inp.fits"
@@ -59,8 +63,10 @@ for i in range(0,len(priors) ):
 
 priors = np.array((lowerBounds,upperBounds)).transpose()
 
-
 files = FileCreater(input,powerCalc.getPSD(),nyquist,priors)
+
+proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
+proc.start()
 
 
 #plotPSD(powerCalc,True,True)

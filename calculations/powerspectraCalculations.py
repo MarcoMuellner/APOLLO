@@ -72,7 +72,7 @@ class PowerspectraCalculator:
         if self.__powerSpectra is None:
             print("Powerspectra is None!")
 
-        return self.__powerSpectra
+        return np.array((self.__powerSpectra[0][1:],self.__powerSpectra[1][1:]))
 
     def getSmoothing(self):
         return self.__butter_lowpass_filtfilt(self.__powerSpectra[1])

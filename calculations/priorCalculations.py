@@ -42,28 +42,28 @@ class PriorCalculator:
         self.__amplitude = k*1/pow(nuMax,s)
 
     def getFirstHarveyFrequencyBoundary(self):
-        return (0.8*self.__initNuFilter,1.2*self.__initNuFilter)
+        return (0.5*self.__initNuFilter,1.5*self.__initNuFilter)
 
     def getSecondHarveyFrequencyBoundary(self):
-        return (0.8 * self.__b_1, 1.2 * self.__b_1)
+        return (0.5 * self.__b_1, 1.5 * self.__b_1)
 
     def getThirdHarveyFrequencyBoundary(self):
-        return (0.8 * self.__b_2, 1.2 * self.__b_2)
+        return (0.5 * self.__b_2, 1.5 * self.__b_2)
 
     def getHarveyAmplitudesBoundary(self):
-        return (0.6 * self.__a,1.4*self.__a)
+        return (0.5 * self.__a,1.5*self.__a)
 
     def getNuMaxBoundary(self):
-        return (0.8*self.__nuMax,1.2*self.__nuMax)
+        return (0.5*self.__nuMax,1.5*self.__nuMax)
 
     def getSigmaBoundary(self):
-        return (0.8*self.__sigma,1.2*self.__sigma)
+        return (0.5*self.__sigma,1.5*self.__sigma)
 
     def getAmplitudeBounday(self):
         return (0.5*self.__amplitude,1.5*self.__amplitude)
 
     def getPhotonNoiseBoundary(self):
-        return (0.8*self.__photonNoise,1.2*self.__photonNoise)
+        return (0.5*self.__photonNoise,1.5*self.__photonNoise)
 
     def getSigma(self):
         return self.__sigma
