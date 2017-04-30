@@ -1,10 +1,15 @@
+import os
+
 from loghandler import loghandler
 from filehandler.Diamonds.diamondsResultsFile import Results
 from plotter.plotFunctions import *
+from settings.settings import Settings
+from support.directoryManager import cd
+from math import sqrt,pi
 
 
 loghandler.setup_logging()
-'''
+
 kicList =   [
             '002436458',
             '008196817',
@@ -15,37 +20,47 @@ kicList =   [
             '008366239',
             '008264074'
             ]
-'''
-kicList = ['004346201']
 resultList = []
+dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+print(dataFolder)
+arrSun = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICSun.txt")
+arrTemperatures = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICID_Temperature.txt")
+arrTemperatures = arrTemperatures.transpose()
+print("arrtemp = '"+str(arrTemperatures[0]))
+print(arrSun)
 
 for i in kicList:
-    result = Results(i,'00')
-    plotPSD(result,True,result.getPSDOnly())
-    #plotMarginalDistributions(result)
+    position = np.where(arrTemperatures[0] == float(i))[0]
+    Teff = None
+    if len(position > 0):
+        Teff = arrTemperatures[1][position[0]]
+    result = Results(i,'00',Teff)
     if result.getPSDOnly() is False:
+        nuMaxSun = arrSun[0]
+        deltaNuSun = arrSun[1]
+        tempSun = arrSun[2]
+
         result.calculateDeltaNu()
         calc = result.getDeltaNuCalculator()
         resultList.append(result)
-        plotDeltaNuFit(calc,result.getKicID())
+        result.calculateRadius(tempSun,nuMaxSun,deltaNuSun)
+        result.calculateLuminosity(tempSun)
 
         print('--------------Result KIC' + result.getKicID() + '------------')
         print('nuMax = ' + str(result.getNuMax()) + '(' + str(result.getSigma()) + ')')
         print('DeltaNu = ' + str(result.getDeltaNuCalculator().getCen()[0]) + '(' + str(
             result.getDeltaNuCalculator().getCen()[1]) + ')')
+        print(float(result.getKicID()))
         print('----------------------------------------------------------------')
 
 
-for i in resultList:
-    print('--------------Result KIC'+i.getKicID()+'------------')
-    print('nuMax = '+str(i.getNuMax())+'('+str(i.getSigma())+')')
-    print('Amplitude = '+str(i.getHg())+"'")
-    print('Sigma = '+str(i.getSigma())+"'")
-    print('DeltaNu = '+str(i.getDeltaNuCalculator().getCen()[0])+'('+str(i.getDeltaNuCalculator().getCen()[1])+')')
-    print('----------------------------------------------------------------')
-
-show()
-
+        print('--------------Calculations KIC' + result.getKicID() + '------------')
+        print("Temperature is '"+str(Teff))
+        print("Temperature of the sun '"+str(tempSun)+"'")
+        print("Radius for KicID '" + str(result.getKicID()) + "'is '" + str(result.getRadius()) + "'R_sun")
+        print("Luminosity for KicID '" + str(result.getKicID()) + "'is '" + str(result.getLuminosity()) + "'L_sun")
+        print("Bolometric Correlation for star '"+str(result.getKicID())+"' is: '"+str(result.getBC()))
+        print('----------------------------------------------------------------')
 
 
 

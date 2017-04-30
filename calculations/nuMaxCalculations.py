@@ -5,6 +5,7 @@ from scipy.signal import butter, filtfilt
 from scipy import optimize
 from calculations.powerspectraCalculations import PowerspectraCalculator
 from plotter.plotFunctions import *
+import pylab as pl
 
 class NuMaxCalculator:
     def __init__(self,lightCurve,powerSpectra):
@@ -25,6 +26,10 @@ class NuMaxCalculator:
 
         cutoffMax = 20 #These two parameters define the cutoff of things in the lightcurve you probably don't want
         cutoffMin = 0
+
+        print("Flickersize is '"+str(flickerSize)+"'")
+        print("MeanTimeBin is '"+str(meanTimeBin)+"'")
+        print("Iterations is '"+str(iterations)+"'")
 
 
         flickerFluxArray = np.zeros(int(iterations-cutoffMax-cutoffMin))
@@ -83,6 +88,10 @@ class NuMaxCalculator:
         best_fit = self.scipyFit(np.array((deltaF, corr)))
         tauACF = best_fit[1]*24*60
 
+        #pl.plot(deltaF,corr)
+        #pl.plot(deltaF,self.sinc(deltaF,*best_fit))
+        #pl.show()
+
         print("Tau_ACF is '"+str(tauACF)+"'")
 
         self.__iterativeNuFilter = 10**(3.098-0.932*log10(tauACF)-0.025*log10(tauACF)**2)
@@ -120,17 +129,21 @@ class NuMaxCalculator:
         return a * np.sinc(4 * x / tau_acf)**2
 
     def scipyFit(self,data):
-        y = data[1][0:100]
-        x = data[0][0:100]
+        y = data[1] #todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
+        x = data[0]
 
         self.__nearestIndex = self.find_first_index(y, 0)
+
+        print(self.__nearestIndex[0][0])
+        y = data[1][:self.__nearestIndex[0][0]+100]#todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
+        x = data[0][:self.__nearestIndex[0][0]+100]
 
         print("Nearest index is '"+str(self.__nearestIndex)+"'")
         print("x-Value is '"+str(x[self.__nearestIndex]*24*60))
         print("y-Value is '"+str(x[self.__nearestIndex])+"'")
 
         initA = np.amax(y)
-        initTau_acf = x[self.__nearestIndex]
+        initTau_acf = x[self.__nearestIndex[0]]
         arr = [initA, initTau_acf]
 
         bounds = ([initA - 0.1, initTau_acf - 0.05]

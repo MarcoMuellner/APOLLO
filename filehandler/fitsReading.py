@@ -1,5 +1,6 @@
-import numpy as np
 from astropy.io import fits
+import numpy as np
+import pylab as pl
 
 class FitsReader:
     def __init__(self,filename):
@@ -7,10 +8,26 @@ class FitsReader:
         return
 
     def __readData(self,filename):
-        hdulist = fits.open(filename)
-        print("Opening file '" + filename + "'")
-        hdulist.info()
-        scidata = hdulist[0].data
+        scidata = None
+        if ".fits" in filename:
+            hdulist = fits.open(filename)
+            print("Opening fits file '" + filename + "'")
+            hdulist.info()
+            scidata = hdulist[0].data
+            self.__mode = "fits"#todo in string
+        elif ".txt" in filename:
+            print("Opening txt file '" + filename + "'")
+            scidata = np.loadtxt(filename)
+            self.__mode = "txt" #todo in string
+        else:
+            print("File not recognised!")
+            raise ValueError
+        scidata = scidata.transpose()
+        print(len(scidata[0]))
+        print(len(scidata[1]))
+        pl.plot(scidata[0],scidata[1])
+        pl.show()
+        scidata = scidata.transpose()
         return scidata
 
     def __refineData(self,scidata):
@@ -19,17 +36,21 @@ class FitsReader:
 
 
         prevTime = scidata[0][0]
-        intervall = scidata[1][0] - scidata[0][0]
+        intervall = 0
+        if self.__mode == "fits":#todo in string
+            intervall = scidata[1][0] - scidata[0][0]
+        elif self.__mode == "txt":#todo in string
+            intervall = scidata[1][0] - scidata[0][0]
         print("Intervall is '"+str(intervall)+"'")
         arrays = []
         fluxArray =[]
         timeArray = []
         zeroValue = 0
         for i in range(0, scidata.shape[0] - 1):
-            if abs(scidata[i][1])<10**-6:
+            if abs(scidata[i][1])<10**-2:
                 continue
 
-            if (abs(scidata[i][0]-prevTime - intervall) > 10**-6):
+            if (abs(scidata[i][0]-prevTime - intervall) > 10**-1):
                 print("Difference is '"+str(scidata[i][0]-prevTime - intervall)+"'")
                 arrays.append((timeArray,fluxArray))
                 timeArray = []
@@ -48,7 +69,6 @@ class FitsReader:
         previousMaxLength = 0
         counter = 0
         for i in arrays:
-            print(len(i[0]))
             npArr = np.array((i[0],i[1]))
             npArrays.append(npArr)
 

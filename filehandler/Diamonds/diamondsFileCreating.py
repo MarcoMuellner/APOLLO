@@ -36,8 +36,8 @@ class FileCreater:
         arr_min = self.__priors[:6]
         filename_full = "background_hyperParameters.txt"
         filename_min = "background_hyperParameters_noise.txt"
-        self.__saveNumpyArray(self.__fullResultPath,filename_full,arr_full)
-        self.__saveNumpyArray(self.__fullResultPath, filename_min, arr_min)
+        self.__saveNumpyArray(self.__fullResultPath,filename_full,arr_full,'14')
+        self.__saveNumpyArray(self.__fullResultPath, filename_min, arr_min,'14')
         return
 
     def __createNSMC_configuringParameters(self):
@@ -59,9 +59,9 @@ class FileCreater:
         self.__saveNumpyArray(self.__fullResultPath,filename,arr)
         return
 
-    def __saveNumpyArray(self,path,filename,array):
+    def __saveNumpyArray(self,path,filename,array,comma ='14'):
         with cd(path):
-            np.savetxt(filename,array,fmt='%10.14f')
+            np.savetxt(filename,array,fmt='%10.'+comma+'f')
 
     def __createdata(self):
         filename = "KIC"+str(self.__kicID)+".txt"
