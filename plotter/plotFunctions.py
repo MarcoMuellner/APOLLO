@@ -1,8 +1,10 @@
 import pylab as pl
 import numpy as np
+from ggplot import *
+import pandas as pd
 
 from support.strings import *
-#Todo maybe use a different plotting device, pylab is fairly ugly
+
 def plotPSD(results,runGauss,psdOnly):
     psd = results.getPSD()
     backgroundModel = None
@@ -10,34 +12,67 @@ def plotPSD(results,runGauss,psdOnly):
         backgroundModel = results.createBackgroundModel(runGauss)
     smoothedData = results.getSmoothing()
 
-    pl.figure(figsize=(16,7))
-    pl.loglog(psd[0],psd[1],'k',alpha=0.5)
-    if smoothedData is not None:
-        pl.plot(psd[0],smoothedData)
-    else:
-        print("Smoothingdata is None!")
-
-    if(psdOnly is not True):
-        pl.plot(psd[0], backgroundModel[0], 'b', linestyle='dashed', linewidth=2)
-        pl.plot(psd[0], backgroundModel[1], 'b', linestyle='dashed', linewidth=2)
-        pl.plot(psd[0], backgroundModel[2], 'b', linestyle='dashed', linewidth=2)
-        pl.plot(psd[0], backgroundModel[3], 'b', linestyle='dashed', linewidth=2)
-        pl.plot(psd[0], backgroundModel[4], 'b', linestyle='dashed', linewidth=2)
-        withoutGaussianBackground = np.sum(backgroundModel[0:4],axis=0)
-        fullBackground = np.sum(backgroundModel,axis=0)
-        pl.plot(psd[0],fullBackground,'c',linestyle='dashed',linewidth=2)
-        pl.plot(psd[0],withoutGaussianBackground,'r',linestyle='solid',linewidth=3)
-
-    pl.xlim(0.1,max(psd[0]))
-    pl.ylim(np.mean(psd[1])/10**6,max(psd[1])*1.2)
-    pl.xticks(fontsize=16)  ;pl.yticks(fontsize=16)
-    pl.xlabel(r'Frequency [$\mu$Hz]',fontsize=18)
-    pl.ylabel(r'PSD [ppm$^2$/$\mu$Hz]',fontsize=18)
     title = "Standardmodel" if runGauss else "Noise Backgroundmodel"
-    title += ' KIC'+results.getKicID()
-    pl.title(title)
-    fig = pl.gcf()
-    fig.canvas.set_window_title('Powerspectrum')
+    title += ' KIC' + results.getKicID()
+    dataList = {}
+    annotationList = {}
+    dataList[r'Frequency [$\mu$Hz]'] = psd[0]
+    dataList[r'PSD [ppm$^2$/$\mu$Hz]'] = psd[1]
+    annotation = {'color': 'grey', 'linetype': 'solid'}
+    annotationList[r'PSD [ppm$^2$/$\mu$Hz]'] = annotation
+
+    dataList['Smoothed'] = smoothedData
+    annotation = {'color': 'green', 'linetype': 'solid'}
+    annotationList['Smoothed'] = annotation
+
+    if psdOnly is False:
+        withoutGaussianBackground = np.sum(backgroundModel[0:4], axis=0)
+        fullBackground = np.sum(backgroundModel, axis=0)
+        dataList['First Harvey'] = backgroundModel[0]
+        annotation = {'color': 'blue', 'linetype': 'dashed'}
+        annotationList['First Harvey'] = annotation
+
+        dataList['Second Harvey'] = backgroundModel[1]
+        annotationList['Second Harvey'] = annotation
+
+        dataList['Third Harvey'] = backgroundModel[2]
+        annotationList['Third Harvey'] = annotation
+
+        dataList['Background'] = backgroundModel[3]
+        annotation = {'color': 'blue', 'linetype': 'dotted'}
+        annotationList['Background'] = annotation
+
+        if runGauss:
+            dataList['Poweraccess'] = backgroundModel[4]
+            annotation = {'color': 'blue', 'linetype': 'dotted'}
+            annotationList['Poweraccess'] = annotation
+
+        dataList['Without Gaussian'] = withoutGaussianBackground
+        annotation = {'color': 'red', 'linetype': 'solid'}
+        annotationList['Without Gaussian'] = annotation
+
+        dataList['Full Background'] = fullBackground
+        annotation = {'color': 'cyan', 'linetype': 'dashed'}
+        annotationList['Full Background'] = annotation
+
+    dfData = pd.DataFrame.from_dict(dataList)
+    p = ggplot(dfData, aes(x=r'Frequency [$\mu$Hz]'))
+    p = p + geom_line(aes(y=r'PSD [ppm$^2$/$\mu$Hz]'), color=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['color'],
+                      linetype=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['linetype'])
+    for i in dataList.keys():
+        if i != r'Frequency [$\mu$Hz]' and i != r'PSD [ppm$^2$/$\mu$Hz]':
+            if i in annotationList.keys():
+                print(i)
+                print(annotationList[i])
+                p = p + geom_line(aes(y=i), color=annotationList[i]['color'],
+                                  linetype=annotationList[i]['linetype'])
+            else:
+                p = p + geom_line(aes(y=i))
+
+    p = p + scale_x_log() + scale_y_log() + ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2) + ggtitle(title) + ylab(
+        r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
+    print(p)
+
 
 def plotMarginalDistributions(results):
     pl.figure(figsize=(23,12))

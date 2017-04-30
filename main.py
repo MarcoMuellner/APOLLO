@@ -62,5 +62,7 @@ for i in kicList:
         print("Bolometric Correlation for star '"+str(result.getKicID())+"' is: '"+str(result.getBC()))
         print('----------------------------------------------------------------')
 
+        plotPSD(result,True,False)
+
 
 
