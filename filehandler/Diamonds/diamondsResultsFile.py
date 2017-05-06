@@ -1,7 +1,7 @@
 import glob
 import numpy as np
 from scipy.signal import butter, filtfilt
-from math import sqrt
+from math import sqrt,log10
 
 from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
 from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
@@ -39,6 +39,7 @@ class Results:
     __radiusStar = None
     __BCCalculator = None
     __BC = None
+    __mu = None
 
 
     def __init__(self,kicID,runID,Teff = None):
@@ -171,6 +172,9 @@ class Results:
     def getLuminosity(self):
         return self.__Luminosity
 
+    def getDistanceModulus(self):
+        return self.__mu
+
     def calculateDeltaNu(self):
         backgroundModel = self.createBackgroundModel(True)
         par_median = self.__summary.getData(strSummaryMedian)  # median values
@@ -273,12 +277,27 @@ class Results:
             print("Teff is None, no calculation of BC takes place")
             return None
 
+        if self.__numax is None:
+            print("NuMax is not calculated, need nuMax to proceed")
+            return None
+
         if self.__deltaNuCalculator is None:
             print("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
-        self.__radiusStar = (DeltaNuSun / self.getDeltaNuCalculator().getCen()[0]) ** 2 * (self.getNuMax()[0] / NuMaxSun) * \
-            sqrt(self.__Teff / TSun)
+        self.__radiusStar = (self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
+                            sqrt(self.__Teff / TSun)
+
+        errorNuMax = ((1/NuMaxSun)*(self.getDeltaNuCalculator().getCen()[0]/DeltaNuSun)**-2 *
+                      sqrt(self.__Teff/TSun)*self.getNuMax()[1])**2
+
+        errorDeltaNu = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -3 * (self.getNuMax()[0] / NuMaxSun) * \
+                            sqrt(self.__Teff / TSun) *(2*self.getDeltaNuCalculator().getCen()[1]/DeltaNuSun))**2
+
+        error = sqrt(errorNuMax+errorDeltaNu)
+
+        self.__radiusStar = (self.__radiusStar,error)
+
 
     def calculateLuminosity(self,TSun):
         if self.__Teff is None:
@@ -293,6 +312,42 @@ class Results:
             print("Radius not yet calculated, need to calculate that first")
             self.calculateRadius()
 
-        self.__Luminosity = self.__radiusStar** 2 * (self.__Teff / TSun) ** 4
+        self.__Luminosity = self.__radiusStar[0]** 2 * (self.__Teff / TSun) ** 4
 
+        error = self.__radiusStar[0] * (self.__Teff / TSun) ** 4 *self.__radiusStar[1] *2
+
+        self.__Luminosity = (self.__Luminosity,error)
+
+    def calculateDistanceModulus(self,appMag,Av,NuMaxSun,DeltaNuSun,TSun):
+        if self.__Teff is None:
+            print("TEff is None, no calculation of distance modulus takes place")
+            return None
+
+        if self.__deltaNuCalculator is None:
+            print("Delta Nu is not yet calculated, need to calculate that first")
+            self.calculateDeltaNu()
+
+        if self.__numax is None:
+            print("NuMax is not calculated, need nuMax to proceed")
+            return None
+
+        if self.__BCCalculator is None:
+            print("BC is not yet calculated, need to calculate that first")
+            self.calculate
+            self.__BCCalculator = BCCalculator(self.__Teff)
+            self.__BC = self.__BCCalculator.getBC()
+
+        self.__mu = (6*log10(self.__numax[0]/NuMaxSun)+15*log10(self.__Teff/TSun) -12*log10(self.__deltaNuCalculator.getCen()[0]/DeltaNuSun)\
+                    +1.2*(appMag[0] + self.__BC) -1.2*Av[0] - 5.7)/1.2
+
+        errorNuMax = (6*self.getNuMax()[1]/self.getNuMax()[0])**2
+        errorDeltaNu = ((12*self.getDeltaNuCalculator().getCen()[1]/self.getDeltaNuCalculator().getCen()[0])/1.2)**2
+        errorV = (appMag[1])**2
+        errorAv= (Av[1])**2
+
+        error = sqrt(errorNuMax + errorDeltaNu+errorV+errorAv)
+
+        self.__mu = (self.__mu,error)
+
+        return self.__mu
 

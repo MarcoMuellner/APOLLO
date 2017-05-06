@@ -30,10 +30,11 @@ def smoothTriangle(data, degree, dropVals=False):
     return smoothed
 
 
-input = '004351319_19'
+input = '002437804_17'
 powerSpectrum = False
-filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
-    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
+#filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR_" + (
+#    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
+filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)

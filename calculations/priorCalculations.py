@@ -1,3 +1,5 @@
+from math import log10
+
 class PriorCalculator:
     def __init__(self,initNuFilter,nuMax,photonNoise):
         self.__nuMax = nuMax
@@ -44,7 +46,7 @@ class PriorCalculator:
 
         self.__amplitude = k*1/pow(nuMax,s)
 
-    def calculatePhotonNoise(self,nuMax): #todo This seems fairly wrong, physically speaking. Why would the maximum frequency be dependend on nuMax?
+    def calculatePhotonNoise(self,nuMax): #todo This seems fairly wrong, physically speaking. Why would the photon noise be dependend on nuMax?
         k = 119228.1
         s = 1.1811
 
