@@ -2,8 +2,11 @@ import pylab as pl
 import numpy as np
 from ggplot import *
 import pandas as pd
+from fitter.fitFunctions import *
 
 from support.strings import *
+
+pl.style.use('ggplot')
 
 def plotPSD(results,runGauss,psdOnly):
     psd = results.getPSD()
@@ -22,6 +25,9 @@ def plotPSD(results,runGauss,psdOnly):
     annotationList[r'PSD [ppm$^2$/$\mu$Hz]'] = annotation
 
     dataList['Smoothed'] = smoothedData
+    if len(dataList['Smoothed']) != len(dataList[r'Frequency [$\mu$Hz]']):
+        dataList['Smoothed'] = smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
+
     annotation = {'color': 'green', 'linetype': 'solid'}
     annotationList['Smoothed'] = annotation
 
@@ -55,7 +61,13 @@ def plotPSD(results,runGauss,psdOnly):
         annotation = {'color': 'cyan', 'linetype': 'dashed'}
         annotationList['Full Background'] = annotation
 
+    print(dataList)
+    print(len(dataList[r'Frequency [$\mu$Hz]']))
+    print(len(dataList[r'PSD [ppm$^2$/$\mu$Hz]']))
+    print(len(dataList['Smoothed']))
+
     dfData = pd.DataFrame.from_dict(dataList)
+
     p = ggplot(dfData, aes(x=r'Frequency [$\mu$Hz]'))
     p = p + geom_line(aes(y=r'PSD [ppm$^2$/$\mu$Hz]'), color=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['color'],
                       linetype=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['linetype'])
@@ -110,18 +122,67 @@ def plotDeltaNuFit(deltaNuCalculator,kicID):
     corrs = deltaNuCalculator.getCorrelations()
     init_fit = deltaNuCalculator.getInitFit()
 
-    pl.figure(figsize=(16, 7))
-    pl.axvline(x=deltaNuEst, linestyle='dotted')
-    pl.xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
-    data = pl.plot(deltaF, corrs, 'b', linewidth=2,label='ACF')
-    final_fit = pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *best_fit), 'r', linestyle='dotted',label='Best Fit')
-    start_fit = pl.plot(deltaF, deltaNuCalculator.gaussian(deltaF, *init_fit), 'g', linestyle='dashed',label='Init Fit')
+    dfData = pd.DataFrame({r'Frequency [$\mu$Hz]':deltaF,
+                           'Correlation':corrs,
+                           'Best fit':deltaNuCalculator.gaussian(deltaF, *best_fit)
+    })
+
+    p = ggplot(dfData, aes(x=r'Frequency [$\mu$Hz]'))
+    p = p + geom_line(aes(y=r'Correlation'), color='black',
+                      linetype='solid',label='Correlated Data')
+    p = p + geom_line(aes(y='Best fit'),color='red',linetype='dotted',label='Best Fit')
+    p = p + ggtitle(r'Autocorrelation and $\Delta$$\nu$ Fit for KIC'+kicID)
+    #p = p + ggtitle(r'Autocorrelation for KIC' + kicID)
+    p = p +ylab('Autocorrelation')
+    p = p +xlab(r'Frequency [$\mu$Hz]')
+    p = p +ylim(0,1.5*max(deltaNuCalculator.gaussian(deltaF, *best_fit)))
+    p = p + xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
+    p = p +geom_vline(x=[deltaNuEst],linetype='dashed',color='blue')
+    print(p)
+
+
+def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='linear',scalex='linear',fitDegree = None,fill=True):
+    fig = pl.figure()
+    ax = fig.add_subplot(111)
+    legendList = []
+    datapoints = pl.errorbar(x,y,
+                xerr=xError,
+                yerr=yError,
+                fmt='o',
+                capsize=5,
+                color='k',
+                ecolor='k',
+                markerfacecolor= 'g',
+                label='Datapoints')
+    ax.set_yscale(scaley, nonposx='clip')
+    ax.set_xscale(scalex, nonposx='clip')
+
+    for xyz in zip(x, y,kicList):  # <--
+        ax.annotate('%s' % xyz[2], xy=(xyz[0],xyz[1]), textcoords='data')
+
+    legendList.append(datapoints)
+    pl.xlim(0.8*min(x),1.2*max(x))
+    pl.ylim(0.8*min(y),1.2*max(y))
+
+    if fitDegree is not None:
+        yError = np.power(np.array(yError),1)
+        popt,cov = np.polyfit(np.array(x),np.array(y),deg=fitDegree,w=yError,cov=True)
+        perr = np.sqrt(np.diag(cov))
+        chi_squared = np.sum((np.polyval(popt, x) - y) ** 2)
+        f = np.poly1d(popt)
+
+        x=np.linspace(0,1000,10000)
+        fit = pl.plot(x, f(x), linewidth=0.5, label='Polynomial fit of degree ' + str(fitDegree))
+        if fill:
+            pl.fill_between(x,popt[0]-perr[0],popt[0]+perr[0],color='grey',alpha=0.5)
+        legendList.append(fit)
+        print("Polynomial fit degree '"+str(fitDegree)+"', parameters '"+str(popt)+"' and uncertainties '"+str(perr)+"'")
+        print("Chi squared is '"+str(chi_squared)+"'")
+
     pl.legend()
-    pl.xlabel("Delta nu (uHz)")
-    pl.ylabel("ACF")
-    pl.title("Autocorrelation Delta Nu KIC"+str(kicID))
-    fig = pl.gcf()
-    fig.canvas.set_window_title('DeltaNuFit')
+    pl.xlabel(xLabel)
+    pl.ylabel(yLabel)
+    pl.title(Title)
 
 def show():
     pl.show()
