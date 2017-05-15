@@ -1,6 +1,8 @@
 from astropy.io import fits
 import numpy as np
 import pylab as pl
+from settings.settings import Settings
+from support.strings import *
 
 class FitsReader:
     def __init__(self,filename):
@@ -23,14 +25,64 @@ class FitsReader:
             print("File not recognised!")
             raise ValueError
         scidata = scidata.transpose()
-        print(len(scidata[0]))
-        print(len(scidata[1]))
-        pl.plot(scidata[0],scidata[1])
-        pl.show()
         scidata = scidata.transpose()
         return scidata
 
-    def __refineData(self,scidata):
+    #This method uses a combination of segments in lightcurves
+    def __refineDataCombiningMethod(self,scidata):
+        prevTime = scidata[0][0]
+        intervall = 0
+        if self.__mode == "fits":#todo in string
+            intervall = scidata[1][0] - scidata[0][0]
+        elif self.__mode == "txt":#todo in string
+            intervall = scidata[1][0] - scidata[0][0]
+        print("Intervall is '"+str(intervall)+"'")
+        arrays = []
+        fluxArray =[]
+        timeArray = []
+        lenTime = 0
+        lenFlux = 0
+        zeroValue = 0
+        for i in range(0, scidata.shape[0] - 1):
+            if abs(scidata[i][1])<10**-2:
+                continue
+
+            if (abs(scidata[i][0]-prevTime - intervall) > 10**-1):
+                print("Difference is '"+str(scidata[i][0]-prevTime - intervall)+"'")
+                arrays.append((timeArray,fluxArray))
+                lenTime += len(timeArray)
+                lenFlux += len(fluxArray)
+                timeArray = []
+                fluxArray = []
+                print("Scidata is '"+str(scidata[i][0])+"'")
+                print("Prevtime is '"+str(prevTime)+"'")
+                print("Intervall is '"+str(intervall)+"'")
+                zeroValue = zeroValue+scidata[i][0] - prevTime+intervall
+                print("ZeroValue is '"+str(zeroValue)+"'")
+
+
+            timeArray.append(scidata[i][0] - zeroValue)
+            fluxArray.append(scidata[i][1])
+            prevTime = scidata[i][0]
+
+        lenTime += len(timeArray)
+        lenFlux += len(fluxArray)
+        arrays.append((timeArray,fluxArray))
+
+        resultTime = np.zeros(lenTime)
+        resultFlux = np.zeros(lenFlux)
+        prevlength = 0
+        for i in arrays:
+            print(min(i[0]))
+            print(max(i[0]))
+            resultTime[prevlength:prevlength + len(i[0])] = np.array(i[0])
+            resultFlux[prevlength:prevlength + len(i[0])] = np.array(i[1])
+            prevlength += len(i[0])
+
+        return (resultTime,resultFlux)
+
+    #This method cuts the lightcurve and returns every segment
+    def __refineDataCuttingMethod(self,scidata):
         time = np.zeros(scidata.shape[0])
         flux = np.zeros(scidata.shape[0])
 
@@ -94,8 +146,19 @@ class FitsReader:
         return self.__lightCurve
 
     def setFitsFile(self,fileName):
+        mode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
+        print("Mode is '"+mode+"'")
         self.__fileContent = self.__readData(fileName)
-        self.__lightCurve = self.__refineData(self.__fileContent)
+        if mode == strLightCombining:
+            self.__lightCurve = self.__refineDataCombiningMethod(self.__fileContent)
+        elif mode == strLightCutting:
+            self.__lightCurve = self.__refineDataCuttingMethod(self.__fileContent)
+        else:
+            print("Failed to find refine data method with: '" + mode+"'")
+            raise ValueError
+        print(len(self.getLightCurve()[0]))
+        print(len(self.getLightCurve()[1]))
+        pl.figure()
         return self.getLightCurve()
 
     def getNyquistFrequency(self):

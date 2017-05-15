@@ -12,6 +12,7 @@ strCalcSettings= 'Calculation Settings'
 strDiamondsSettings ='Diamonds Settings'
 #strDataSettings
 strSectBackgroundResPath   = 'Background Results Path'
+strSectLightCurveAlgorithm = 'Refine lightcurves algorithm'
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
 strSectDiamondsBinaryPath = 'Diamonds binary path'
@@ -23,6 +24,9 @@ strOptionValue      = 'Value'
 #SettingValues
 strPowerModeNumpy = "numpy"
 strPowerModeSciPy = 'scipy'
+#LightcurveAlgorithmValues
+strLightCutting = 'cutting'
+strLightCombining = 'combining'
 #ParameterSummaryStrings
 strSummaryMean = "I Moment (Mean)"
 strSummaryMedian = "Median"

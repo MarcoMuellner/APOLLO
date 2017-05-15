@@ -15,18 +15,38 @@ class NuMaxCalculator:
     def __calculateFlickerAmplitude(self):
         #calculate Median Flux
         time = self.__lightCurve[0]
+        #np.set_printoptions(threshold=np.inf)
+        maxdif = 0
+        mindif = 1000
+        for i in (0,len(time)):
+            try:
+                if time[i+1] - time[i] > maxdif:
+                    maxdif = time[i+1] - time[i]
+                if time[i+1] - time[i] < mindif:
+                    mindif = time[i+1] - time[i]
+            except:
+                print("endofloop")
+
+        print("Max diff is '"+str(maxdif)+"'")
+        print("Min diff is '" + str(mindif) + "'")
+        #print(time)
         flux = self.__lightCurve[1]
 
         medianFlux = np.median(flux)
         meanTimeBin = np.amax(time)/len(time)
-        flickerSize = 5/24 # size of flickertime. This is calibrated by Kallinger. Measured in days
+        if meanTimeBin <10**-3:
+            flickerSize = 5/24 # size of flickertime. This is calibrated by Kallinger. Measured in days
+        else:
+            flickerSize = 4
 
         binSize = int(flickerSize/meanTimeBin) #calculate the binsize of one flicker!
         iterations = len(time)/binSize #The number of iterations needed to calculate all single Amplitudes
 
-        cutoffMax = 20 #These two parameters define the cutoff of things in the lightcurve you probably don't want
+        cutoffMax = 0 #These two parameters define the cutoff of things in the lightcurve you probably don't want
         cutoffMin = 0
 
+        print("Max Time is '"+str(np.amax(time))+"'")
+        print("Length of time is '"+str(len(time)))
         print("Flickersize is '"+str(flickerSize)+"'")
         print("MeanTimeBin is '"+str(meanTimeBin)+"'")
         print("Iterations is '"+str(iterations)+"'")
@@ -50,16 +70,16 @@ class NuMaxCalculator:
             flickerTimeArray[multiplicator] = medianTimeBin
 
             #subtract mean value from array
-            #todo this can be done better, when just using slicing within array
             filteredFlux[multiplicator*binSize:(multiplicator+1)*binSize] = flux[multiplicator*binSize:(multiplicator+1)*binSize] - np.mean(fluxBin)
 
         #this is the final flickerAmplitude!
         self.__flickerAmplitude = np.std(filteredFlux)
-
-        return
+        print("Calculated flicker amplitude is '"+str(self.__flickerAmplitude)+"'")
 
     def getNyquistFrequency(self):
         if self.__lightCurve is not None:
+            print("Abtastfrequency is '"+str((self.__lightCurve[0][3] - self.__lightCurve[0][2])*24*3600)+"'")
+            print("Size is '"+str(self.__lightCurve[0].size)+"'")
             self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
             return self.__nyq
         else:
@@ -108,6 +128,9 @@ class NuMaxCalculator:
 
     def butter_lowpass(self,cutoff, nyq, order=5):
         normal_cutoff = cutoff / nyq
+        print("Cutoff Frequency for filtering is '"+str(normal_cutoff)+"'")
+        print("Nyquist Frequency is '"+str(nyq)+"'")
+        print("Input Cutoff is '"+str(cutoff)+"'")
         b, a = butter(order, normal_cutoff, btype='high', analog=False)
         print("------------------------------------------")
         print(b, a)

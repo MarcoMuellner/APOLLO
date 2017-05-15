@@ -17,6 +17,11 @@
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
                 "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/results/solved/"
+            },
+            "Refine lightcurves algorithm":{
+                "GUI Name":"Results Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"combining"
             }
         },
         "Diamonds Settings":{

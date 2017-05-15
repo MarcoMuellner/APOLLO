@@ -83,7 +83,6 @@ def plotPSD(results,runGauss,psdOnly):
 
     p = p + scale_x_log() + scale_y_log() + ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2) + ggtitle(title) + ylab(
         r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
-    print(p)
 
 
 def plotMarginalDistributions(results):

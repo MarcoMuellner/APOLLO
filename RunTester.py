@@ -82,18 +82,28 @@ def plotPSDTemp(runGauss,psd,backgroundModel):
 #004351319_19
 #input = '0603396438'
 input = "003656476_12"
+#input = "0223976028"
 powerSpectrum = False
+#KeplerData
 filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
     "PSD_" if powerSpectrum else "") + "filt_inp.fits"
-
+#Young Stars
 #filename = "../../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
+
+#New data
+#filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
+
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)
 
+plotPSD(powerCalc,True,True)
+
 nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.getPSD())
 
+print("First iterative Calculation")
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
+print("Second iterative Calculation")
 corr_2,best_fit_2 = nuMaxCalc.calculateIterativeFilterFrequency()
 
 
