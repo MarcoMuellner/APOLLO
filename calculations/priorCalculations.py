@@ -1,11 +1,10 @@
 from math import log10
 
 class PriorCalculator:
-    def __init__(self,initNuFilter,nuMax,photonNoise):
+    def __init__(self,nuMax,photonNoise):
         self.__nuMax = nuMax
-
+        self.__photonNoise=photonNoise
         self.calculateFirstHarveyFrequency(nuMax)
-        self.calculatePhotonNoise(nuMax)
         self.calculateHarveyFrequencies(nuMax)
         self.calculateHarveyAmplitudes(nuMax)
         self.calculateAmplitude(nuMax)
@@ -14,10 +13,16 @@ class PriorCalculator:
         return
 
     def calculateHarveyFrequencies(self,nuMax):
+        '''
         k_1 = 0.317 #Fit done by myself: 0.451
         k_2 = 0.948 #Fit done by myself: 0.871
         s_1 = 0.970 #Fit done by myself: 0.884
         s_2 = 0.992 #Fit done by myself: 1.018
+'''
+        k_1 = 0.451  # Fit done by myself: 0.451
+        k_2 = 0.871  # Fit done by myself: 0.871
+        s_1 = 0.884  # Fit done by myself: 0.884
+        s_2 = 1.018  # Fit done by myself: 1.018
 
         self.__b_1 = k_1 * pow(nuMax, s_1)
         self.__b_2 = k_2 * pow(nuMax, s_2)
@@ -35,52 +40,52 @@ class PriorCalculator:
         return self.__a
 
     def calculateSigma(self,nuMax):
-        k = 1.124
-        s = 0.505
+        #k = 1.124
+        #s = 0.505
+
+        k = 1.66 # my values
+        s = 0.6
 
         self.__sigma = k * pow(nuMax,s)
 
     def calculateAmplitude(self,nuMax):
-        k = 67.163
-        s = 1.187
+        k = 216833
+        s = -1.52
 
-        self.__amplitude = k*1/pow(nuMax,s)
-
-    def calculatePhotonNoise(self,nuMax): #todo This seems fairly wrong, physically speaking. Why would the photon noise be dependend on nuMax?
-        k = 119228.1
-        s = 1.1811
-
-        self.__photonNoise = k*1/pow(nuMax,s)
+        self.__amplitude = k*pow(nuMax,s)
 
     def calculateFirstHarveyFrequency(self,nuMax):
-        k = 1.951
+        #k = 1.951
+        k = 19.51
         s = -0.071
+        #s = -0.06 # test
 
         self.__b_0 = k*pow(nuMax,s)
 
     def getFirstHarveyFrequencyBoundary(self):
-        return (0.7*self.__b_0,2.5*self.__b_0)
+        return (0.5*self.__b_0,1.3*self.__b_0)
 
     def getSecondHarveyFrequencyBoundary(self):
-        return (0.5 * self.__b_1,2 * self.__b_1)
+        return (0.5 * self.__b_1,1.6 * self.__b_1)
 
     def getThirdHarveyFrequencyBoundary(self):
-        return (0.5 * self.__b_2,1.5 * self.__b_2)
+        return (0.3 * self.__b_2,1.15 * self.__b_2)
 
     def getHarveyAmplitudesBoundary(self):
-        return (0.1 * self.__a,2.5*self.__a)
+        return (0.013 * self.__a,1.5*self.__a)
 
     def getNuMaxBoundary(self):
-        return (0.5*self.__nuMax,1.5*self.__nuMax)
+        return (0.5*self.__nuMax,1.3*self.__nuMax)
 
     def getSigmaBoundary(self):
-        return (0.5*self.__sigma,1.5*self.__sigma)
+        return (0.5*self.__sigma,2*self.__sigma)
 
     def getAmplitudeBounday(self):
-        return (0.5*self.__amplitude,1.5*self.__amplitude)
+        return (0.005*self.__amplitude,0.1
+                *self.__amplitude)
 
     def getPhotonNoiseBoundary(self):
-        return (0.1*self.__photonNoise,1.5*self.__photonNoise)
+        return (0.5*self.__photonNoise,1.1*self.__photonNoise)
 
     def getPhotonNoise(self):
         return self.__photonNoise

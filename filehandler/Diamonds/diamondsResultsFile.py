@@ -1,7 +1,7 @@
 import glob
 import numpy as np
 from scipy.signal import butter, filtfilt
-from math import sqrt,log10
+from math import sqrt,log10,log
 
 from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
 from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
@@ -86,6 +86,7 @@ class Results:
                 self.m_PSDOnly = True
 
         if Teff is not None:
+            self.__TeffError = 200
             self.__BCCalculator = BCCalculator(Teff)
             self.__BC = self.__BCCalculator.getBC()
 
@@ -174,6 +175,15 @@ class Results:
 
     def getDistanceModulus(self):
         return self.__mu
+
+    def getKICDistanceModulus(self):
+        return self.__mu_kic
+
+    def getRobustnessValue(self):
+        return abs(self.__mu[0]-self.__mu_kic)*100/self.__mu[0]
+
+    def getRobustnessSigma(self):
+        return abs(self.__mu[0]-self.__mu_kic)/self.__mu[1]
 
     def calculateDeltaNu(self):
         backgroundModel = self.createBackgroundModel(True)
@@ -294,7 +304,10 @@ class Results:
         errorDeltaNu = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -3 * (self.getNuMax()[0] / NuMaxSun) * \
                             sqrt(self.__Teff / TSun) *(2*self.getDeltaNuCalculator().getCen()[1]/DeltaNuSun))**2
 
-        error = sqrt(errorNuMax+errorDeltaNu)
+        errorTemperature = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
+                            self.__TeffError/(TSun * sqrt(self.__Teff / TSun)))**2
+
+        error = sqrt(errorNuMax+errorDeltaNu+errorTemperature)
 
         self.__radiusStar = (self.__radiusStar,error)
 
@@ -314,11 +327,16 @@ class Results:
 
         self.__Luminosity = self.__radiusStar[0]** 2 * (self.__Teff / TSun) ** 4
 
-        error = self.__radiusStar[0] * (self.__Teff / TSun) ** 4 *self.__radiusStar[1] *2
+        errorRadius = (self.__radiusStar[0] * (self.__Teff / TSun) ** 4 *self.__radiusStar[1] *2)**2
+        errorTemperature = (self.__radiusStar[0]** 2 *4* (self.__TeffError / TSun) *(self.__Teff / TSun) ** 3)**2
+
+        error = sqrt(errorRadius + errorTemperature)
 
         self.__Luminosity = (self.__Luminosity,error)
 
-    def calculateDistanceModulus(self,appMag,Av,NuMaxSun,DeltaNuSun,TSun):
+    def calculateDistanceModulus(self,appMag,kicmag,magError,Av,NuMaxSun,DeltaNuSun,TSun):
+
+        appMag = appMag if appMag != 0 else kicmag
         if self.__Teff is None:
             print("TEff is None, no calculation of distance modulus takes place")
             return None
@@ -338,14 +356,21 @@ class Results:
             self.__BC = self.__BCCalculator.getBC()
 
         self.__mu = (6*log10(self.__numax[0]/NuMaxSun)+15*log10(self.__Teff/TSun) -12*log10(self.__deltaNuCalculator.getCen()[0]/DeltaNuSun)\
-                    +1.2*(appMag[0] + self.__BC) -1.2*Av[0] - 5.7)/1.2
+                    +1.2*(appMag + self.__BC) -1.2*Av[0] - 5.7)/1.2
 
-        errorNuMax = (6*self.getNuMax()[1]/self.getNuMax()[0])**2
-        errorDeltaNu = ((12*self.getDeltaNuCalculator().getCen()[1]/self.getDeltaNuCalculator().getCen()[0])/1.2)**2
-        errorV = (appMag[1])**2
+        self.__mu_kic = (6*log10(self.__numax[0]/NuMaxSun)+15*log10(self.__Teff/TSun) -12*log10(self.__deltaNuCalculator.getCen()[0]/DeltaNuSun)\
+                    +1.2*(kicmag + self.__BC) -1.2*Av[0] - 5.7)/1.2
+
+        self.__mu_diff = self.__mu-self.__mu_kic
+
+        errorNuMax = (6*self.getNuMax()[1]/(self.getNuMax()[0]*log(10)*1.2))**2
+        errorDeltaNu = ((12*self.getDeltaNuCalculator().getCen()[1]/(self.getDeltaNuCalculator().getCen()[0]*log(10)))/1.2)**2
+        errorV = magError
         errorAv= (Av[1])**2
+        errorTemperature = ((15/1.2)*(self.__TeffError/self.__Teff))**2
 
-        error = sqrt(errorNuMax + errorDeltaNu+errorV+errorAv)
+        print("Error"+str(errorNuMax)+","+str(errorDeltaNu)+","+str(errorV)+","+str(errorAv)+","+str(errorTemperature))
+        error = sqrt(errorNuMax + errorDeltaNu+errorV+errorAv + errorTemperature)
 
         self.__mu = (self.__mu,error)
 

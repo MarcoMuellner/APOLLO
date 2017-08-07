@@ -81,17 +81,21 @@ def plotPSDTemp(runGauss,psd,backgroundModel):
 #004346201_18
 #004351319_19
 #input = '0603396438'
-input = "003656476_12"
+input = "003744681_983"
 #input = "0223976028"
 powerSpectrum = False
 #KeplerData
-filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
-    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
+#filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
+#    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
 #Young Stars
 #filename = "../../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
 
 #New data
 #filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
+
+#Reviewed Data by Enrico
+filename = "../../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + (
+    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
 
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
@@ -112,19 +116,31 @@ nuMax = nuMaxCalc.getNuFilterFitted()
 photonNoise = nuMaxCalc.getPhotonNoise()
 nyquist = nuMaxCalc.getNyquistFrequency()
 
-priorCalculator = PriorCalculator(initNuFilter, nuMax,photonNoise)
+priorCalculator = PriorCalculator(nuMax,photonNoise)
 
 print("Priors")
 print("PhotonNoise: '" + str(priorCalculator.getPhotonNoiseBoundary()) + "'")
-print("First Harvey Frequency: '" + str(priorCalculator.getFirstHarveyFrequencyBoundary()) + "'")
 print("First Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
-print("Second Harvey Frequency: '" + str(priorCalculator.getSecondHarveyFrequencyBoundary()) + "'")
+print("First Harvey Frequency: '" + str(priorCalculator.getFirstHarveyFrequencyBoundary()) + "'")
 print("Second Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
-print("Third Harvey Frequency: '" + str(priorCalculator.getThirdHarveyFrequencyBoundary()) + "'")
+print("Second Harvey Frequency: '" + str(priorCalculator.getSecondHarveyFrequencyBoundary()) + "'")
 print("Third Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
+print("Third Harvey Frequency: '" + str(priorCalculator.getThirdHarveyFrequencyBoundary()) + "'")
 print("Amplitude: '" + str(priorCalculator.getAmplitudeBounday()) + "'")
 print("nuMax: '" + str(priorCalculator.getNuMaxBoundary()) + "'")
 print("Sigma: '" + str(priorCalculator.getSigmaBoundary()) + "'")
+
+print("Priors")
+print("PhotonNoise: '" + str(priorCalculator.getPhotonNoise()) + "'")
+print("First Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
+print("First Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency1()) + "'")
+print("Second Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
+print("Second Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency2()) + "'")
+print("Third Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
+print("Third Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency3()) + "'")
+print("Amplitude: '" + str(priorCalculator.getAmplitude()) + "'")
+print("nuMax: '" + str(nuMax) + "'")
+print("Sigma: '" + str(priorCalculator.getSigma()) + "'")
 
 priors = []
 priors.append(priorCalculator.getPhotonNoiseBoundary())
@@ -161,8 +177,8 @@ median.append(priorCalculator.getAmplitude())
 median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
-#proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
-#proc.start()
+proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
+proc.start()
 
 backgroundModel = createBackgroundModel(True,median,powerCalc.getPSD(),nyquist)
 plotPSDTemp(True,powerCalc.getPSD(),backgroundModel)

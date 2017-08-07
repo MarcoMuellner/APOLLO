@@ -15,6 +15,17 @@ with cd(dataFolder):
         if "KIC" in x[0] and "/00" not in x[0] and "/01" not in x[0]:
             kicList.append(x[0][5:])
 
+kicList =   [
+            '002436458',
+            '008196817',
+            '008263801',
+            '008264006',
+            '008264079',
+            '008329894',
+            '008366239',
+            '008264074'
+            ]
+
 print(kicList)
 
 arrSun = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICSun.txt")

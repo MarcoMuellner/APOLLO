@@ -143,7 +143,11 @@ class FitsReader:
         return npArrays[maxIndex]
 
     def getLightCurve(self):
-        return self.__lightCurve
+        if len(self.__lightCurve[0]) > 300000:
+            return (self.__lightCurve[0][0:300000],
+                    self.__lightCurve[1][0:300000])
+        else:
+            return self.__lightCurve
 
     def setFitsFile(self,fileName):
         mode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
@@ -159,6 +163,7 @@ class FitsReader:
         print(len(self.getLightCurve()[0]))
         print(len(self.getLightCurve()[1]))
         pl.figure()
+        #todo temporary
         return self.getLightCurve()
 
     def getNyquistFrequency(self):

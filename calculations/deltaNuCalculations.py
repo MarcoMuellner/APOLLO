@@ -154,7 +154,8 @@ class DeltaNuCalculator:
         self.m_popt, pcov = optimize.curve_fit(self.gaussian, x, y, p0=arr, bounds=bounds)
         self.m_perr = np.sqrt(np.diag(pcov))
 
-        x0_err = np.sqrt(pow(self.m_perr[2],2) + pow(self.m_popt[3],2))
+        #x0_err = np.sqrt(pow(self.m_perr[2],2) + pow(self.m_popt[3],2))
+        x0_err = np.sqrt(pow(self.m_perr[2], 2))
 
         self.m_y0 = (self.m_popt[0],self.m_perr[0])
         self.m_amp = (self.m_popt[1],self.m_perr[1])

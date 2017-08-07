@@ -3,6 +3,7 @@ import numpy as np
 from ggplot import *
 import pandas as pd
 from fitter.fitFunctions import *
+import random as r
 
 from support.strings import *
 
@@ -155,9 +156,20 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
                 label='Datapoints')
     ax.set_yscale(scaley, nonposx='clip')
     ax.set_xscale(scalex, nonposx='clip')
+    xlen = 1.2*max(x) - 0.8*min(x)
+    ylen = 1.2*max(y) - 0.8*min(y)
 
+    idOffset ={"002436458":(0.008,0),
+               "008264006":(0.008,0),
+               "008263801":(0.042,0.057),
+               "008329894":(0.008,0),
+               "008264074":(0.008,0.023),
+               "008196817":(-0.19,-0.023),
+               "008366239":(-0.19,-0.037),
+               "008264079":(0.012,0)}
     for xyz in zip(x, y,kicList):  # <--
-        ax.annotate('%s' % xyz[2], xy=(xyz[0],xyz[1]), textcoords='data')
+        string = "KIC "+xyz[2][2:]
+        ax.annotate('%s' % string, xy=(xyz[0]+idOffset[xyz[2]][0]*xlen,xyz[1]+idOffset[xyz[2]][1]*ylen), textcoords='data',fontsize=10)
 
     legendList.append(datapoints)
     pl.xlim(0.8*min(x),1.2*max(x))
@@ -174,6 +186,7 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
         fit = pl.plot(x, f(x), linewidth=0.5, label='Polynomial fit of degree ' + str(fitDegree))
         if fill:
             pl.fill_between(x,popt[0]-perr[0],popt[0]+perr[0],color='grey',alpha=0.5)
+            pl.fill_between(x, popt[0] - 2*perr[0], popt[0] + 2*perr[0], color='dimgrey', alpha=0.5)
         legendList.append(fit)
         print("Polynomial fit degree '"+str(fitDegree)+"', parameters '"+str(popt)+"' and uncertainties '"+str(perr)+"'")
         print("Chi squared is '"+str(chi_squared)+"'")

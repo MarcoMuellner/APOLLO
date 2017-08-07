@@ -36,6 +36,8 @@ radiusList = []
 errorRadiusList =[]
 luminosityList = []
 errorLuminosityList =[]
+kicDistanceModulusList = []
+robustnessDistanceModulusList = []
 colorList = []
 nullList = []
 
@@ -59,9 +61,9 @@ for i in kicList:
         nuMaxSun = arrSun[0]
         deltaNuSun = arrSun[1]
         tempSun = arrSun[2]
-
-        mag = (arrTemperatures[2][position[0]],arrTemperatures[4][position[0]])
-        av = (arrTemperatures[3][position[0]]*3.1,arrTemperatures[5][position[0]]*3.1)
+        vmag = arrTemperatures[2][position[0]]
+        kicmag = arrTemperatures[5][position[0]]
+        av = (arrTemperatures[3][position[0]]*3.1,0)
         #av = (0.16*3.1,0.08*3.1)
 
         result.calculateDeltaNu()
@@ -69,7 +71,7 @@ for i in kicList:
         resultList.append(result)
         result.calculateRadius(tempSun,nuMaxSun,deltaNuSun)
         result.calculateLuminosity(tempSun)
-        result.calculateDistanceModulus(mag,av,nuMaxSun,deltaNuSun,tempSun)
+        result.calculateDistanceModulus(vmag,kicmag,arrTemperatures[4][position[0]],av,nuMaxSun,deltaNuSun,tempSun)
 
         print('--------------Result KIC' + result.getKicID() + '------------')
         print('nuMax = ' + str(result.getNuMax()) + '(' + str(result.getSigma()) + ')')
@@ -87,9 +89,12 @@ for i in kicList:
         print("Luminosity for KicID '" + str(result.getKicID()) + "'is '" + str(result.getLuminosity()[0])
             + "'L_sun("+str(result.getLuminosity()[1])+")'")
         print("Bolometric Correlation for star '"+str(result.getKicID())+"' is: '"+str(result.getBC()))
-        print("Apparent Magnitude :'"+str(arrTemperatures[2][position[0]])+"'")
+        print("Apparent Magnitude :'"+str(vmag)+"("+str(arrTemperatures[4][position[0]])+")")
         print("Interstellar Extinction: '"+str(arrTemperatures[3][position[0]]))
         print("Distance is :'"+str(result.getDistanceModulus()[0])+"("+str(result.getDistanceModulus()[1])+")'")
+        print("KIC Distance is: "+str(result.getKICDistanceModulus()))
+        print("Robustness is: "+str(result.getRobustnessValue()))
+        print("Robustness sigma is: "+str(result.getRobustnessSigma()))
         print('----------------------------------------------------------------')
 
         rgbstr = ''
@@ -116,6 +121,8 @@ for i in kicList:
         errorRadiusList.append(result.getRadius()[1])
         luminosityList.append(result.getLuminosity()[0])
         errorLuminosityList.append(result.getLuminosity()[1])
+        kicDistanceModulusList.append(result.getKICDistanceModulus())
+        robustnessDistanceModulusList.append(result.getRobustnessValue())
         nullList.append(0)
 
         #plotPSD(result,True,False)
@@ -146,9 +153,8 @@ plotStellarRelations(luminosityList,arrTemperatures[2],errorLuminosityList,nullL
 '''
 
 
-show()
 
-'''
+
 file = open("DistanceModulus.csv","w")
 file.write("NuMax;DistanceModulus\n")
 
@@ -157,18 +163,28 @@ for i in range(0,len(resultList)):
 file.close()
 
 file = open("results.csv","w")
-file.write("KicID;Membership;NuMax;Error;Distance Modulus;Error;DeltaNu;Error;Radius;Error;Luminosity;Error\n")
+file.write("KicID;Membership;NuMax;Error;Distance Modulus;Error;KIC Distance Modulus;Robustness;RobustnessSigma;DeltaNu;Error;Radius;Error;Luminosity\n")
 
 for i in range(0,len(resultList)):
     M = ""
     if lowerBound <= resultList[i].getDistanceModulus()[0] <= 11:
         M="M"
+    elif lowerBound <= resultList[i].getDistanceModulus()[0] + resultList[i].getDistanceModulus()[1]  <= 11:
+        M = "M"
+    elif lowerBound <= resultList[i].getDistanceModulus()[0] - resultList[i].getDistanceModulus()[1]  <= 11:
+        M = "M"
+    else:
+        M='NM'
     file.write(str(resultList[i].getKicID())+";"+M+";"+str(resultList[i].getNuMax()[0])+";"+str(resultList[i].getNuMax()[1])+";")
     file.write(str(resultList[i].getDistanceModulus()[0])+";"+str(resultList[i].getDistanceModulus()[1])+";")
+    file.write(str(resultList[i].getKICDistanceModulus())+";")
+    file.write(str(resultList[i].getRobustnessValue())+";")
+    file.write(str(resultList[i].getRobustnessSigma()) + ";")
     file.write(str(resultList[i].getDeltaNuCalculator().getCen()[0])+";"+str(resultList[i].getDeltaNuCalculator().getCen()[1])+";")
     file.write(str(resultList[i].getRadius()[0])+";"+str(resultList[i].getRadius()[1])+";")
     file.write(str(resultList[i].getLuminosity()[0])+";"+str(resultList[i].getLuminosity()[1])+"\n")
 file.close()
-'''
 
+
+show()
 

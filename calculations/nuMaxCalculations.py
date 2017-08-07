@@ -81,9 +81,13 @@ class NuMaxCalculator:
             print("Abtastfrequency is '"+str((self.__lightCurve[0][3] - self.__lightCurve[0][2])*24*3600)+"'")
             print("Size is '"+str(self.__lightCurve[0].size)+"'")
             self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
+            #TODO set fix here, see what it does
+            #self.__nyq = 283.2116656017908
+
+
             return self.__nyq
         else:
-            print("Lightcure is None, therefore no calculation of nyquist frequency possible")
+            print("Lightcurve is None, therefore no calculation of nyquist frequency possible")
             return None
 
     def __calculateInitFilterFrequency(self):
@@ -95,8 +99,6 @@ class NuMaxCalculator:
         filterFrequency = self.__iterativeNuFilter if self.__iterativeNuFilter is not None else self.__initNuFilter
         smoothed = self.butter_lowpass_filtfilt(self.__lightCurve[1], filterFrequency, self.getNyquistFrequency())
 
-        psd = PowerspectraCalculator(np.array((self.__lightCurve[0],smoothed)))
-
         corr = self.calculateAutocorrelation(smoothed) #todo this seems to be a bottleneck here...
 
         corr = np.power(corr,2)
@@ -106,11 +108,13 @@ class NuMaxCalculator:
             deltaF[i] = i * stepFreq
 
         best_fit = self.scipyFit(np.array((deltaF, corr)))
-        tauACF = best_fit[1]*24*60
+        tauACF = best_fit[2]*24*60
 
-        #pl.plot(deltaF,corr)
-        #pl.plot(deltaF,self.sinc(deltaF,*best_fit))
-        #pl.show()
+        pl.plot(deltaF,corr)
+        pl.plot(deltaF,self.sinc(deltaF,*best_fit))
+        pl.ylim(0,0.2)
+        pl.xlim(0,1)
+        pl.show()
 
         print("Tau_ACF is '"+str(tauACF)+"'")
 
@@ -122,8 +126,9 @@ class NuMaxCalculator:
 
     def butter_lowpass_filtfilt(self,data, f, nyq, order=5):
         b, a = self.butter_lowpass(f, nyq, order=order)
+        print("Filterparameter are "+str(b)+","+str(a))
         y = filtfilt(b, a, data)
-        print(y)
+        print("Final frequency is "+str(y))
         return y
 
     def butter_lowpass(self,cutoff, nyq, order=5):
@@ -132,9 +137,6 @@ class NuMaxCalculator:
         print("Nyquist Frequency is '"+str(nyq)+"'")
         print("Input Cutoff is '"+str(cutoff)+"'")
         b, a = butter(order, normal_cutoff, btype='high', analog=False)
-        print("------------------------------------------")
-        print(b, a)
-        print("------------------------------------------")
         return b, a
 
     def calculateAutocorrelation(self,oscillatingData):
@@ -148,8 +150,8 @@ class NuMaxCalculator:
         corrs2 = corrs2 / corrs2[maxcorr]
         return corrs2
 
-    def sinc(self,x, a, tau_acf):
-        return a * np.sinc(4 * x / tau_acf)**2
+    def sinc(self,x, a,b, tau_acf):
+        return a * np.sinc(4 * x / tau_acf)**2+b*np.sin(2*np.pi*x/tau_acf)
 
     def scipyFit(self,data):
         y = data[1] #todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
@@ -167,15 +169,17 @@ class NuMaxCalculator:
 
         initA = np.amax(y)
         initTau_acf = x[self.__nearestIndex[0]]
-        arr = [initA, initTau_acf]
+        initB = initA/5
+        arr = [initA,initB, initTau_acf]
 
-        bounds = ([initA - 0.1, initTau_acf - 0.05]
-                  , [initA + 0.1, initTau_acf + 0.05])
+        bounds = ([initA - 0.1,initB/2, initTau_acf - 0.05]
+                  , [initA + 0.1,initB*2, initTau_acf + 0.05])
 
         popt, pcov = optimize.curve_fit(self.sinc, x, y, p0=arr, bounds=bounds)
         perr = np.sqrt(np.diag(pcov))
         print("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
-        print("tau_acf = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
+        print("b = '"+str(popt[1])+" ("+str(perr[1])+")'")
+        print("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
         print(perr)
 
         return popt
