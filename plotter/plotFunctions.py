@@ -4,10 +4,11 @@ from ggplot import *
 import pandas as pd
 from fitter.fitFunctions import *
 import random as r
-
+import logging
 from support.strings import *
 
 pl.style.use('ggplot')
+logger = logging.getLogger(__name__)
 
 def plotPSD(results,runGauss,psdOnly):
     psd = results.getPSD()
@@ -62,10 +63,10 @@ def plotPSD(results,runGauss,psdOnly):
         annotation = {'color': 'cyan', 'linetype': 'dashed'}
         annotationList['Full Background'] = annotation
 
-    print(dataList)
-    print(len(dataList[r'Frequency [$\mu$Hz]']))
-    print(len(dataList[r'PSD [ppm$^2$/$\mu$Hz]']))
-    print(len(dataList['Smoothed']))
+    logger.debug(dataList)
+    logger.debug(len(dataList[r'Frequency [$\mu$Hz]']))
+    logger.debug(len(dataList[r'PSD [ppm$^2$/$\mu$Hz]']))
+    logger.debug(len(dataList['Smoothed']))
 
     dfData = pd.DataFrame.from_dict(dataList)
 
@@ -75,8 +76,8 @@ def plotPSD(results,runGauss,psdOnly):
     for i in dataList.keys():
         if i != r'Frequency [$\mu$Hz]' and i != r'PSD [ppm$^2$/$\mu$Hz]':
             if i in annotationList.keys():
-                print(i)
-                print(annotationList[i])
+                logger.debug(i)
+                logger.debug(annotationList[i])
                 p = p + geom_line(aes(y=i), color=annotationList[i]['color'],
                                   linetype=annotationList[i]['linetype'])
             else:
@@ -138,7 +139,7 @@ def plotDeltaNuFit(deltaNuCalculator,kicID):
     p = p +ylim(0,1.5*max(deltaNuCalculator.gaussian(deltaF, *best_fit)))
     p = p + xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
     p = p +geom_vline(x=[deltaNuEst],linetype='dashed',color='blue')
-    print(p)
+    logger.debug(p)
 
 
 def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='linear',scalex='linear',fitDegree = None,fill=True):
@@ -188,8 +189,8 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
             pl.fill_between(x,popt[0]-perr[0],popt[0]+perr[0],color='grey',alpha=0.5)
             pl.fill_between(x, popt[0] - 2*perr[0], popt[0] + 2*perr[0], color='dimgrey', alpha=0.5)
         legendList.append(fit)
-        print("Polynomial fit degree '"+str(fitDegree)+"', parameters '"+str(popt)+"' and uncertainties '"+str(perr)+"'")
-        print("Chi squared is '"+str(chi_squared)+"'")
+        logger.debug("Polynomial fit degree '"+str(fitDegree)+"', parameters '"+str(popt)+"' and uncertainties '"+str(perr)+"'")
+        logger.debug("Chi squared is '"+str(chi_squared)+"'")
 
     pl.legend()
     pl.xlabel(xLabel)

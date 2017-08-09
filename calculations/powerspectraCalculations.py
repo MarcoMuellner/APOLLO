@@ -20,7 +20,7 @@ class PowerspectraCalculator:
 
     def lightCurveToPowerspectra(self,lightCurve):
         if len(lightCurve) != 2:
-            print("Lightcurve should be of dimension 2!")
+            self.logger.debug("Lightcurve should be of dimension 2!")
             raise ValueError
 
         if self.__powerSpectraMode == strPowerModeNumpy:
@@ -28,7 +28,7 @@ class PowerspectraCalculator:
         elif self.__powerSpectraMode == strPowerModeSciPy:
             return self.lightCurveToPowerspectraPeriodogramm(lightCurve)
         else:
-            print("No available Mode named '"+self.__powerSpectraMode+"'")
+            self.logger.debug("No available Mode named '"+self.__powerSpectraMode+"'")
             raise KeyError
 
     def lightCurveToPowerspectraFFT(self,lightCurve): #todo this doesn't seem to calculate it correctly!
@@ -64,13 +64,13 @@ class PowerspectraCalculator:
 
     def getLightcurve(self):
         if self.__lightCurve is None:
-            print("Lightcurve is None!")
+            self.logger.debug("Lightcurve is None!")
 
         return self.__lightCurve
 
     def getPSD(self):
         if self.__powerSpectra is None:
-            print("Powerspectra is None!")
+            self.logger.debug("Powerspectra is None!")
 
         return np.array((self.__powerSpectra[0][1:],self.__powerSpectra[1][1:]))
 
@@ -84,7 +84,7 @@ class PowerspectraCalculator:
         if lightCurve is None or len(lightCurve) == 2:
             self.__lightCurve = lightCurve
         else:
-            print("Lightcurve should have 2 dimensions (time,flux)")
+            self.logger.debug("Lightcurve should have 2 dimensions (time,flux)")
             raise ValueError
         return self.__lightCurve
 
@@ -92,7 +92,7 @@ class PowerspectraCalculator:
         if powerSpectra is None or len(powerSpectra) == 2:
             self.__powerSpectra = powerSpectra
         else:
-            print("Powerspectra should have 2 dimesions (frequency,power)")
+            self.logger.debug("Powerspectra should have 2 dimesions (frequency,power)")
             raise ValueError
         return self.__powerSpectra
 
@@ -104,5 +104,5 @@ class PowerspectraCalculator:
             self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
             return self.__nyq
         else:
-            print("Lightcure is None, therefore no calculation of nyquist frequency possible")
+            self.logger.debug("Lightcure is None, therefore no calculation of nyquist frequency possible")
             return None

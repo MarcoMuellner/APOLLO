@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import butter, filtfilt
 from scipy import optimize
+import logging
 
 class DeltaNuCalculator:
     m_nuMax = None
@@ -83,7 +84,7 @@ class DeltaNuCalculator:
                 maxima = psd[0][i]
                 indexMax = i
 
-        print("Final minima: '" + str(minima) + "', final maxima: '" + str(maxima) + "', numax: '"
+        self.logger.info("Final minima: '" + str(minima) + "', final maxima: '" + str(maxima) + "', numax: '"
               + str(cen ) + "', sigma: '" + str(sigma) + "'")
 
         self.m_gaussBoundaries = (minima, maxima, indexMin, indexMax)
@@ -129,7 +130,7 @@ class DeltaNuCalculator:
         y = data[1]
         x = data[0]
         minima, maxima, indexMin, indexMax = self.findGaussBoundaries(self.m_multiplicator,data,deltaNuEst,0.2*deltaNuEst)
-        print(indexMin,indexMax)
+        self.logger.debug(indexMin,indexMax)
         index = np.where(y == np.amax(y[indexMin:indexMax]))
 
         initY0 = np.mean(y[indexMin:indexMax])
@@ -162,10 +163,10 @@ class DeltaNuCalculator:
         self.m_cen = (self.m_popt[2],x0_err)
         self.m_wid = (self.m_popt[3],self.m_perr[3])
 
-        print("y0 = '" + str(self.m_y0[0]) + " (" + str(self.m_y0[1]) + ")'")
-        print("amp = '" + str(self.m_amp[0]) + " (" + str(self.m_amp[1]) + ")'")
-        print("cen = '" + str(self.m_cen [0]) + " (" + str(self.m_cen [1]) + ")'")
-        print("wid = '" + str(self.m_wid[0]) + " (" + str(self.m_wid[1]) + ")'")
+        self.logger.debug("y0 = '" + str(self.m_y0[0]) + " (" + str(self.m_y0[1]) + ")'")
+        self.logger.debug("amp = '" + str(self.m_amp[0]) + " (" + str(self.m_amp[1]) + ")'")
+        self.logger.debug("cen = '" + str(self.m_cen [0]) + " (" + str(self.m_cen [1]) + ")'")
+        self.logger.debug("wid = '" + str(self.m_wid[0]) + " (" + str(self.m_wid[1]) + ")'")
 
         return self.m_popt
 

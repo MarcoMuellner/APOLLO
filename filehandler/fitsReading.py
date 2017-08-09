@@ -3,9 +3,11 @@ import numpy as np
 import pylab as pl
 from settings.settings import Settings
 from support.strings import *
+import logging
 
 class FitsReader:
     def __init__(self,filename):
+        self.logger =logging.getLogger(__name__)
         self.setFitsFile(filename)
         return
 
@@ -13,16 +15,16 @@ class FitsReader:
         scidata = None
         if ".fits" in filename:
             hdulist = fits.open(filename)
-            print("Opening fits file '" + filename + "'")
+            self.logger.debug("Opening fits file '" + filename + "'")
             hdulist.info()
             scidata = hdulist[0].data
             self.__mode = "fits"#todo in string
         elif ".txt" in filename:
-            print("Opening txt file '" + filename + "'")
+            self.logger.debug("Opening txt file '" + filename + "'")
             scidata = np.loadtxt(filename)
             self.__mode = "txt" #todo in string
         else:
-            print("File not recognised!")
+            self.logger.debug("File not recognised!")
             raise ValueError
         scidata = scidata.transpose()
         scidata = scidata.transpose()
@@ -36,7 +38,7 @@ class FitsReader:
             intervall = scidata[1][0] - scidata[0][0]
         elif self.__mode == "txt":#todo in string
             intervall = scidata[1][0] - scidata[0][0]
-        print("Intervall is '"+str(intervall)+"'")
+        self.logger.debug("Intervall is '"+str(intervall)+"'")
         arrays = []
         fluxArray =[]
         timeArray = []
@@ -48,17 +50,17 @@ class FitsReader:
                 continue
 
             if (abs(scidata[i][0]-prevTime - intervall) > 10**-1):
-                print("Difference is '"+str(scidata[i][0]-prevTime - intervall)+"'")
+                self.logger.debug("Difference is '"+str(scidata[i][0]-prevTime - intervall)+"'")
                 arrays.append((timeArray,fluxArray))
                 lenTime += len(timeArray)
                 lenFlux += len(fluxArray)
                 timeArray = []
                 fluxArray = []
-                print("Scidata is '"+str(scidata[i][0])+"'")
-                print("Prevtime is '"+str(prevTime)+"'")
-                print("Intervall is '"+str(intervall)+"'")
+                self.logger.debug("Scidata is '"+str(scidata[i][0])+"'")
+                self.logger.debug("Prevtime is '"+str(prevTime)+"'")
+                self.logger.debug("Intervall is '"+str(intervall)+"'")
                 zeroValue = zeroValue+scidata[i][0] - prevTime+intervall
-                print("ZeroValue is '"+str(zeroValue)+"'")
+                self.logger.debug("ZeroValue is '"+str(zeroValue)+"'")
 
 
             timeArray.append(scidata[i][0] - zeroValue)
@@ -73,8 +75,8 @@ class FitsReader:
         resultFlux = np.zeros(lenFlux)
         prevlength = 0
         for i in arrays:
-            print(min(i[0]))
-            print(max(i[0]))
+            self.logger.debug(min(i[0]))
+            self.logger.debug(max(i[0]))
             resultTime[prevlength:prevlength + len(i[0])] = np.array(i[0])
             resultFlux[prevlength:prevlength + len(i[0])] = np.array(i[1])
             prevlength += len(i[0])
@@ -93,7 +95,7 @@ class FitsReader:
             intervall = scidata[1][0] - scidata[0][0]
         elif self.__mode == "txt":#todo in string
             intervall = scidata[1][0] - scidata[0][0]
-        print("Intervall is '"+str(intervall)+"'")
+        self.logger.debug("Intervall is '"+str(intervall)+"'")
         arrays = []
         fluxArray =[]
         timeArray = []
@@ -103,7 +105,7 @@ class FitsReader:
                 continue
 
             if (abs(scidata[i][0]-prevTime - intervall) > 10**-1):
-                print("Difference is '"+str(scidata[i][0]-prevTime - intervall)+"'")
+                self.logger.debug("Difference is '"+str(scidata[i][0]-prevTime - intervall)+"'")
                 arrays.append((timeArray,fluxArray))
                 timeArray = []
                 fluxArray = []
@@ -126,9 +128,9 @@ class FitsReader:
 
             if len(npArr[0]) > previousMaxLength and max(npArr[0])<150:
                 maxIndex = counter
-                print("Previous length: '" +str(previousMaxLength) +"'")
-                print("New Length: '"+str(len(npArr[0]))+"'")
-                print("MaxIndex: '"+str(counter)+"'")
+                self.logger.debug("Previous length: '" +str(previousMaxLength) +"'")
+                self.logger.debug("New Length: '"+str(len(npArr[0]))+"'")
+                self.logger.debug("MaxIndex: '"+str(counter)+"'")
                 previousMaxLength = len(npArr[0])
 
 
@@ -151,17 +153,17 @@ class FitsReader:
 
     def setFitsFile(self,fileName):
         mode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
-        print("Mode is '"+mode+"'")
+        self.logger.debug("Mode is '"+mode+"'")
         self.__fileContent = self.__readData(fileName)
         if mode == strLightCombining:
             self.__lightCurve = self.__refineDataCombiningMethod(self.__fileContent)
         elif mode == strLightCutting:
             self.__lightCurve = self.__refineDataCuttingMethod(self.__fileContent)
         else:
-            print("Failed to find refine data method with: '" + mode+"'")
+            self.logger.debug("Failed to find refine data method with: '" + mode+"'")
             raise ValueError
-        print(len(self.getLightCurve()[0]))
-        print(len(self.getLightCurve()[1]))
+        self.logger.debug(len(self.getLightCurve()[0]))
+        self.logger.debug(len(self.getLightCurve()[1]))
         pl.figure()
         #todo temporary
         return self.getLightCurve()
@@ -171,5 +173,5 @@ class FitsReader:
             self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
             return self.__nyq
         else:
-            print("Lightcure is None, therefore no calculation of nyquist frequency possible")
+            self.logger.debug("Lightcure is None, therefore no calculation of nyquist frequency possible")
             return None

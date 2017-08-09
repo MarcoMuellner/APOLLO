@@ -76,7 +76,7 @@ class Results:
                 par_le = 0  # lower credible limits
                 par_ue = 0  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
-                print("Problem creating median,le,ue values. Creating them with 0")
+                self.logger.debug("Problem creating median,le,ue values. Creating them with 0")
 
             self.__backgroundParameter.append(BackgroundParameter(self.__names[i], self.__units[i], kicID, runID, i))
 
@@ -100,8 +100,8 @@ class Results:
                 if i.getName == key:
                     return self.__backgroundParameter[i]
 
-            print("Found no background parameter for '"+key+"'")
-            print("Returning full list")
+            self.logger.debug("Found no background parameter for '"+key+"'")
+            self.logger.debug("Returning full list")
             return self.__backgroundParameter
 
     def getPrior(self):
@@ -231,9 +231,9 @@ class Results:
             self.__numax = (par_median[8],par_median[8] - par_le[8])  # second last parameter
             self.__sigma = (par_median[9],par_median[9] - par_le[9])  # last parameter
 
-            print("Height is '" + str(self.__hg[0]) + "'")
-            print("Numax is '" + str(self.__numax[0]) + "'")
-            print("Sigma is '" + str(self.__sigma[0]) + "'")
+            self.logger.debug("Height is '" + str(self.__hg[0]) + "'")
+            self.logger.debug("Numax is '" + str(self.__numax[0]) + "'")
+            self.logger.debug("Sigma is '" + str(self.__sigma[0]) + "'")
 
         zeta = 2. * np.sqrt(2.) / np.pi  # !DPI is the pigreca value in double precision
         r = (np.sin(np.pi / 2. * freq / self.__nyq) / (
@@ -259,10 +259,10 @@ class Results:
         h_gran2 = (sigma_gran2 ** 2 / freq_gran2) / (1. + (freq / freq_gran2) ** 4)
 
         ## Global background model
-        print(w)
+        self.logger.debug(w)
         w = np.zeros_like(freq) + w
         b1 = zeta * (h_long + h_gran1 + h_gran2) * r + w
-        print("Whitenoise is '" + str(w) + "'")
+        self.logger.debug("Whitenoise is '" + str(w) + "'")
         if runGauss:
             b2 = (zeta * (h_long + h_gran1 + h_gran2) + g) * r + w
             return zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
@@ -278,21 +278,21 @@ class Results:
                 if i.getName() == key:
                     return self.__marginalDistributions[i]
 
-            print("Found no marginal Distribution for '"+key+"'")
-            print("Returning full list")
+            self.logger.debug("Found no marginal Distribution for '"+key+"'")
+            self.logger.debug("Returning full list")
             return self.__marginalDistributions
 
     def calculateRadius(self,TSun,NuMaxSun,DeltaNuSun):
         if self.__Teff is None:
-            print("Teff is None, no calculation of BC takes place")
+            self.logger.debug("Teff is None, no calculation of BC takes place")
             return None
 
         if self.__numax is None:
-            print("NuMax is not calculated, need nuMax to proceed")
+            self.logger.debug("NuMax is not calculated, need nuMax to proceed")
             return None
 
         if self.__deltaNuCalculator is None:
-            print("Delta Nu is not yet calculated, need to calculate that first")
+            self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
         self.__radiusStar = (self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
@@ -314,15 +314,15 @@ class Results:
 
     def calculateLuminosity(self,TSun):
         if self.__Teff is None:
-            print("Teff is None, no calculation of BC takes place")
+            self.logger.debug("Teff is None, no calculation of BC takes place")
             return None
 
         if self.__deltaNuCalculator is None:
-            print("Delta Nu is not yet calculated, need to calculate that first")
+            self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
         if self.__radiusStar is None:
-            print("Radius not yet calculated, need to calculate that first")
+            self.logger.debug("Radius not yet calculated, need to calculate that first")
             self.calculateRadius()
 
         self.__Luminosity = self.__radiusStar[0]** 2 * (self.__Teff / TSun) ** 4
@@ -338,19 +338,19 @@ class Results:
 
         appMag = appMag if appMag != 0 else kicmag
         if self.__Teff is None:
-            print("TEff is None, no calculation of distance modulus takes place")
+            self.logger.debug("TEff is None, no calculation of distance modulus takes place")
             return None
 
         if self.__deltaNuCalculator is None:
-            print("Delta Nu is not yet calculated, need to calculate that first")
+            self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
         if self.__numax is None:
-            print("NuMax is not calculated, need nuMax to proceed")
+            self.logger.debug("NuMax is not calculated, need nuMax to proceed")
             return None
 
         if self.__BCCalculator is None:
-            print("BC is not yet calculated, need to calculate that first")
+            self.logger.debug("BC is not yet calculated, need to calculate that first")
             self.calculate
             self.__BCCalculator = BCCalculator(self.__Teff)
             self.__BC = self.__BCCalculator.getBC()
@@ -369,7 +369,7 @@ class Results:
         errorAv= (Av[1])**2
         errorTemperature = ((15/1.2)*(self.__TeffError/self.__Teff))**2
 
-        print("Error"+str(errorNuMax)+","+str(errorDeltaNu)+","+str(errorV)+","+str(errorAv)+","+str(errorTemperature))
+        self.logger.debug("Error"+str(errorNuMax)+","+str(errorDeltaNu)+","+str(errorV)+","+str(errorAv)+","+str(errorTemperature))
         error = sqrt(errorNuMax + errorDeltaNu+errorV+errorAv + errorTemperature)
 
         self.__mu = (self.__mu,error)

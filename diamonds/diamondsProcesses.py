@@ -10,7 +10,7 @@ class DiamondsProcess:
         if model == strDiamondsNoGaussian or model == strDiamondsGaussian:
             self.__diamondsModelBinary = model
         else:
-            print("No binary with name '"+model+"' exists!")
+            self.logger.debug("No binary with name '"+model+"' exists!")
             raise ValueError
 
         self.__binary = self.__diamondsBinaryPath +self.__diamondsModelBinary
@@ -20,35 +20,35 @@ class DiamondsProcess:
         return
 
     def start(self):
-        print("Starting diamonds process.")
-        print("Binary path: '"+self.__diamondsBinaryPath+"'")
-        print("Binary used: '"+self.__diamondsModelBinary+"'")
-        print("KicID: '"+self.__kicID+"'")
-        print("RunID: '"+self.__runID+"'")
-        print("Kernels: '"+self.__kernels+"'")
+        self.logger.debug("Starting diamonds process.")
+        self.logger.debug("Binary path: '"+self.__diamondsBinaryPath+"'")
+        self.logger.debug("Binary used: '"+self.__diamondsModelBinary+"'")
+        self.logger.debug("KicID: '"+self.__kicID+"'")
+        self.logger.debug("RunID: '"+self.__runID+"'")
+        self.logger.debug("Kernels: '"+self.__kernels+"'")
         cmd = [self.__binary,self.__kicID,self.__runID,self.__kernels]
-        print("Full Command: '"+str(cmd)+"'")
+        self.logger.debug("Full Command: '"+str(cmd)+"'")
 
         with cd(self.__diamondsBinaryPath):
             p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
             for line in p.stdout:
-                print(line)
+                self.logger.debug(line)
             p.wait()
-            print("Command '"+str(cmd)+"' done")
+            self.logger.debug("Command '"+str(cmd)+"' done")
         return
 
     def stop(self):
-        print("Yet to implement!")
+        self.logger.debug("Yet to implement!")
         return
 
     def getLog(self):
-        print("Yet to implement!")
+        self.logger.debug("Yet to implement!")
         return
 
     def stillRunning(self):
-        print("Yet to implement!")
+        self.logger.debug("Yet to implement!")
         return
 
     def finished(self):
-        print("Yet to implement!")
+        self.logger.debug("Yet to implement!")
         return

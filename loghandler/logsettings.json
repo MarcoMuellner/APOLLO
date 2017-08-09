@@ -5,8 +5,8 @@
         "simple": {
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         },
-		"fancy": {
-			"format": "%(asctime)s - %(name)s - %(funcName)s - %(lineno)d - %(message)s"
+	"fancy": {
+	    "format": "%(asctime)s - %(name)s - %(funcName)s - %(lineno)d - %(message)s"
 		}
     },
 
@@ -51,7 +51,7 @@
 
     "loggers": {
         "my_module": {
-            "level": "ERROR",
+            "level": "DEBUG",
             "handlers": ["console"],
             "propagate": "no"
         }

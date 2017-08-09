@@ -5,6 +5,8 @@ from calculations.priorCalculations import PriorCalculator
 from plotter.plotFunctions import *
 from filehandler.Diamonds.diamondsFileCreating import FileCreater
 from diamonds.diamondsProcesses import DiamondsProcess
+from loghandler.loghandler import *
+import logging
 
 def createBackgroundModel(runGauss,median,psd,nyq):
     freq, psd = psd
@@ -34,10 +36,10 @@ def createBackgroundModel(runGauss,median,psd,nyq):
     h_gran2 = (sigma_gran2 ** 2 / freq_gran2) / (1. + (freq / freq_gran2) ** 4)
 
     ## Global background model
-    print(w)
+    logger.info(w)
     w = np.zeros_like(freq) + w
     b1 = zeta * (h_long + h_gran1 + h_gran2) * r + w
-    print("Whitenoise is '" + str(w) + "'")
+    logger.info("Whitenoise is '" + str(w) + "'")
     if runGauss:
         b2 = (zeta * (h_long + h_gran1 + h_gran2) + g) * r + w
         return zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
@@ -52,7 +54,7 @@ def plotPSDTemp(runGauss,psd,backgroundModel):
     if smoothedData is not None:
         pl.plot(psd[0], smoothedData)
     else:
-        print("Smoothingdata is None!")
+        logger.info("Smoothingdata is None!")
 
     pl.plot(psd[0], backgroundModel[0], 'b', linestyle='dashed', linewidth=2)
     pl.plot(psd[0], backgroundModel[1], 'b', linestyle='dashed', linewidth=2)
@@ -76,6 +78,8 @@ def plotPSDTemp(runGauss,psd,backgroundModel):
     fig = pl.gcf()
     fig.canvas.set_window_title('Powerspectrum')
 
+setup_logging()
+logger = logging.getLogger(__name__)
 
 #003656476_12
 #004346201_18
@@ -94,7 +98,7 @@ powerSpectrum = False
 #filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
 
 #Reviewed Data by Enrico
-filename = "../../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + (
+filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + (
     "PSD_" if powerSpectrum else "") + "filt_inp.fits"
 
 file = FitsReader(filename)
@@ -105,9 +109,9 @@ plotPSD(powerCalc,True,True)
 
 nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.getPSD())
 
-print("First iterative Calculation")
+logger.debug("First iterative Calculation")
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
-print("Second iterative Calculation")
+logger.debug("Second iterative Calculation")
 corr_2,best_fit_2 = nuMaxCalc.calculateIterativeFilterFrequency()
 
 
@@ -118,29 +122,29 @@ nyquist = nuMaxCalc.getNyquistFrequency()
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
 
-print("Priors")
-print("PhotonNoise: '" + str(priorCalculator.getPhotonNoiseBoundary()) + "'")
-print("First Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
-print("First Harvey Frequency: '" + str(priorCalculator.getFirstHarveyFrequencyBoundary()) + "'")
-print("Second Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
-print("Second Harvey Frequency: '" + str(priorCalculator.getSecondHarveyFrequencyBoundary()) + "'")
-print("Third Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
-print("Third Harvey Frequency: '" + str(priorCalculator.getThirdHarveyFrequencyBoundary()) + "'")
-print("Amplitude: '" + str(priorCalculator.getAmplitudeBounday()) + "'")
-print("nuMax: '" + str(priorCalculator.getNuMaxBoundary()) + "'")
-print("Sigma: '" + str(priorCalculator.getSigmaBoundary()) + "'")
+logger.info("Priors")
+logger.info("PhotonNoise: '" + str(priorCalculator.getPhotonNoiseBoundary()) + "'")
+logger.info("First Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
+logger.info("First Harvey Frequency: '" + str(priorCalculator.getFirstHarveyFrequencyBoundary()) + "'")
+logger.info("Second Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
+logger.info("Second Harvey Frequency: '" + str(priorCalculator.getSecondHarveyFrequencyBoundary()) + "'")
+logger.info("Third Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitudesBoundary()) + "'")
+logger.info("Third Harvey Frequency: '" + str(priorCalculator.getThirdHarveyFrequencyBoundary()) + "'")
+logger.info("Amplitude: '" + str(priorCalculator.getAmplitudeBounday()) + "'")
+logger.info("nuMax: '" + str(priorCalculator.getNuMaxBoundary()) + "'")
+logger.info("Sigma: '" + str(priorCalculator.getSigmaBoundary()) + "'")
 
-print("Priors")
-print("PhotonNoise: '" + str(priorCalculator.getPhotonNoise()) + "'")
-print("First Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
-print("First Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency1()) + "'")
-print("Second Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
-print("Second Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency2()) + "'")
-print("Third Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
-print("Third Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency3()) + "'")
-print("Amplitude: '" + str(priorCalculator.getAmplitude()) + "'")
-print("nuMax: '" + str(nuMax) + "'")
-print("Sigma: '" + str(priorCalculator.getSigma()) + "'")
+logger.info("Priors")
+logger.info("PhotonNoise: '" + str(priorCalculator.getPhotonNoise()) + "'")
+logger.info("First Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
+logger.info("First Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency1()) + "'")
+logger.info("Second Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
+logger.info("Second Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency2()) + "'")
+logger.info("Third Harvey Amplitude: '" + str(priorCalculator.getHarveyAmplitude()) + "'")
+logger.info("Third Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency3()) + "'")
+logger.info("Amplitude: '" + str(priorCalculator.getAmplitude()) + "'")
+logger.info("nuMax: '" + str(nuMax) + "'")
+logger.info("Sigma: '" + str(priorCalculator.getSigma()) + "'")
 
 priors = []
 priors.append(priorCalculator.getPhotonNoiseBoundary())

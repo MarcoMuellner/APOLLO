@@ -6,16 +6,18 @@ from scipy import optimize
 from calculations.powerspectraCalculations import PowerspectraCalculator
 from plotter.plotFunctions import *
 import pylab as pl
+import logging
 
 class NuMaxCalculator:
     def __init__(self,lightCurve,powerSpectra):
+        self.logger = logging.getLogger(__name__)
         self.__iterativeNuFilter = None
         self.setParameters(lightCurve,powerSpectra)
         return
     def __calculateFlickerAmplitude(self):
         #calculate Median Flux
         time = self.__lightCurve[0]
-        #np.set_printoptions(threshold=np.inf)
+        #np.set_self.logger.debugoptions(threshold=np.inf)
         maxdif = 0
         mindif = 1000
         for i in (0,len(time)):
@@ -25,11 +27,11 @@ class NuMaxCalculator:
                 if time[i+1] - time[i] < mindif:
                     mindif = time[i+1] - time[i]
             except:
-                print("endofloop")
+                self.logger.debug("endofloop")
 
-        print("Max diff is '"+str(maxdif)+"'")
-        print("Min diff is '" + str(mindif) + "'")
-        #print(time)
+        self.logger.debug("Max diff is '"+str(maxdif)+"'")
+        self.logger.debug("Min diff is '" + str(mindif) + "'")
+        #self.logger.debug(time)
         flux = self.__lightCurve[1]
 
         medianFlux = np.median(flux)
@@ -45,11 +47,11 @@ class NuMaxCalculator:
         cutoffMax = 0 #These two parameters define the cutoff of things in the lightcurve you probably don't want
         cutoffMin = 0
 
-        print("Max Time is '"+str(np.amax(time))+"'")
-        print("Length of time is '"+str(len(time)))
-        print("Flickersize is '"+str(flickerSize)+"'")
-        print("MeanTimeBin is '"+str(meanTimeBin)+"'")
-        print("Iterations is '"+str(iterations)+"'")
+        self.logger.debug("Max Time is '"+str(np.amax(time))+"'")
+        self.logger.debug("Length of time is '"+str(len(time)))
+        self.logger.debug("Flickersize is '"+str(flickerSize)+"'")
+        self.logger.debug("MeanTimeBin is '"+str(meanTimeBin)+"'")
+        self.logger.debug("Iterations is '"+str(iterations)+"'")
 
 
         flickerFluxArray = np.zeros(int(iterations-cutoffMax-cutoffMin))
@@ -74,12 +76,12 @@ class NuMaxCalculator:
 
         #this is the final flickerAmplitude!
         self.__flickerAmplitude = np.std(filteredFlux)
-        print("Calculated flicker amplitude is '"+str(self.__flickerAmplitude)+"'")
+        self.logger.debug("Calculated flicker amplitude is '"+str(self.__flickerAmplitude)+"'")
 
     def getNyquistFrequency(self):
         if self.__lightCurve is not None:
-            print("Abtastfrequency is '"+str((self.__lightCurve[0][3] - self.__lightCurve[0][2])*24*3600)+"'")
-            print("Size is '"+str(self.__lightCurve[0].size)+"'")
+            self.logger.debug("Abtastfrequency is '"+str((self.__lightCurve[0][3] - self.__lightCurve[0][2])*24*3600)+"'")
+            self.logger.debug("Size is '"+str(self.__lightCurve[0].size)+"'")
             self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
             #TODO set fix here, see what it does
             #self.__nyq = 283.2116656017908
@@ -87,12 +89,12 @@ class NuMaxCalculator:
 
             return self.__nyq
         else:
-            print("Lightcurve is None, therefore no calculation of nyquist frequency possible")
+            self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
             return None
 
     def __calculateInitFilterFrequency(self):
         self.__initNuFilter = 10**(5.187-1.560*log10(self.__flickerAmplitude))
-        print("Initial Nu Filter is '"+str(self.__initNuFilter)+"'")
+        self.logger.debug("Initial Nu Filter is '"+str(self.__initNuFilter)+"'")
         return self.__initNuFilter
 
     def calculateIterativeFilterFrequency(self):
@@ -116,26 +118,26 @@ class NuMaxCalculator:
         pl.xlim(0,1)
         pl.show()
 
-        print("Tau_ACF is '"+str(tauACF)+"'")
+        self.logger.debug("Tau_ACF is '"+str(tauACF)+"'")
 
         self.__iterativeNuFilter = 10**(3.098-0.932*log10(tauACF)-0.025*log10(tauACF)**2)
         self.__photonNoise = np.mean(self.__powerSpectra[1])*(1-best_fit[0]) if best_fit[0] < 1 else np.mean(self.__powerSpectra[1])
-        print("Second iterative filter is '"+str(self.__iterativeNuFilter)+"'")
-        print("Photon noise is '"+str(self.__photonNoise))
+        self.logger.debug("Second iterative filter is '"+str(self.__iterativeNuFilter)+"'")
+        self.logger.debug("Photon noise is '"+str(self.__photonNoise))
         return np.array((deltaF,corr)),best_fit
 
     def butter_lowpass_filtfilt(self,data, f, nyq, order=5):
         b, a = self.butter_lowpass(f, nyq, order=order)
-        print("Filterparameter are "+str(b)+","+str(a))
+        self.logger.debug("Filterparameter are "+str(b)+","+str(a))
         y = filtfilt(b, a, data)
-        print("Final frequency is "+str(y))
+        self.logger.debug("Final frequency is "+str(y))
         return y
 
     def butter_lowpass(self,cutoff, nyq, order=5):
         normal_cutoff = cutoff / nyq
-        print("Cutoff Frequency for filtering is '"+str(normal_cutoff)+"'")
-        print("Nyquist Frequency is '"+str(nyq)+"'")
-        print("Input Cutoff is '"+str(cutoff)+"'")
+        self.logger.debug("Cutoff Frequency for filtering is '"+str(normal_cutoff)+"'")
+        self.logger.debug("Nyquist Frequency is '"+str(nyq)+"'")
+        self.logger.debug("Input Cutoff is '"+str(cutoff)+"'")
         b, a = butter(order, normal_cutoff, btype='high', analog=False)
         return b, a
 
@@ -159,13 +161,13 @@ class NuMaxCalculator:
 
         self.__nearestIndex = self.find_first_index(y, 0)
 
-        print(self.__nearestIndex[0][0])
+        self.logger.debug(self.__nearestIndex[0][0])
         y = data[1][:self.__nearestIndex[0][0]+100]#todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
         x = data[0][:self.__nearestIndex[0][0]+100]
 
-        print("Nearest index is '"+str(self.__nearestIndex)+"'")
-        print("x-Value is '"+str(x[self.__nearestIndex]*24*60))
-        print("y-Value is '"+str(x[self.__nearestIndex])+"'")
+        self.logger.debug("Nearest index is '"+str(self.__nearestIndex)+"'")
+        self.logger.debug("x-Value is '"+str(x[self.__nearestIndex]*24*60))
+        self.logger.debug("y-Value is '"+str(x[self.__nearestIndex])+"'")
 
         initA = np.amax(y)
         initTau_acf = x[self.__nearestIndex[0]]
@@ -177,10 +179,10 @@ class NuMaxCalculator:
 
         popt, pcov = optimize.curve_fit(self.sinc, x, y, p0=arr, bounds=bounds)
         perr = np.sqrt(np.diag(pcov))
-        print("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
-        print("b = '"+str(popt[1])+" ("+str(perr[1])+")'")
-        print("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
-        print(perr)
+        self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
+        self.logger.debug("b = '"+str(popt[1])+" ("+str(perr[1])+")'")
+        self.logger.debug("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
+        self.logger.debug(perr)
 
         return popt
 
@@ -193,8 +195,8 @@ class NuMaxCalculator:
 
     def setParameters(self,lightCurve,powerSpectra):
         if len(lightCurve) != 2 or len(powerSpectra) != 2:
-            print("Lightcurve and Powerspectra need to be of dimension 2")
-            print("Lightcurve dimension: '"+str(len(lightCurve))+"', Powerspectra dimension '"+str(len(powerSpectra))+"'")
+            self.logger.debug("Lightcurve and Powerspectra need to be of dimension 2")
+            self.logger.debug("Lightcurve dimension: '"+str(len(lightCurve))+"', Powerspectra dimension '"+str(len(powerSpectra))+"'")
             raise ValueError
 
         self.__lightCurve = lightCurve
