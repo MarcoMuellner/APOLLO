@@ -102,21 +102,32 @@ class NuMaxCalculator:
         smoothed = self.butter_lowpass_filtfilt(self.__lightCurve[1], filterFrequency, self.getNyquistFrequency())
 
         corr = self.calculateAutocorrelation(smoothed) #todo this seems to be a bottleneck here...
+        corrTest = self.calculateAutocorrelation(self.__lightCurve[1])       
+
+        stepFreq = self.__lightCurve[0][10] - self.__lightCurve[0][9]
+        deltaF = np.zeros(len(corrTest))
+        for i in range(0, len(deltaF)):
+            deltaF[i] = i * stepFreq
+
+        pl.plot(deltaF,corrTest,label='ACF^2')
+        pl.ylim(-0.5,1)
+        pl.xlim(0,1)
+        pl.legend()
 
         corr = np.power(corr,2)
         stepFreq = self.__lightCurve[0][10] - self.__lightCurve[0][9]
         deltaF = np.zeros(len(corr))
         for i in range(0, len(deltaF)):
             deltaF[i] = i * stepFreq
-
+        pl.figure()
+        pl.plot(deltaF,corr,label='ACF^2')
+        pl.ylim(-0.5,1)
+        pl.xlim(0,1)
+        pl.legend()
+        pl.show()
+        
         best_fit = self.scipyFit(np.array((deltaF, corr)))
         tauACF = best_fit[2]*24*60
-
-        pl.plot(deltaF,corr)
-        pl.plot(deltaF,self.sinc(deltaF,*best_fit))
-        pl.ylim(0,0.2)
-        pl.xlim(0,1)
-        pl.show()
 
         self.logger.debug("Tau_ACF is '"+str(tauACF)+"'")
 
@@ -142,7 +153,10 @@ class NuMaxCalculator:
         return b, a
 
     def calculateAutocorrelation(self,oscillatingData):
-        corrs2 = np.correlate(oscillatingData, oscillatingData, mode='full')
+        #this here is the actual correlation -> rest is just to crop down to
+        #significant areas
+        corrs2 = np.correlate(oscillatingData, oscillatingData, mode='same')
+        #
         N = len(corrs2)
         corrs2 = corrs2[N // 2:]
         lengths = range(N, N // 2, -1)
@@ -171,7 +185,7 @@ class NuMaxCalculator:
 
         initA = np.amax(y)
         initTau_acf = x[self.__nearestIndex[0]]
-        initB = initA/5
+        initB = initA/20
         arr = [initA,initB, initTau_acf]
 
         bounds = ([initA - 0.1,initB/2, initTau_acf - 0.05]

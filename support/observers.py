@@ -58,16 +58,16 @@ class obsSetting(object):
             self.__dict = settingsDictionary
             self.__innerSect = innerSection
             self.__option = option
-            self.__logger.debug("dict is '"+str(self.__dict.map)+"', innerSect is '"+self.__innerSect+"', option is '"+self.__option+"'")
+            self.__logger.log(9,"dict is '"+str(self.__dict.map)+"', innerSect is '"+self.__innerSect+"', option is '"+self.__option+"'")
             self.__dict.bind_to(self.__dictChanged)
             self.__observers =  []
             self.__lock = Lock()
 
             self.__value = self.__dict.map['Settings'][self.__innerSect][self.__option][strOptionValue]
-            self.__logger.debug("Value set to '"+self.__value+"'")
+            self.__logger.log(9,"Value set to '"+self.__value+"'")
 
         def bind_to(self,callback):
-            self.__logger.debug("Adding callback '"+str(callback)+"'")
+            self.__logger.log(9,"Adding callback '"+str(callback)+"'")
             self.__observers.append(callback)
 
         def __dictChanged(self,dictionary):
@@ -76,9 +76,9 @@ class obsSetting(object):
                 self.__runCallback()
 
         def __runCallback(self):
-            self.__logger.debug("Running callbacks")
+            self.__logger.log(9,"Running callbacks")
             for callback in self.__observers:
-                self.__logger.debug("Callback called is '"+str(callback)+"'")
+                self.__logger.log(9,"Callback called is '"+str(callback)+"'")
                 callback(self.__value)
 
         @property
@@ -87,7 +87,7 @@ class obsSetting(object):
 
         @value.setter
         def value(self,value):
-            self.__logger.debug("Entering with value '"+str(value)+"'")
+            self.__logger.log(9,"Entering with value '"+str(value)+"'")
  #           self.__lock.acquire()
             try:
                 self.__value = value
@@ -97,17 +97,17 @@ class obsSetting(object):
                 self.__runCallback()
             finally:
 #                self.__lock.release()
-                self.__logger.debug("Leaving")
+                self.__logger.log(9,"Leaving")
 
         @value.getter
         def value(self):
-            self.__logger.debug("Entering option '"+self.__option+"'")
+            self.__logger.log(9,"Entering option '"+self.__option+"'")
 #            self.__lock.acquire()
             try:
                 return self.__value
             finally:
 #                self.__lock.release()
-                self.__logger.debug("Leaving '"+self.__option+"'")
+                self.__logger.log(9,"Leaving '"+self.__option+"'")
 
         def guiName(self):
             return self.__dict.map['Settings'][self.__innerSect][self.__option][strOptionName]
