@@ -10,15 +10,15 @@ from support.strings import *
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
-def plotPSD(results,runGauss,psdOnly):
-    psd = results.getPSD()
+def plotPSD(data,runGauss,psdOnly):
+    psd = data.getPSD()
     backgroundModel = None
     if psdOnly is False:
-        backgroundModel = results.createBackgroundModel(runGauss)
-    smoothedData = results.getSmoothing()
+        backgroundModel = data.createBackgroundModel(runGauss)
+    smoothedData = data.getSmoothing()
 
     title = "Standardmodel" if runGauss else "Noise Backgroundmodel"
-    title += ' KIC' + results.getKicID()
+    title += ' KIC' + data.getKicID()
     dataList = {}
     annotationList = {}
     dataList[r'Frequency [$\mu$Hz]'] = psd[0]
@@ -74,6 +74,7 @@ def plotPSD(results,runGauss,psdOnly):
     p = p + geom_line(aes(y=r'PSD [ppm$^2$/$\mu$Hz]'), color=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['color'],
                       linetype=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['linetype'])
     for i in dataList.keys():
+        logger.debug("Key '"+i+"' will be plotted")
         if i != r'Frequency [$\mu$Hz]' and i != r'PSD [ppm$^2$/$\mu$Hz]':
             if i in annotationList.keys():
                 logger.debug(i)
@@ -85,12 +86,13 @@ def plotPSD(results,runGauss,psdOnly):
 
     p = p + scale_x_log() + scale_y_log() + ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2) + ggtitle(title) + ylab(
         r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
+    print(p)
 
 
-def plotMarginalDistributions(results):
+def plotMarginalDistributions(data):
     pl.figure(figsize=(23,12))
-    marginalDists = results.createMarginalDistribution()
-    summary = results.getSummary()
+    marginalDists = data.createMarginalDistribution()
+    summary = data.getSummary()
 
     par_median = summary.getData(strSummaryMedian)  # median values
     par_le = summary.getData(strSummaryLowCredLim)  # lower credible limits
@@ -107,8 +109,8 @@ def plotMarginalDistributions(results):
         pl.axvline(par_median[iii],c='r')
         pl.xlabel(marginalDists[iii].getName() + ' (' + marginalDists[iii].getUnit()+')',fontsize=16)
 
-def plotParameterTrend(results):
-    backgroundParameters = results.getBackgroundParameters()
+def plotParameterTrend(data):
+    backgroundParameters = data.getBackgroundParameters()
 
     for iii in range(0,len(backgroundParameters)):
         par = backgroundParameters[iii].getData()
@@ -139,7 +141,7 @@ def plotDeltaNuFit(deltaNuCalculator,kicID):
     p = p +ylim(0,1.5*max(deltaNuCalculator.gaussian(deltaF, *best_fit)))
     p = p + xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
     p = p +geom_vline(x=[deltaNuEst],linetype='dashed',color='blue')
-    logger.debug(p)
+    print(p)
 
 
 def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='linear',scalex='linear',fitDegree = None,fill=True):
@@ -196,6 +198,29 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
     pl.xlabel(xLabel)
     pl.ylabel(yLabel)
     pl.title(Title)
+
+def plotLightCurve(data):
+    lightCurve = data.getLightCurve()
+    title = "Lightcurve " + data.getKicID()
+    dataList = {}
+    annotationList = {}
+    dataList[r'Observation Time [d]'] = lightCurve[0]
+    dataList[r'Flux'] = lightCurve[1]
+    annotation = {'color': 'grey', 'linetype': 'solid'}
+    annotationList[r'Flux'] = annotation
+    dfData = pd.DataFrame.from_dict(dataList)
+    p = ggplot(dfData, aes(x=r'Observation Time [d]'))
+    p = p + geom_line(aes(y=r'Flux'), color=annotationList[r'Flux']['color'],
+    linetype=annotationList[r'Flux']['linetype'])
+    p = p+ylab(r'Flux')
+    p = p+xlab(r'Observation Time [d]')
+    p = p+ylim(1.1*min(lightCurve[1]),1.1*max(lightCurve[1]))
+    p = p+xlim(min(lightCurve[0]),max(lightCurve[0]))
+    p = p+ggtitle(title)
+    print(p)
+
+
+
 
 def show():
     pl.show()

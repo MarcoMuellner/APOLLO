@@ -105,9 +105,10 @@ file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)
 
-plotPSD(powerCalc,True,True)
+#plotPSD(powerCalc,True,True)
+#plotLightCurve(powerCalc)
 
-nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.getPSD())
+nuMaxCalc = NuMaxCalculator(powerCalc.getLightCurve(),powerCalc.getPSD())
 
 logger.debug("First iterative Calculation")
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()

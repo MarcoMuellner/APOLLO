@@ -62,7 +62,7 @@ class PowerspectraCalculator:
         b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
         return b, a
 
-    def getLightcurve(self):
+    def getLightCurve(self):
         if self.__lightCurve is None:
             self.logger.debug("Lightcurve is None!")
 
