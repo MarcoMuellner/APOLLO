@@ -84,18 +84,19 @@ logger = logging.getLogger(__name__)
 #003656476_12
 #004346201_18
 #004351319_19
+#input = "004346201_18"
 #input = '0603396438'
-input = "003744681_983"
+input = "006144777_350"
 #input = "0223976028"
+#input = "002437103_10"
 powerSpectrum = False
 #KeplerData
-#filename = "../../Sterndaten/KeplerData/kplr" + input + "_COR_" + (
-#    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
+filename = "../Sterndaten/KeplerData/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
 #Young Stars
 #filename = "../../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
 
 #New data
-#filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
+#filename = "../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
 
 #Reviewed Data by Enrico
 filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + (
@@ -105,15 +106,22 @@ file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)
 
-#plotPSD(powerCalc,True,True)
-#plotLightCurve(powerCalc)
+plotPSD(powerCalc,True,True)
+plotLightCurve(powerCalc)
 
 nuMaxCalc = NuMaxCalculator(powerCalc.getLightCurve(),powerCalc.getPSD())
+marker = {}
+marker["InitialFilter"] = (nuMaxCalc.getInitNuFilter(),"r")
+
+#plotPSD(powerCalc,True,True,marker)
 
 logger.debug("First iterative Calculation")
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
+marker["FirstIterationFilter"] = (nuMaxCalc.getNuFilterFitted(),"b")
 logger.debug("Second iterative Calculation")
 corr_2,best_fit_2 = nuMaxCalc.calculateIterativeFilterFrequency()
+marker["SecondIterationFilter"] = (nuMaxCalc.getNuFilterFitted(),"g")
+plotPSD(powerCalc,True,True,marker)
 
 
 initNuFilter = nuMaxCalc.getInitNuFilter()

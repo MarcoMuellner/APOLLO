@@ -76,16 +76,12 @@ class NuMaxCalculator:
 
         #this is the final flickerAmplitude!
         self.__flickerAmplitude = np.std(filteredFlux)
-        self.logger.debug("Calculated flicker amplitude is '"+str(self.__flickerAmplitude)+"'")
+        self.logger.info("Calculated flicker amplitude is '"+str(self.__flickerAmplitude)+"'")
 
     def getNyquistFrequency(self):
         if self.__lightCurve is not None:
             self.logger.debug("Abtastfrequency is '"+str((self.__lightCurve[0][3] - self.__lightCurve[0][2])*24*3600)+"'")
-            self.logger.debug("Size is '"+str(self.__lightCurve[0].size)+"'")
-            self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
-            #TODO set fix here, see what it does
-            #self.__nyq = 283.2116656017908
-
+            self.__nyq = 10**6/(2*(self.__lightCurve[0][200] -self.__lightCurve[0][199])*24*3600)
 
             return self.__nyq
         else:
@@ -94,13 +90,19 @@ class NuMaxCalculator:
 
     def __calculateInitFilterFrequency(self):
         self.__initNuFilter = 10**(5.187-1.560*log10(self.__flickerAmplitude))
-        self.logger.debug("Initial Nu Filter is '"+str(self.__initNuFilter)+"'")
+        self.logger.info("Initial Nu Filter is '"+str(self.__initNuFilter)+"'")
         return self.__initNuFilter
 
     def calculateIterativeFilterFrequency(self):
         filterFrequency = self.__iterativeNuFilter if self.__iterativeNuFilter is not None else self.__initNuFilter
+        filterFrequency = filterFrequency
         smoothed = self.butter_lowpass_filtfilt(self.__lightCurve[1], filterFrequency, self.getNyquistFrequency())
+        
+        psd = PowerspectraCalculator((self.__lightCurve[0],smoothed))
+        marker = {}
+        marker["InitialFilter"] = (filterFrequency,"r")
 
+        plotPSD(psd,True,True,marker)
         corr = self.calculateAutocorrelation(smoothed) #todo this seems to be a bottleneck here...
         corrTest = self.calculateAutocorrelation(self.__lightCurve[1])       
 
@@ -109,25 +111,23 @@ class NuMaxCalculator:
         for i in range(0, len(deltaF)):
             deltaF[i] = i * stepFreq
 
-        pl.plot(deltaF,corrTest,label='ACF^2')
-        pl.ylim(-0.5,1)
-        pl.xlim(0,1)
-        pl.legend()
-
         corr = np.power(corr,2)
         stepFreq = self.__lightCurve[0][10] - self.__lightCurve[0][9]
         deltaF = np.zeros(len(corr))
         for i in range(0, len(deltaF)):
             deltaF[i] = i * stepFreq
-        pl.figure()
-        pl.plot(deltaF,corr,label='ACF^2')
+       
+        best_fit = self.scipyFit(np.array((deltaF, corr)),filterFrequency)
+        tauACF = best_fit[2]*60*24
+
+#        pl.figure()
+        pl.plot(deltaF,corr,'x',label='ACF^2')
+        pl.plot(deltaF,self.sinc(deltaF,*best_fit),label='fit')
         pl.ylim(-0.5,1)
         pl.xlim(0,1)
         pl.legend()
         pl.show()
-        
-        best_fit = self.scipyFit(np.array((deltaF, corr)))
-        tauACF = best_fit[2]*24*60
+ 
 
         self.logger.debug("Tau_ACF is '"+str(tauACF)+"'")
 
@@ -137,7 +137,7 @@ class NuMaxCalculator:
         self.logger.debug("Photon noise is '"+str(self.__photonNoise))
         return np.array((deltaF,corr)),best_fit
 
-    def butter_lowpass_filtfilt(self,data, f, nyq, order=5):
+    def butter_lowpass_filtfilt(self,data, f, nyq, order=10):
         b, a = self.butter_lowpass(f, nyq, order=order)
         self.logger.debug("Filterparameter are "+str(b)+","+str(a))
         y = filtfilt(b, a, data)
@@ -167,36 +167,40 @@ class NuMaxCalculator:
         return corrs2
 
     def sinc(self,x, a,b, tau_acf):
-        return a * np.sinc(4 * x / tau_acf)**2+b*np.sin(2*np.pi*x/tau_acf)
+        return a * np.sinc(4* np.pi*x / tau_acf)**2+b*np.sin(np.pi*4*x/tau_acf)
 
-    def scipyFit(self,data):
+    def scipyFit(self,data,usedFilterFrequency):
         y = data[1] #todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
         x = data[0]
 
-        self.__nearestIndex = self.find_first_index(y, 0)
+        tau = 1/(usedFilterFrequency*10**-6*36000)
 
-        self.logger.debug(self.__nearestIndex[0][0])
-        y = data[1][:self.__nearestIndex[0][0]+100]#todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
-        x = data[0][:self.__nearestIndex[0][0]+100]
+        self.logger.debug("Tau as border is '"+str(tau)+"'")
+
+        self.__nearestIndex = (np.abs(y-0.0)).argmin()
+        self.__nearestIndex = self.find_first_index(y,0)
 
         self.logger.debug("Nearest index is '"+str(self.__nearestIndex)+"'")
-        self.logger.debug("x-Value is '"+str(x[self.__nearestIndex]*24*60))
-        self.logger.debug("y-Value is '"+str(x[self.__nearestIndex])+"'")
+        self.logger.debug("x-Value is '"+str(x[self.__nearestIndex]))
+        self.logger.debug("y-Value is '"+str(y[self.__nearestIndex])+"'")
 
         initA = np.amax(y)
-        initTau_acf = x[self.__nearestIndex[0]]
+        initTau_acf = x[self.__nearestIndex]
         initB = initA/20
         arr = [initA,initB, initTau_acf]
 
-        bounds = ([initA - 0.1,initB/2, initTau_acf - 0.05]
-                  , [initA + 0.1,initB*2, initTau_acf + 0.05])
+        bounds = ([initA - 0.1,initB/2, initTau_acf - 0.2]
+                  , [initA + 0.1,initB*2, initTau_acf + 0.2])
 
         popt, pcov = optimize.curve_fit(self.sinc, x, y, p0=arr, bounds=bounds)
         perr = np.sqrt(np.diag(pcov))
+        #factor 2 missing?
+        popt[2] = popt[2] /2
         self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
         self.logger.debug("b = '"+str(popt[1])+" ("+str(perr[1])+")'")
         self.logger.debug("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
         self.logger.debug(perr)
+
 
         return popt
 
@@ -205,7 +209,7 @@ class NuMaxCalculator:
 
         for i in array:
             if i < delta:
-                return np.where(array==i)
+                return np.where(array==i)[0]
 
     def setParameters(self,lightCurve,powerSpectra):
         if len(lightCurve) != 2 or len(powerSpectra) != 2:

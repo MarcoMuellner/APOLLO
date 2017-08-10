@@ -10,7 +10,7 @@ from support.strings import *
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
-def plotPSD(data,runGauss,psdOnly):
+def plotPSD(data,runGauss,psdOnly,markerList = None):
     psd = data.getPSD()
     backgroundModel = None
     if psdOnly is False:
@@ -83,6 +83,19 @@ def plotPSD(data,runGauss,psdOnly):
                                   linetype=annotationList[i]['linetype'])
             else:
                 p = p + geom_line(aes(y=i))
+
+    if markerList is not None:
+        try:
+            for i in markerList.keys():
+                logger.debug("Add marker with name '"+i+"'")
+                logger.debug("Add marker at '"+str(markerList[i][0])+"'")
+                logger.debug("Min x-value: '"+str(min(psd[0])))
+                logger.debug("Max x-value: '"+str(max(psd[0])))
+                idx = (np.abs(psd[0]-markerList[i][0])).argmin()
+                logger.debug("Real plotted value: '"+str(psd[0][idx])+"'")
+                p = p + geom_vline(x=psd[0][idx],color=markerList[i][1],linetype='dashed')
+        except:
+            logger.error("MarkerList needs to be a dict with name,(tuple)")
 
     p = p + scale_x_log() + scale_y_log() + ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2) + ggtitle(title) + ylab(
         r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
