@@ -167,7 +167,7 @@ class NuMaxCalculator:
         return corrs2
 
     def sinc(self,x, a,b, tau_acf):
-        return a * np.sinc(4* np.pi*x / tau_acf)**2+b*np.sin(np.pi*4*x/tau_acf)
+        return a * np.sinc((4* np.pi*x / tau_acf)**2)+b*np.sin(np.pi*4*x/tau_acf)
 
     def scipyFit(self,data,usedFilterFrequency):
         y = data[1] #todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
