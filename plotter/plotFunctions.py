@@ -10,12 +10,11 @@ from support.strings import *
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
-def plotPSD(data,runGauss,psdOnly,markerList = None):
+def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True):
     psd = data.getPSD()
     backgroundModel = None
     if psdOnly is False:
         backgroundModel = data.createBackgroundModel(runGauss)
-    smoothedData = data.getSmoothing()
 
     title = "Standardmodel" if runGauss else "Noise Backgroundmodel"
     title += ' KIC' + data.getKicID()
@@ -25,10 +24,11 @@ def plotPSD(data,runGauss,psdOnly,markerList = None):
     dataList[r'PSD [ppm$^2$/$\mu$Hz]'] = psd[1]
     annotation = {'color': 'grey', 'linetype': 'solid'}
     annotationList[r'PSD [ppm$^2$/$\mu$Hz]'] = annotation
-
-    dataList['Smoothed'] = smoothedData
-    if len(dataList['Smoothed']) != len(dataList[r'Frequency [$\mu$Hz]']):
-        dataList['Smoothed'] = smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
+    if smooth:
+        smoothedData = data.getSmoothing()
+        dataList['Smoothed'] = smoothedData
+        if len(dataList['Smoothed']) != len(dataList[r'Frequency [$\mu$Hz]']):
+            dataList['Smoothed'] = smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
 
     annotation = {'color': 'green', 'linetype': 'solid'}
     annotationList['Smoothed'] = annotation
@@ -66,7 +66,6 @@ def plotPSD(data,runGauss,psdOnly,markerList = None):
     logger.debug(dataList)
     logger.debug(len(dataList[r'Frequency [$\mu$Hz]']))
     logger.debug(len(dataList[r'PSD [ppm$^2$/$\mu$Hz]']))
-    logger.debug(len(dataList['Smoothed']))
 
     dfData = pd.DataFrame.from_dict(dataList)
 
