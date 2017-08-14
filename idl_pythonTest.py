@@ -12,6 +12,9 @@ def sin(x,amp,tau):
 def sinc(x, a, tau_acf):
     return a * np.sinc((4* np.pi*x / tau_acf))**2
 
+def fit(x,a,b,tau_acf):
+    return sinc(x,a,tau_acf) + sin(x,b,tau_acf)
+
 
 def fullFunc(x,a1,a2,tau):
     return sinc(x,a1,tau)+sin(x,a2,tau)
@@ -99,14 +102,15 @@ def scipyFit(data,tauGuess):
 
     print("Initial Guess is "+str(tauGuess))
 
-    arr = [1.0,tauGuess]
+    arr = [1.0,1/20,tauGuess]
 
 
 
-    popt, pcov = optimize.curve_fit(sinc, x, y,p0=arr)
+    popt, pcov = optimize.curve_fit(fit, x, y,p0=arr)
     perr = np.sqrt(np.diag(pcov))
     print("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
-    print("tau_acf = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
+    print("a = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
+    print("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
 
     return popt
 
@@ -114,6 +118,10 @@ def scipyFit(data,tauGuess):
 
 input = "006144777_350"
 input = "003744681_983"
+input = "004448777_771"
+input = "004659821_1181"
+input = "004770846_1435"
+input = "004770846_1435"
 powerSpectrum = False
 filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + (
     "PSD_" if powerSpectrum else "") + "filt_inp.fits"
@@ -146,7 +154,11 @@ n_cols = 1
 
 if n_points_left > 1:
     factors=factorint(n_points_left,multiple=True)
-    index_shift = factors[0]**factors[1]
+    print(factors)
+    if len(factors) > 1:
+        index_shift = factors[0]**factors[1]
+    else:
+        index_shift = factors[0]
     n_cols = int(n_points_left/index_shift + 1)
 elif n_points_left == 1:
     n_cols = 2
@@ -233,21 +245,35 @@ if length > elements:
 if length > elements:
     length = elements - 1
 autocor = computeSingleCorrelation(amp_filtered_array,tau_filter,duty_cycle,elements)
-pl.plot(lightCurve[0][0:int(length)+1],autocor,'x')
+pl.plot(lightCurve[0][0:int(length)+1]/4,autocor,'x')
 
 autocor = calculateAutocorrelation(amp_filtered_array)
 autocor = autocor[0:int(length)]
 autocor = autocor**2
 
-pl.plot(lightCurve[0][0:int(length)],autocor,'o')
+pl.plot(lightCurve[0][0:int(length)]/4,autocor,'o')
 
-popt = scipyFit((lightCurve[0][0:int(length)]/4,autocor),tau_filter/2)
-popt[1] = popt[1]*4
+popt = scipyFit((lightCurve[0][0:int(length)]/4,autocor),tau_filter/8)
+popt[2] = popt[2]
 
-pl.plot(np.linspace(0, 20000.0, num=200000),sinc(np.linspace(0,20000.0,num=200000),popt[0],popt[1]))
+pl.plot(np.linspace(0, 20000.0,num=200000),fit(np.linspace(0,20000.0,num=200000),*popt))
+pl.xlim(0,popt[2]*2)
 pl.show()
 
-tau_first_fit = popt[1]/60
+popt[2] = popt[2]
+
+#TEST
+#popt[1] = 5200
+#/TEST
+
+print(popt[2])
+
+tau_first_fit = popt[2]/60
+
+print(tau_first_fit)
+
+tau_first_fit = tau_first_fit/9
+print(tau_first_fit)
 
 nu_filter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
 
@@ -284,19 +310,20 @@ autocor = autocor**2
 
 pl.plot(lightCurve[0][0:int(length)],autocor,'o')
 
-popt = scipyFit((lightCurve[0][0:int(length)],autocor),tau_first_fit*60)
-pl.plot(lightCurve[0][0:int(length)],sinc(lightCurve[0][0:int(length)],popt[0],popt[1]))
+popt = scipyFit((lightCurve[0][0:int(length)]/4,autocor),tau_first_fit*4*60)
+pl.plot(np.linspace(0, 20000.0,num=200000),fit(np.linspace(0,20000.0,num=200000),*popt))
+pl.xlim(0,popt[2]*3)
 pl.show()
 
-tau_filter = popt[1]/60
+tau_filter = popt[2]/60/9
 
 nu_filter = 10**(3.098)*1/(tau_filter**0.932)*1/(tau_filter**0.05)
 
 marker["Second filter"] = (nu_filter,"b")
 
 
-plotPSD(powerCalc,True,True,marker)
 
 print("New filter is '"+str(nu_filter))
+plotPSD(powerCalc,True,True,marker)
 
 
