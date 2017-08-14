@@ -4,13 +4,13 @@ from calculations.powerspectraCalculations import PowerspectraCalculator
 from sympy.ntheory import factorint
 import pylab as pl
 from plotter.plotFunctions import *
-from scipy import optimize
+from scipy import optimize,stats
 
 def sin(x,amp,tau):
    return amp*np.sin(2*np.pi*4*x/tau)
 
 def sinc(x, a, tau_acf):
-    return a * np.sinc((4* np.pi*x / tau_acf)**2)
+    return a * np.sinc((4* np.pi*x / tau_acf))**2
 
 
 def fullFunc(x,a1,a2,tau):
@@ -66,6 +66,23 @@ def calculateAutocorrelation(oscillatingData):
     maxcorr = np.argmax(corrs2)
     corrs2 = corrs2 / corrs2[maxcorr]
     return corrs2
+
+def computeSingleCorrelation(oscillatingData,tau_filter,duty_cycle,elements):
+    length = int(1.5*tau_filter*4/duty_cycle)
+    if length > elements:
+        length = int(1.5*4/(10**-7*duty_cycle) -1)
+    if length > elements:
+        length = int(elements - 1)
+
+    acf = np.zeros(length+1)
+    temp_shift = -1
+    for j in range(0,length+1):
+        time_shift = j
+        compareData = np.roll(oscillatingData,int(time_shift))
+        acf[j] =  stats.pearsonr(oscillatingData,compareData)[0]
+        temp_shift = int(time_shift)
+          
+    return acf**2
 
 def scipyFit(data,tauGuess):
     y = data[1] 
@@ -215,15 +232,20 @@ if length > elements:
     length = 1.5*4/(10**-7*duty_cycle)-1
 if length > elements:
     length = elements - 1
+autocor = computeSingleCorrelation(amp_filtered_array,tau_filter,duty_cycle,elements)
+pl.plot(lightCurve[0][0:int(length)+1],autocor,'x')
 
 autocor = calculateAutocorrelation(amp_filtered_array)
 autocor = autocor[0:int(length)]
 autocor = autocor**2
 
-#pl.plot(lightCurve[0][0:int(length)]/4,autocor)
-#pl.show()
+pl.plot(lightCurve[0][0:int(length)],autocor,'o')
 
-popt = scipyFit((lightCurve[0][0:int(length)]/4,autocor),tau_filter/55)
+popt = scipyFit((lightCurve[0][0:int(length)]/4,autocor),tau_filter/2)
+popt[1] = popt[1]*4
+
+pl.plot(np.linspace(0, 20000.0, num=200000),sinc(np.linspace(0,20000.0,num=200000),popt[0],popt[1]))
+pl.show()
 
 tau_first_fit = popt[1]/60
 
@@ -253,12 +275,18 @@ if length > elements:
 if length > elements:
     length = elements - 1
 
+autocor = computeSingleCorrelation(amp_filtered_array,tau_filter,duty_cycle,elements)
+pl.plot(lightCurve[0][0:int(length)+1],autocor,'x')
+
 autocor = calculateAutocorrelation(amp_filtered_array)
 autocor = autocor[0:int(length)]
 autocor = autocor**2
 
+pl.plot(lightCurve[0][0:int(length)],autocor,'o')
 
-popt = scipyFit((lightCurve[0][0:int(length)]/4,autocor),tau_first_fit*30)
+popt = scipyFit((lightCurve[0][0:int(length)],autocor),tau_first_fit*60)
+pl.plot(lightCurve[0][0:int(length)],sinc(lightCurve[0][0:int(length)],popt[0],popt[1]))
+pl.show()
 
 tau_filter = popt[1]/60
 
