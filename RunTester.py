@@ -8,6 +8,7 @@ from diamonds.diamondsProcesses import DiamondsProcess
 from loghandler.loghandler import *
 import logging
 
+
 def createBackgroundModel(runGauss,median,psd,nyq):
     freq, psd = psd
     par_median = median  # median values
@@ -86,7 +87,7 @@ logger = logging.getLogger(__name__)
 #004351319_19
 #input = "004346201_18"
 #input = '0603396438'
-input = "006144777_350"
+input = "004770846_1435"
 #input = "0223976028"
 #input = "002437103_10"
 powerSpectrum = False
@@ -106,27 +107,13 @@ file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)
 
-plotPSD(powerCalc,True,True)
-plotLightCurve(powerCalc)
+#plotPSD(powerCalc,True,True)
+#plotLightCurve(powerCalc)
 
-nuMaxCalc = NuMaxCalculator(powerCalc.getLightCurve(),powerCalc.getPSD())
-marker = {}
-marker["InitialFilter"] = (nuMaxCalc.getInitNuFilter(),"r")
+nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
-#plotPSD(powerCalc,True,True,marker)
-
-logger.debug("First iterative Calculation")
-corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
-marker["FirstIterationFilter"] = (nuMaxCalc.getNuFilterFitted(),"b")
-logger.debug("Second iterative Calculation")
-corr_2,best_fit_2 = nuMaxCalc.calculateIterativeFilterFrequency()
-marker["SecondIterationFilter"] = (nuMaxCalc.getNuFilterFitted(),"g")
-plotPSD(powerCalc,True,True,marker)
-
-
-initNuFilter = nuMaxCalc.getInitNuFilter()
-nuMax = nuMaxCalc.getNuFilterFitted()
-photonNoise = nuMaxCalc.getPhotonNoise()
+nuMax = nuMaxCalc.computeNuMax()
+photonNoise = np.mean(powerCalc.getPSD()[1])
 nyquist = nuMaxCalc.getNyquistFrequency()
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
@@ -190,9 +177,9 @@ median.append(priorCalculator.getAmplitude())
 median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
+backgroundModel = createBackgroundModel(True,median,powerCalc.getPSD(),nyquist)
 proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
 proc.start()
 
-backgroundModel = createBackgroundModel(True,median,powerCalc.getPSD(),nyquist)
 plotPSDTemp(True,powerCalc.getPSD(),backgroundModel)
 show()

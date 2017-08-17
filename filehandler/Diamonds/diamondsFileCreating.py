@@ -27,6 +27,7 @@ class FileCreater:
 
     def __createFolder(self):
         self.__fullResultPath = self.__resultsFolder + "KIC"+self.__kicID
+        print(self.__fullResultPath)
         if not os.path.exists(self.__fullResultPath):
             os.makedirs(self.__fullResultPath)
         return

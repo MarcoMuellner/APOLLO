@@ -1,158 +1,192 @@
 import numpy as np
-from math import log10,log,exp
-import time as t
-from scipy.signal import butter, filtfilt
-from scipy import optimize
+import pylab as pl
+from scipy import optimize,stats
+from sympy.ntheory import factorint
+#local imports
 from calculations.powerspectraCalculations import PowerspectraCalculator
 from plotter.plotFunctions import *
-import pylab as pl
 import logging
 
 class NuMaxCalculator:
-    def __init__(self,lightCurve,powerSpectra):
+    def __init__(self,lightCurve):
         self.logger = logging.getLogger(__name__)
-        self.__iterativeNuFilter = None
-        self.setParameters(lightCurve,powerSpectra)
-        return
-    def __calculateFlickerAmplitude(self):
-        #calculate Median Flux
-        time = self.__lightCurve[0]
-        #np.set_self.logger.debugoptions(threshold=np.inf)
-        maxdif = 0
-        mindif = 1000
-        for i in (0,len(time)):
-            try:
-                if time[i+1] - time[i] > maxdif:
-                    maxdif = time[i+1] - time[i]
-                if time[i+1] - time[i] < mindif:
-                    mindif = time[i+1] - time[i]
-            except:
-                self.logger.debug("endofloop")
+        self.__setLightCurve(lightCurve)
 
-        self.logger.debug("Max diff is '"+str(maxdif)+"'")
-        self.logger.debug("Min diff is '" + str(mindif) + "'")
-        #self.logger.debug(time)
-        flux = self.__lightCurve[1]
+    def __setLightCurve(self,lightCurve):
+        #sanity check
+        if len(lightCurve) != 2:
+            self.logger.error("Lightcurve must be of dimension 2")
+            self.logger.error("Lightcurve dimension: '"+str(len(lightCurve))+"'")
+            raise ValueError
 
-        medianFlux = np.median(flux)
-        meanTimeBin = np.amax(time)/len(time)
-        if meanTimeBin <10**-3:
-            flickerSize = 5/24 # size of flickertime. This is calibrated by Kallinger. Measured in days
-        else:
-            flickerSize = 4
+        #normalize lightCurve and switch to seconds
+        self.lightCurve = lightCurve
+        self.lightCurve[0] -= self.lightCurve[0][0]
+        self.lightCurve[0] *=3600*24
 
-        binSize = int(flickerSize/meanTimeBin) #calculate the binsize of one flicker!
-        iterations = len(time)/binSize #The number of iterations needed to calculate all single Amplitudes
+        #compute flicker Amplitude and initial filter frequency
+        self.__calculateFlickerAmplitude(self.lightCurve)
+        return self.__calculateInitFilterFrequency()
 
-        cutoffMax = 0 #These two parameters define the cutoff of things in the lightcurve you probably don't want
-        cutoffMin = 0
+    def __calculateFlickerAmplitude(self,lightCurve):
+        #find the new number of bins after the filter
+        filterTime = 5
+        self.elements = len(lightCurve[0])
+        self.duty_cycle = np.mean(lightCurve[0][1:self.elements -1] - lightCurve[0][0:self.elements
+                                                                          -2])
+        normalized_bin = np.round(filterTime*24*3600/int(self.duty_cycle))
+        bins = int(self.elements/normalized_bin)
 
-        self.logger.debug("Max Time is '"+str(np.amax(time))+"'")
-        self.logger.debug("Length of time is '"+str(len(time)))
-        self.logger.debug("Flickersize is '"+str(flickerSize)+"'")
-        self.logger.debug("MeanTimeBin is '"+str(meanTimeBin)+"'")
-        self.logger.debug("Iterations is '"+str(iterations)+"'")
+        # Find out how many points are left
+        n_points_left = self.elements - normalized_bin*bins
+        index_shift = 0
+        n_cols = 1
+
+        if n_points_left > 1:
+            factors=factorint(n_points_left,multiple=True)
+            self.logger.debug(factors)
+            if len(factors) > 1:
+                index_shift = factors[0]**factors[1]
+            else:
+                index_shift = factors[0]
+            n_cols = int(n_points_left/index_shift + 1)
+        elif n_points_left == 1:
+            n_cols = 2
+            index_shift = 1
+
+        self.logger.debug("Index shift is "+str(index_shift))
+        self.logger.debug("n_cols is "+str(n_cols))
 
 
-        flickerFluxArray = np.zeros(int(iterations-cutoffMax-cutoffMin))
-        flickerTimeArray = np.zeros(int(iterations - cutoffMax -cutoffMin))
-        binningArray = np.zeros(int(iterations - cutoffMax -cutoffMin))
+        amp_mean_array = np.zeros(n_cols)
 
-        filteredFlux = np.zeros(len(flux))
-        #iterate over all bins
-        for i in range(0,int(iterations-cutoffMax - cutoffMin)):
-            multiplicator = i
-            #find values within bin
-            fluxBin = flux[multiplicator*binSize:(multiplicator+1)*binSize]
-            #find mean value within bin
-            binningArray[multiplicator] = np.mean(fluxBin)
+        for k in range(0,n_cols):
+            amp_rebin_array = np.zeros(int(self.elements-n_points_left))
+            n_points_per_bin_array = np.zeros(int(self.elements-n_points_left))
+            amp_substract_array = np.zeros(int(self.elements-n_points_left))
 
-            #find mean value of time
-            medianTimeBin = np.mean(time[multiplicator * binSize:(multiplicator + 1) * binSize])
-            flickerTimeArray[multiplicator] = medianTimeBin
+            i = k*index_shift
 
-            #subtract mean value from array
-            filteredFlux[multiplicator*binSize:(multiplicator+1)*binSize] = flux[multiplicator*binSize:(multiplicator+1)*binSize] - np.mean(fluxBin)
+            for j in range(0,bins):
+                bin_mean = 0.0
+                ref_time = i
+                count = 1
 
-        #this is the final flickerAmplitude!
-        self.__flickerAmplitude = np.std(filteredFlux)
-        self.logger.info("Calculated flicker amplitude is '"+str(self.__flickerAmplitude)+"'")
+                while i < (self.elements-1) and (lightCurve[0][i] - lightCurve[0][ref_time])/(3600*24) <filterTime:
+                    bin_mean +=lightCurve[1][i]
+                    if lightCurve[1][i] != 0:
+                        count +=1
+                    i+=1
 
-    def getNyquistFrequency(self):
-        if self.__lightCurve is not None:
-            self.logger.debug("Abtastfrequency is '"+str((self.__lightCurve[0][3] - self.__lightCurve[0][2])*24*3600)+"'")
-            self.__nyq = 10**6/(2*(self.__lightCurve[0][200] -self.__lightCurve[0][199])*24*3600)
+                bin_mean += lightCurve[1][i]
+                if lightCurve[1][i] != 0:
+                    count +=1
+                count_float = float(count)
 
-            return self.__nyq
-        else:
-            self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
-            return None
+                if count > 1:
+                    bin_mean /= (count_float-1)
+
+                amp_rebin_array[ref_time - k*index_shift:(i-1)-k*index_shift] = bin_mean
+                n_points_per_bin_array[ref_time - k*index_shift:(i-1) - k*index_shift] = count
+
+            amp_substract_array = lightCurve[1][k*index_shift:k*index_shift+len(amp_rebin_array)] -amp_rebin_array
+            amp_substract_array = amp_substract_array[n_points_per_bin_array>=normalized_bin/2]
+            amp_mean_array[k] = np.mean(amp_substract_array)
+
+        amp_mean = np.mean(amp_mean_array)
+
+        self.logger.info("Mean is: '"+str(amp_mean)+"'")
+
+        #Calculate Flicker Amplitude
+        amp_substract_array = np.unique(amp_substract_array)
+        amp_flic = 0
+        for i in range(0,len(amp_substract_array)):
+            amp_flic +=(amp_substract_array[i] - amp_mean)**2
+        denominator = float(len(amp_substract_array))
+        self.amp_flic = np.sqrt(amp_flic/denominator)
+
+        self.logger.debug("Flicker amplitude is '"+str(amp_flic))
 
     def __calculateInitFilterFrequency(self):
-        self.__initNuFilter = 10**(5.187-1.560*log10(self.__flickerAmplitude))
-        self.logger.info("Initial Nu Filter is '"+str(self.__initNuFilter)+"'")
-        return self.__initNuFilter
+        self.init_nu_filter = 10**(5.187)/(self.amp_flic**(1.560))
+        self.logger.info("Nu filter is '"+str(self.init_nu_filter))
+        self.marker = {}
+        self.marker["InitialFilter"] = (self.init_nu_filter,'r')
 
-    def calculateIterativeFilterFrequency(self):
-        filterFrequency = self.__iterativeNuFilter if self.__iterativeNuFilter is not None else self.__initNuFilter
-        filterFrequency = filterFrequency
-        smoothed = self.butter_lowpass_filtfilt(self.__lightCurve[1], filterFrequency, self.getNyquistFrequency())
-        
-        psd = PowerspectraCalculator((self.__lightCurve[0],smoothed))
-        marker = {}
-        marker["InitialFilter"] = (filterFrequency,"r")
+    def computeNuMax(self):
+        self.marker["First Filter"] = (self.__iterativeFilter(self.init_nu_filter),'g')
+        self.marker["Second Filter"] = (self.__iterativeFilter(self.lastFilter),'b')
+        return self.lastFilter
 
-        plotPSD(psd,True,True,marker)
-        corr = self.calculateAutocorrelation(smoothed) #todo this seems to be a bottleneck here...
-        corrTest = self.calculateAutocorrelation(self.__lightCurve[1])       
+    def __iterativeFilter(self,filterFrequency):
+        self.logger.debug("Filterfrequency for iterative filter is '"+str(filterFrequency)+"'")
+        tau_filter = 1/(filterFrequency)
+        tau_filter *= 10**6
 
-        stepFreq = self.__lightCurve[0][10] - self.__lightCurve[0][9]
-        deltaF = np.zeros(len(corrTest))
-        for i in range(0, len(deltaF)):
-            deltaF[i] = i * stepFreq
+        self.logger.debug("Tau Filter is '"+str(tau_filter)+"'")
+        new_normalized_bin_size = int(np.round(tau_filter/self.duty_cycle))
+        self.logger.debug("New normalized bin size is '"+str(new_normalized_bin_size)+"'")
+        amp_smoothed_array = self.__trismooth(self.lightCurve[1],new_normalized_bin_size)
+        amp_filtered_array = self.lightCurve[1]-amp_smoothed_array
 
-        corr = np.power(corr,2)
-        stepFreq = self.__lightCurve[0][10] - self.__lightCurve[0][9]
-        deltaF = np.zeros(len(corr))
-        for i in range(0, len(deltaF)):
-            deltaF[i] = i * stepFreq
-       
-        best_fit = self.scipyFit(np.array((deltaF, corr)),filterFrequency)
-        tauACF = best_fit[2]*60*24
+        length = 1.5*tau_filter*4/self.duty_cycle
+        if length > self.elements:
+            length = 1.5*4/(10**-7*self.duty_cycle)-1
+        if length > self.elements:
+            length = self.elements - 1
 
-#        pl.figure()
-        pl.plot(deltaF,corr,'x',label='ACF^2')
-        pl.plot(deltaF,self.sinc(deltaF,*best_fit),label='fit')
-        pl.ylim(-0.5,1)
-        pl.xlim(0,1)
-        pl.legend()
-        pl.show()
- 
+        autocor = self.__calculateAutocorrelation(amp_filtered_array)
+        autocor = autocor[0:int(length)]
+        autocor = autocor**2
 
-        self.logger.debug("Tau_ACF is '"+str(tauACF)+"'")
+        guess =tau_filter/8 if (filterFrequency == self.init_nu_filter) else tau_filter/4
 
-        self.__iterativeNuFilter = 10**(3.098-0.932*log10(tauACF)-0.025*log10(tauACF)**2)
-        self.__photonNoise = np.mean(self.__powerSpectra[1])*(1-best_fit[0]) if best_fit[0] < 1 else np.mean(self.__powerSpectra[1])
-        self.logger.debug("Second iterative filter is '"+str(self.__iterativeNuFilter)+"'")
-        self.logger.debug("Photon noise is '"+str(self.__photonNoise))
-        return np.array((deltaF,corr)),best_fit
+        popt = self.__scipyFit((self.lightCurve[0][0:int(length)]/4,autocor),guess)
 
-    def butter_lowpass_filtfilt(self,data, f, nyq, order=10):
-        b, a = self.butter_lowpass(f, nyq, order=order)
-        self.logger.debug("Filterparameter are "+str(b)+","+str(a))
-        y = filtfilt(b, a, data)
-        self.logger.debug("Final frequency is "+str(y))
-        return y
+        tau_first_fit = popt[2]/60
+        tau_first_fit /=9
 
-    def butter_lowpass(self,cutoff, nyq, order=5):
-        normal_cutoff = cutoff / nyq
-        self.logger.debug("Cutoff Frequency for filtering is '"+str(normal_cutoff)+"'")
-        self.logger.debug("Nyquist Frequency is '"+str(nyq)+"'")
-        self.logger.debug("Input Cutoff is '"+str(cutoff)+"'")
-        b, a = butter(order, normal_cutoff, btype='high', analog=False)
-        return b, a
+        self.lastFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
+        self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
+        return self.lastFilter
 
-    def calculateAutocorrelation(self,oscillatingData):
+    def __trismooth(self,x,window_width,gauss=False):
+        if window_width%2 != 0:
+            window_width = window_width+1
+
+        lend = len(x)-1
+        if (lend+1) < window_width:
+            self.logger.debug("Vector too short!")
+            raise
+
+        halfWeights = np.arange(window_width/2)
+        weights = np.append(halfWeights,[window_width/2])
+        weights = np.append(weights,halfWeights[::-1])
+        weights +=1
+        tot = np.sum(weights)
+
+        smoothed = np.zeros(lend+1)
+        offset = int(window_width/2)
+        local = np.zeros(window_width)
+
+        self.logger.debug("Len smoothed "+str(len(smoothed)))
+        self.logger.debug("Offset is "+str(offset))
+        self.logger.debug("len local "+str(len(local)))
+
+        for i in range(offset,lend-offset):
+            smoothed[i]=np.sum(x[i-offset:i+offset+1]*weights)
+
+        smoothed /=tot
+
+        for i in range(0,offset):
+            smoothed[i] = np.sum(x[0:i+offset+1]*weights[offset-i:]) / np.sum(weights[offset-i:])
+
+        for i in range(lend-offset,lend-1,-1):
+            smoothed[i] = np.sum(x[i-offset:]*weights[0:offset+(lend-i)]) / np.sum(weights[0:offset+(lend-i)])
+
+        return smoothed
+
+    def __calculateAutocorrelation(self,oscillatingData):
         #this here is the actual correlation -> rest is just to crop down to
         #significant areas
         corrs2 = np.correlate(oscillatingData, oscillatingData, mode='same')
@@ -166,78 +200,47 @@ class NuMaxCalculator:
         corrs2 = corrs2 / corrs2[maxcorr]
         return corrs2
 
-    def sinc(self,x, a,b, tau_acf):
-        return a * np.sinc((4* np.pi*x / tau_acf)**2)+b*np.sin(np.pi*4*x/tau_acf)
-
-    def scipyFit(self,data,usedFilterFrequency):
-        y = data[1] #todo this is fairly stupid! Need to calculate this properly (boundaries should be set until first 0 and a little bit further)
+    def __scipyFit(self,data,tauGuess):
+        y = data[1] 
         x = data[0]
 
-        tau = 1/(usedFilterFrequency*10**-6*36000)
+        self.logger.debug("Initial Guess is "+str(tauGuess))
 
-        self.logger.debug("Tau as border is '"+str(tau)+"'")
+        arr = [1.0,1/20,tauGuess]
 
-        self.__nearestIndex = (np.abs(y-0.0)).argmin()
-        self.__nearestIndex = self.find_first_index(y,0)
 
-        self.logger.debug("Nearest index is '"+str(self.__nearestIndex)+"'")
-        self.logger.debug("x-Value is '"+str(x[self.__nearestIndex]))
-        self.logger.debug("y-Value is '"+str(y[self.__nearestIndex])+"'")
 
-        initA = np.amax(y)
-        initTau_acf = x[self.__nearestIndex]
-        initB = initA/20
-        arr = [initA,initB, initTau_acf]
-
-        bounds = ([initA - 0.1,initB/2, initTau_acf - 0.2]
-                  , [initA + 0.1,initB*2, initTau_acf + 0.2])
-
-        popt, pcov = optimize.curve_fit(self.sinc, x, y, p0=arr, bounds=bounds)
+        popt, pcov = optimize.curve_fit(self.__fit, x, y,p0=arr)
         perr = np.sqrt(np.diag(pcov))
-        #factor 2 missing?
-        popt[2] = popt[2] /2
         self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
-        self.logger.debug("b = '"+str(popt[1])+" ("+str(perr[1])+")'")
+        self.logger.debug("b = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
         self.logger.debug("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
-        self.logger.debug(perr)
-
 
         return popt
 
-    def find_first_index(self, array, value):
-        delta = 0.01
+    def __sin(self,x,amp,tau):
+       return amp*np.sin(2*np.pi*4*x/tau)
 
-        for i in array:
-            if i < delta:
-                return np.where(array==i)[0]
+    def __sinc(self,x, a, tau_acf):
+        return a * np.sinc((4* np.pi*x / tau_acf))**2
 
-    def setParameters(self,lightCurve,powerSpectra):
-        if len(lightCurve) != 2 or len(powerSpectra) != 2:
-            self.logger.debug("Lightcurve and Powerspectra need to be of dimension 2")
-            self.logger.debug("Lightcurve dimension: '"+str(len(lightCurve))+"', Powerspectra dimension '"+str(len(powerSpectra))+"'")
-            raise ValueError
+    def __fit(self,x,a,b,tau_acf):
+        return self.__sinc(x,a,tau_acf) + self.__sin(x,b,tau_acf)
 
-        self.__lightCurve = lightCurve
-        self.__powerSpectra = powerSpectra
+    def getNyquistFrequency(self):
+        if self.lightCurve is not None:
+            self.logger.debug("Abtastfrequency is '"+str((self.lightCurve[0][3] - self.lightCurve[0][2])*24*3600)+"'")
+            self.__nyq = 10**6/(2*(self.lightCurve[0][200] -self.lightCurve[0][199])*24*3600)
 
-        self.__calculateFlickerAmplitude()
-        return self.__calculateInitFilterFrequency()
+            return self.__nyq
+        else:
+            self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
+            return None
 
-    def getInitNuFilter(self):
-        return self.__initNuFilter
 
-    def getNuFilterFitted(self):
-        return self.__iterativeNuFilter
 
-    def getFirstFilteredPSD(self):
-        return self.__firstFilteredPSD
 
-    def getSecondFilteredPSD(self):
-        return self.__secondFilteredPSD
 
-    def getNearestIndex(self):
-        return self.__nearestIndex[0]
 
-    def getPhotonNoise(self):
-        return self.__photonNoise
+
 

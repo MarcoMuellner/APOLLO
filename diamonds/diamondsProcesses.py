@@ -3,9 +3,12 @@ import subprocess
 from settings.settings import Settings
 from support.strings import *
 from support.directoryManager import cd
+import logging
+
 
 class DiamondsProcess:
     def __init__(self,model,kicID,runID,kernels):
+        self.logger = logging.getLogger(__name__)
         self.__diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
         if model == strDiamondsNoGaussian or model == strDiamondsGaussian:
             self.__diamondsModelBinary = model
