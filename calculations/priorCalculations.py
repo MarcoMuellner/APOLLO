@@ -19,10 +19,10 @@ class PriorCalculator:
         s_1 = 0.970 #Fit done by myself: 0.884
         s_2 = 0.992 #Fit done by myself: 1.018
 '''
-        k_1 = 0.451  # Fit done by myself: 0.451
-        k_2 = 0.871  # Fit done by myself: 0.871
-        s_1 = 0.884  # Fit done by myself: 0.884
-        s_2 = 1.018  # Fit done by myself: 1.018
+        k_1 = 0.317  # Fit done by myself: 0.451
+        k_2 = 0.948  # Fit done by myself: 0.871
+        s_1 = 0.970  # Fit done by myself: 0.884
+        s_2 = 0.992  # Fit done by myself: 1.018
 
         self.__b_1 = k_1 * pow(nuMax, s_1)
         self.__b_2 = k_2 * pow(nuMax, s_2)
@@ -40,11 +40,11 @@ class PriorCalculator:
         return self.__a
 
     def calculateSigma(self,nuMax):
-        #k = 1.124
-        #s = 0.505
+        k = 1.124
+        s = 0.505
 
-        k = 1.66 # my values
-        s = 0.6
+        #k = 1.66 # my values
+        #s = 0.6
 
         self.__sigma = k * pow(nuMax,s)
 
@@ -63,29 +63,29 @@ class PriorCalculator:
         self.__b_0 = k*pow(nuMax,s)
 
     def getFirstHarveyFrequencyBoundary(self):
-        return (0.5*self.__b_0,1.3*self.__b_0)
+        return (0.1*self.__b_0,1.3*self.__b_0)
 
     def getSecondHarveyFrequencyBoundary(self):
-        return (0.5 * self.__b_1,1.6 * self.__b_1)
+        return (0.5 * self.__b_1,1.3 * self.__b_1)
 
     def getThirdHarveyFrequencyBoundary(self):
         return (0.3 * self.__b_2,1.15 * self.__b_2)
 
     def getHarveyAmplitudesBoundary(self):
-        return (0.013 * self.__a,1.5*self.__a)
+        return (0.1 * self.__a,2*self.__a)
 
     def getNuMaxBoundary(self):
-        return (0.5*self.__nuMax,1.3*self.__nuMax)
+        return (0.9*self.__nuMax,1.1*self.__nuMax)
 
     def getSigmaBoundary(self):
         return (0.5*self.__sigma,2*self.__sigma)
 
     def getAmplitudeBounday(self):
-        return (0.005*self.__amplitude,0.1
+        return (0.5*self.__amplitude,1.3
                 *self.__amplitude)
 
     def getPhotonNoiseBoundary(self):
-        return (0.5*self.__photonNoise,1.1*self.__photonNoise)
+        return (0.8*self.__photonNoise,2*self.__photonNoise)
 
     def getPhotonNoise(self):
         return self.__photonNoise
