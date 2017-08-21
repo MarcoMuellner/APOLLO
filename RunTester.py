@@ -113,8 +113,8 @@ plotPSD(powerCalc,True,True)
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
-photonNoise = np.mean(powerCalc.getPSD()[1])
-nyquist = nuMaxCalc.getNyquistFrequency()
+photonNoise = 0.02
+nyquist = 283.2116656017908
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
 

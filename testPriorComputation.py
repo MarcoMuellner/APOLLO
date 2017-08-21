@@ -84,7 +84,7 @@ logger = logging.getLogger(__name__)
 powerSpectrum = False
 
 
-input = "004770846_1435"
+input = "003744681_983"
 filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
@@ -93,8 +93,8 @@ plotPSD(powerCalc,True,True)
 
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
-nuMax = 57 
-photonNoise = 0.02
+nuMax = 61
+photonNoise = 0.04
 nyquist = 283.2116656017908
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)

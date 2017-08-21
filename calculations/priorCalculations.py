@@ -69,19 +69,19 @@ class PriorCalculator:
         return (0.3 * self.__b_1,1.48 * self.__b_1)
 
     def getThirdHarveyFrequencyBoundary(self):
-        return (0.58 * self.__b_2,1.23 * self.__b_2)
+        return (0.6 * self.__b_2,1.3 * self.__b_2)
 
     def getHarveyAmplitudesBoundary(self):
-        return (0.025 * self.__a,0.35*self.__a)
+        return (0.018 * self.__a,0.31*self.__a)
 
     def getNuMaxBoundary(self):
-        return (0.85*self.__nuMax,1.3*self.__nuMax)
+        return (0.9*self.__nuMax,1.4*self.__nuMax)
 
     def getSigmaBoundary(self):
         return (0.2*self.__sigma,1.5*self.__sigma)
 
     def getAmplitudeBounday(self):
-        return (0.01*self.__amplitude,0.3
+        return (0.007*self.__amplitude,0.2
                 *self.__amplitude)
 
     def getPhotonNoiseBoundary(self):
