@@ -90,6 +90,8 @@ logger = logging.getLogger(__name__)
 input = "004770846_1435"
 input = "003744681_983"
 input = "004448777_771"
+#Corot -> Young stars
+#input = "0223978308"
 
 #input = "0223976028"
 #input = "002437103_10"
@@ -97,7 +99,7 @@ powerSpectrum = False
 #KeplerData
 filename = "../Sterndaten/KeplerData/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
 #Young Stars
-#filename = "../../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
+#filename = "../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
 
 #New data
 #filename = "../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"

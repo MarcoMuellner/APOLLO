@@ -152,10 +152,11 @@ class NuMaxCalculator:
             pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
             pl.legend()
             pl.show()
-            raise
+            raise e
         except BaseException as e:
             self.logger.error("Scipy fit failed!")
             self.logger.error(str(e))
+            raise e
 
         tau_first_fit = popt[2]/60
         tau_first_fit /=9
@@ -170,7 +171,9 @@ class NuMaxCalculator:
 
         lend = len(x)-1
         if (lend+1) < window_width:
-            self.logger.debug("Vector too short!")
+            self.logger.error("Vector too short!")
+            self.logger.error("lend: '"+str(lend)+"'")
+            self.logger.error("window_width: '"+str(window_width)+"'")
             raise
 
         halfWeights = np.arange(window_width/2)
