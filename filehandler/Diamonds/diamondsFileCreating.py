@@ -7,14 +7,14 @@ from support.directoryManager import cd
 
 class FileCreater:
     def __init__(self,kicID,powerspectrum,nyquistFrequency,priors):
-        self.__dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundDataPath).value
-        self.__resultsFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+        self.dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundDataPath).value
+        self.resultsFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
 
-        self.__kicID = kicID
-        self.__powerSpectrum = powerspectrum
-        self.__powerSpectrum = self.__powerSpectrum.transpose()
-        self.__nyq = nyquistFrequency
-        self.__priors = priors
+        self.kicID = kicID
+        self.powerSpectrum = powerspectrum
+        self.powerSpectrum = self.powerSpectrum.transpose()
+        self.nyq = nyquistFrequency
+        self.priors = priors
 
         self.__createFolder()
         self.__createdata()
@@ -26,38 +26,38 @@ class FileCreater:
         return
 
     def __createFolder(self):
-        self.__fullResultPath = self.__resultsFolder + "KIC"+self.__kicID
-        print(self.__fullResultPath)
-        if not os.path.exists(self.__fullResultPath):
-            os.makedirs(self.__fullResultPath)
+        self.fullResultPath = self.resultsFolder + "KIC"+self.kicID
+        print(self.fullResultPath)
+        if not os.path.exists(self.fullResultPath):
+            os.makedirs(self.fullResultPath)
         return
 
     def __createPriors(self):
-        arr_full = self.__priors
-        arr_min = self.__priors[:6]
+        arr_full = self.priors
+        arr_min = self.priors[:6]
         filename_full = "background_hyperParameters.txt"
         filename_min = "background_hyperParameters_noise.txt"
-        self.__saveNumpyArray(self.__fullResultPath,filename_full,arr_full,'14')
-        self.__saveNumpyArray(self.__fullResultPath, filename_min, arr_min,'14')
+        self.__saveNumpyArray(self.fullResultPath,filename_full,arr_full,'14')
+        self.__saveNumpyArray(self.fullResultPath, filename_min, arr_min,'14')
         return
 
     def __createNSMC_configuringParameters(self):
         arr = np.array([500,500,1000,1500,50,2.10,0.01,0.01]).transpose()
         filename = "NSMC_configuringParameters.txt"
-        self.__saveNumpyArray(self.__fullResultPath, filename, arr)
+        self.__saveNumpyArray(self.fullResultPath, filename, arr)
         return
 
     def __createNyquistFrequency(self):
-        arr = np.array([self.__nyq])
+        arr = np.array([self.nyq])
         filename = "NyquistFrequency.txt"
-        self.__saveNumpyArray(self.__fullResultPath,filename,arr)
+        self.__saveNumpyArray(self.fullResultPath,filename,arr)
         return
 
     def __createXmeans_configuringParameters(self):
         arr = np.array([1,10]).transpose()
         arr.transpose()
         filename = "Xmeans_configuringParameters.txt"
-        self.__saveNumpyArray(self.__fullResultPath,filename,arr)
+        self.__saveNumpyArray(self.fullResultPath,filename,arr)
         return
 
     def __saveNumpyArray(self,path,filename,array,comma ='14'):
@@ -65,6 +65,6 @@ class FileCreater:
             np.savetxt(filename,array,fmt='%10.'+comma+'f')
 
     def __createdata(self):
-        filename = "KIC"+str(self.__kicID)+".txt"
-        self.__saveNumpyArray(self.__dataFolder,filename,self.__powerSpectrum)
+        filename = "KIC"+str(self.kicID)+".txt"
+        self.__saveNumpyArray(self.dataFolder,filename,self.powerSpectrum)
         return

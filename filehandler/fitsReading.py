@@ -18,11 +18,11 @@ class FitsReader:
             self.logger.debug("Opening fits file '" + filename + "'")
             hdulist.info()
             scidata = hdulist[0].data
-            self.__mode = "fits"#todo in string
+            self.mode = "fits"#todo in string
         elif ".txt" in filename:
             self.logger.debug("Opening txt file '" + filename + "'")
             scidata = np.loadtxt(filename)
-            self.__mode = "txt" #todo in string
+            self.mode = "txt" #todo in string
         else:
             self.logger.debug("File not recognised!")
             raise ValueError
@@ -34,9 +34,9 @@ class FitsReader:
     def __refineDataCombiningMethod(self,scidata):
         prevTime = scidata[0][0]
         intervall = 0
-        if self.__mode == "fits":#todo in string
+        if self.mode == "fits":#todo in string
             intervall = scidata[1][0] - scidata[0][0]
-        elif self.__mode == "txt":#todo in string
+        elif self.mode == "txt":#todo in string
             intervall = scidata[1][0] - scidata[0][0]
         self.logger.debug("Intervall is '"+str(intervall)+"'")
         arrays = []
@@ -91,9 +91,9 @@ class FitsReader:
 
         prevTime = scidata[0][0]
         intervall = 0
-        if self.__mode == "fits":#todo in string
+        if self.mode == "fits":#todo in string
             intervall = scidata[1][0] - scidata[0][0]
-        elif self.__mode == "txt":#todo in string
+        elif self.mode == "txt":#todo in string
             intervall = scidata[1][0] - scidata[0][0]
         self.logger.debug("Intervall is '"+str(intervall)+"'")
         arrays = []
@@ -145,20 +145,20 @@ class FitsReader:
         return npArrays[maxIndex]
 
     def getLightCurve(self):
-        if len(self.__lightCurve[0]) > 300000:
-            return (self.__lightCurve[0][0:300000],
-                    self.__lightCurve[1][0:300000])
+        if len(self.lightCurve[0]) > 300000:
+            return (self.lightCurve[0][0:300000],
+                    self.lightCurve[1][0:300000])
         else:
-            return self.__lightCurve
+            return self.lightCurve
 
     def setFitsFile(self,fileName):
         mode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
         self.logger.debug("Mode is '"+mode+"'")
-        self.__fileContent = self.__readData(fileName)
+        self.fileContent = self.__readData(fileName)
         if mode == strLightCombining:
-            self.__lightCurve = self.__refineDataCombiningMethod(self.__fileContent)
+            self.lightCurve = self.__refineDataCombiningMethod(self.fileContent)
         elif mode == strLightCutting:
-            self.__lightCurve = self.__refineDataCuttingMethod(self.__fileContent)
+            self.lightCurve = self.__refineDataCuttingMethod(self.fileContent)
         else:
             self.logger.debug("Failed to find refine data method with: '" + mode+"'")
             raise ValueError
@@ -167,11 +167,3 @@ class FitsReader:
         pl.figure()
         #todo temporary
         return self.getLightCurve()
-
-    def getNyquistFrequency(self):
-        if self.__lightCurve is not None:
-            self.__nyq = 2 * np.pi * self.__lightCurve[0].size / (2 * (self.__lightCurve[0][3] - self.__lightCurve[0][2]) * 24 * 3600)
-            return self.__nyq
-        else:
-            self.logger.debug("Lightcure is None, therefore no calculation of nyquist frequency possible")
-            return None

@@ -16,50 +16,25 @@ from calculations.bolometricCorrectionCalculations import BCCalculator
 
 
 class Results:
-    __summary = None
-    __evidence = None
-    __backgroundParameter = []
-    __marginalDistributions = []
-    __prior = None
-    __backgroundPriors = None
-    __kicID = None
-    __runID = None
-    __dataFile = None
-    __names = []
-    __units = []
-    __nyq = None
-    __dataFolder = None
-    __smoothedData = None
-    __hg = None
-    __numax = None
-    __sigma = None
-    __gaussBoundaries = None
-    __deltaNuCalculator = None
-    __PDSOnly = None
-    __radiusStar = None
-    __BCCalculator = None
-    __BC = None
-    __mu = None
-
 
     def __init__(self,kicID,runID,Teff = None):
-        self.__kicID = kicID
-        self.__runID = runID
-        self.__Teff = Teff
-        self.__dataFile = DataFile(kicID)
-        self.__summary = ParameterSummary(kicID, runID)
-        self.__evidence = Evidence(kicID, runID)
-        self.__prior = Priors(kicID)
-        self.__backgroundPriors = Priors(kicID, runID)
-        self.__dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
-        nyqFile = glob.glob(self.__dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]
-        self.__nyq = np.loadtxt(nyqFile)
+        self.kicID = kicID
+        self.runID = runID
+        self.Teff = Teff
+        self.dataFile = DataFile(kicID)
+        self.summary = ParameterSummary(kicID, runID)
+        self.evidence = Evidence(kicID, runID)
+        self.prior = Priors(kicID)
+        self.backgroundPriors = Priors(kicID, runID)
+        self.dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+        nyqFile = glob.glob(self.dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]
+        self.nyq = np.loadtxt(nyqFile)
 
-        self.__names = ['w', '$\sigma_\mathrm{long}$', '$b_\mathrm{long}$', '$\sigma_\mathrm{gran,1}$',
+        self.names = ['w', '$\sigma_\mathrm{long}$', '$b_\mathrm{long}$', '$\sigma_\mathrm{gran,1}$',
                   '$b_\mathrm{gran,1}$', '$\sigma_\mathrm{gran,2}$', '$b_\mathrm{gran,2}$',
                   '$H_\mathrm{osc}$','$f_\mathrm{max}$ ', '$\sigma_\mathrm{env}$']
 
-        self.__units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm$^2$/$\mu$Hz',
+        self.units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm$^2$/$\mu$Hz',
                         '$\mu$Hz','$\mu$Hz']
 
         self.m_PSDOnly = False
@@ -67,9 +42,9 @@ class Results:
         #todo this should happen again if Diamondsrun is finished!
         for i in range(0,10):
             try:
-                par_median = self.__summary.getData(strSummaryMedian)[i]  # median values
-                par_le = self.__summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
-                par_ue = self.__summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
+                par_median = self.summary.getData(strSummaryMedian)[i]  # median values
+                par_le = self.summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
+                par_ue = self.summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
             except:
                 par_median = 0  # median values
@@ -78,170 +53,170 @@ class Results:
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
                 self.logger.debug("Problem creating median,le,ue values. Creating them with 0")
 
-            self.__backgroundParameter.append(BackgroundParameter(self.__names[i], self.__units[i], kicID, runID, i))
+            self.backgroundParameter.append(BackgroundParameter(self.names[i], self.units[i], kicID, runID, i))
 
-            self.__marginalDistributions.append(MarginalDistribution(self.__names[i], self.__units[i], kicID, runID, i))
-            self.__marginalDistributions[i].setBackgroundParameters(backGroundParameters)
-            if self.__backgroundParameter[i].getData() is None:
+            self.marginalDistributions.append(MarginalDistribution(self.names[i], self.units[i], kicID, runID, i))
+            self.marginalDistributions[i].setBackgroundParameters(backGroundParameters)
+            if self.backgroundParameter[i].getData() is None:
                 self.m_PSDOnly = True
 
         if Teff is not None:
-            self.__TeffError = 200
-            self.__BCCalculator = BCCalculator(Teff)
-            self.__BC = self.__BCCalculator.getBC()
+            self.TeffError = 200
+            self.BCCalculator = BCCalculator(Teff)
+            self.BC = self.BCCalculator.getBC()
 
 
 
     def getBackgroundParameters(self,key = None):
         if key is None:
-            return self.__backgroundParameter
+            return self.backgroundParameter
         else:
-            for i in self.__backgroundParameter:
+            for i in self.backgroundParameter:
                 if i.getName == key:
-                    return self.__backgroundParameter[i]
+                    return self.backgroundParameter[i]
 
             self.logger.debug("Found no background parameter for '"+key+"'")
             self.logger.debug("Returning full list")
-            return self.__backgroundParameter
+            return self.backgroundParameter
 
     def getPrior(self):
-        return self.__prior
+        return self.prior
 
     def getBackgroundPrior(self):
-        return self.__backgroundPriors
+        return self.backgroundPriors
 
     def getEvidence(self):
-        return self.__evidence
+        return self.evidence
 
     def getSummary(self):
-        return self.__summary
+        return self.summary
 
     def getNyquistFrequency(self):
-        return self.__nyq
+        return self.nyq
 
     def getPSD(self):
-        return self.__dataFile.getPSD()
+        return self.dataFile.getPSD()
 
     def getSmoothing(self):
-        return self.__butter_lowpass_filtfilt(self.__dataFile.getPSD()[1])
+        return self.__butter_lowpass_filtfilt(self.dataFile.getPSD()[1])
 
     def getKicID(self):
-        return self.__kicID
+        return self.kicID
 
     def getNuMax(self):
-        return self.__numax
+        return self.numax
 
     def getHg(self):
-        return self.__hg
+        return self.hg
 
     def getSigma(self):
-        return self.__sigma
+        return self.sigma
 
     def getFirstHarveyFrequency(self):
-        return self.__harveyF1
+        return self.harveyF1
 
     def getSecondHarveyFrequency(self):
-        return self.__harveyF2
+        return self.harveyF2
 
     def getThirdHarveyFrequency(self):
-        return self.__harveyF3
+        return self.harveyF3
 
     def getFirstHarveyAmplitude(self):
-        return self.__harveyA1
+        return self.harveyA1
 
     def getSecondHarveyAmplitude(self):
-        return self.__harveyA2
+        return self.harveyA2
 
     def getThirdHarveyAmplitude(self):
-        return self.__harveyA3
+        return self.harveyA3
 
     def getBackgroundNoise(self):
-        return self.__bgNoise
+        return self.bgNoise
 
     def getGaussBoundaries(self):
-        return self.__gaussBoundaries
+        return self.gaussBoundaries
 
     def getPSDOnly(self):
         return self.m_PSDOnly
 
     def getRadius(self):
-        return self.__radiusStar
+        return self.radiusStar
 
     def getBC(self):
-        return self.__BC
+        return self.BC
 
     def getLuminosity(self):
-        return self.__Luminosity
+        return self.Luminosity
 
     def getDistanceModulus(self):
-        return self.__mu
+        return self.mu
 
     def getKICDistanceModulus(self):
-        return self.__mu_kic
+        return self.mu_kic
 
     def getRobustnessValue(self):
-        return abs(self.__mu[0]-self.__mu_kic)*100/self.__mu[0]
+        return abs(self.mu[0]-self.mu_kic)*100/self.mu[0]
 
     def getRobustnessSigma(self):
-        return abs(self.__mu[0]-self.__mu_kic)/self.__mu[1]
+        return abs(self.mu[0]-self.mu_kic)/self.mu[1]
 
     def calculateDeltaNu(self):
         backgroundModel = self.createBackgroundModel(True)
-        par_median = self.__summary.getData(strSummaryMedian)  # median values
-        par_le = self.__summary.getData(strSummaryLowCredLim)  # lower credible limits
-        par_ue = self.__summary.getData(strSummaryUpCredlim)   # upper credible limits
+        par_median = self.summary.getData(strSummaryMedian)  # median values
+        par_le = self.summary.getData(strSummaryLowCredLim)  # lower credible limits
+        par_ue = self.summary.getData(strSummaryUpCredlim)   # upper credible limits
         backGroundParameters = np.vstack((par_median, par_le, par_ue))
 
-        self.__deltaNuCalculator = DeltaNuCalculator(self.__numax[0], self.__sigma[0], self.__dataFile.getPSD(),
-                                                     self.__nyq, backGroundParameters, backgroundModel)
-        self.__deltaNuCalculator.calculateFit()
+        self.deltaNuCalculator = DeltaNuCalculator(self.numax[0], self.sigma[0], self.dataFile.getPSD(),
+                                                     self.nyq, backGroundParameters, backgroundModel)
+        self.deltaNuCalculator.calculateFit()
 
     def getDeltaNuCalculator(self):
-        return self.__deltaNuCalculator
+        return self.deltaNuCalculator
 
     def getBCCalculator(self):
-        return self.__BCCalculator
+        return self.BCCalculator
 
     def __butter_lowpass_filtfilt(self,data,order=5):
         b, a = self.__butter_lowpass(0.7, order=order) # todo 0.7 is just empirical, this may work better with something else?
         psd = data
-        self.__smoothedData = filtfilt(b, a, psd)
-        return self.__smoothedData
+        self.smoothedData = filtfilt(b, a, psd)
+        return self.smoothedData
 
     def __butter_lowpass(self,cutoff, order=5):#todo these should be reworked and understood properly!
-        normal_cutoff = cutoff / self.__nyq
+        normal_cutoff = cutoff / self.nyq
         b, a = butter(order, normal_cutoff, btype='low', analog=False)
         return b, a
 
 
     def createBackgroundModel(self, runGauss):
-        freq, psd = self.__dataFile.getPSD()
-        par_median = self.__summary.getData(strSummaryMedian)  # median values
-        par_le = self.__summary.getData(strSummaryLowCredLim)  # lower credible limits
-        par_ue = self.__summary.getData(strSummaryUpCredlim) # upper credible limits
+        freq, psd = self.dataFile.getPSD()
+        par_median = self.summary.getData(strSummaryMedian)  # median values
+        par_le = self.summary.getData(strSummaryLowCredLim)  # lower credible limits
+        par_ue = self.summary.getData(strSummaryUpCredlim) # upper credible limits
         if runGauss:
-            self.__bgNoise = (par_median[0],par_median[0] - par_le[0])
-            self.__harveyA1 = (par_median[1],par_median[1] - par_le[1])
-            self.__harveyF1 = (par_median[2],par_median[2] - par_le[2])
-            self.__harveyA2 = (par_median[3],par_median[3] - par_le[3])
-            self.__harveyF2 = (par_median[4],par_median[4] - par_le[4])
-            self.__harveyA3 = (par_median[5],par_median[5] - par_le[5])
-            self.__harveyF3 = (par_median[6],par_median[6] - par_le[6])
-            self.__hg = (par_median[7],par_median[7] - par_le[7])  # third last parameter
-            self.__numax = (par_median[8],par_median[8] - par_le[8])  # second last parameter
-            self.__sigma = (par_median[9],par_median[9] - par_le[9])  # last parameter
+            self.bgNoise = (par_median[0],par_median[0] - par_le[0])
+            self.harveyA1 = (par_median[1],par_median[1] - par_le[1])
+            self.harveyF1 = (par_median[2],par_median[2] - par_le[2])
+            self.harveyA2 = (par_median[3],par_median[3] - par_le[3])
+            self.harveyF2 = (par_median[4],par_median[4] - par_le[4])
+            self.harveyA3 = (par_median[5],par_median[5] - par_le[5])
+            self.harveyF3 = (par_median[6],par_median[6] - par_le[6])
+            self.hg = (par_median[7],par_median[7] - par_le[7])  # third last parameter
+            self.numax = (par_median[8],par_median[8] - par_le[8])  # second last parameter
+            self.sigma = (par_median[9],par_median[9] - par_le[9])  # last parameter
 
-            self.logger.debug("Height is '" + str(self.__hg[0]) + "'")
-            self.logger.debug("Numax is '" + str(self.__numax[0]) + "'")
-            self.logger.debug("Sigma is '" + str(self.__sigma[0]) + "'")
+            self.logger.debug("Height is '" + str(self.hg[0]) + "'")
+            self.logger.debug("Numax is '" + str(self.numax[0]) + "'")
+            self.logger.debug("Sigma is '" + str(self.sigma[0]) + "'")
 
         zeta = 2. * np.sqrt(2.) / np.pi  # !DPI is the pigreca value in double precision
-        r = (np.sin(np.pi / 2. * freq / self.__nyq) / (
-        np.pi / 2. * freq / self.__nyq)) ** 2  # ; responsivity (apodization) as a sinc^2
+        r = (np.sin(np.pi / 2. * freq / self.nyq) / (
+        np.pi / 2. * freq / self.nyq)) ** 2  # ; responsivity (apodization) as a sinc^2
         w = par_median[0]  # White noise component
         g = 0
         if runGauss:
-            g = self.__hg[0] * np.exp(-(self.__numax[0] - freq) ** 2 / (2. * self.__sigma[0] ** 2))  ## Gaussian envelope
+            g = self.hg[0] * np.exp(-(self.numax[0] - freq) ** 2 / (2. * self.sigma[0] ** 2))  ## Gaussian envelope
 
         ## Long-trend variations
         sigma_long = par_median[1]
@@ -272,107 +247,107 @@ class Results:
 
     def createMarginalDistribution(self,key = None):
         if key is None:
-            return self.__marginalDistributions
+            return self.marginalDistributions
         else:
-            for i in self.__marginalDistributions:
+            for i in self.marginalDistributions:
                 if i.getName() == key:
-                    return self.__marginalDistributions[i]
+                    return self.marginalDistributions[i]
 
             self.logger.debug("Found no marginal Distribution for '"+key+"'")
             self.logger.debug("Returning full list")
-            return self.__marginalDistributions
+            return self.marginalDistributions
 
     def calculateRadius(self,TSun,NuMaxSun,DeltaNuSun):
-        if self.__Teff is None:
+        if self.Teff is None:
             self.logger.debug("Teff is None, no calculation of BC takes place")
             return None
 
-        if self.__numax is None:
+        if self.numax is None:
             self.logger.debug("NuMax is not calculated, need nuMax to proceed")
             return None
 
-        if self.__deltaNuCalculator is None:
+        if self.deltaNuCalculator is None:
             self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
-        self.__radiusStar = (self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
-                            sqrt(self.__Teff / TSun)
+        self.radiusStar = (self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
+                            sqrt(self.Teff / TSun)
 
         errorNuMax = ((1/NuMaxSun)*(self.getDeltaNuCalculator().getCen()[0]/DeltaNuSun)**-2 *
-                      sqrt(self.__Teff/TSun)*self.getNuMax()[1])**2
+                      sqrt(self.Teff/TSun)*self.getNuMax()[1])**2
 
         errorDeltaNu = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -3 * (self.getNuMax()[0] / NuMaxSun) * \
-                            sqrt(self.__Teff / TSun) *(2*self.getDeltaNuCalculator().getCen()[1]/DeltaNuSun))**2
+                            sqrt(self.Teff / TSun) *(2*self.getDeltaNuCalculator().getCen()[1]/DeltaNuSun))**2
 
         errorTemperature = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
-                            self.__TeffError/(TSun * sqrt(self.__Teff / TSun)))**2
+                            self.TeffError/(TSun * sqrt(self.Teff / TSun)))**2
 
         error = sqrt(errorNuMax+errorDeltaNu+errorTemperature)
 
-        self.__radiusStar = (self.__radiusStar,error)
+        self.radiusStar = (self.radiusStar,error)
 
 
     def calculateLuminosity(self,TSun):
-        if self.__Teff is None:
+        if self.Teff is None:
             self.logger.debug("Teff is None, no calculation of BC takes place")
             return None
 
-        if self.__deltaNuCalculator is None:
+        if self.deltaNuCalculator is None:
             self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
-        if self.__radiusStar is None:
+        if self.radiusStar is None:
             self.logger.debug("Radius not yet calculated, need to calculate that first")
             self.calculateRadius()
 
-        self.__Luminosity = self.__radiusStar[0]** 2 * (self.__Teff / TSun) ** 4
+        self.Luminosity = self.radiusStar[0]** 2 * (self.Teff / TSun) ** 4
 
-        errorRadius = (self.__radiusStar[0] * (self.__Teff / TSun) ** 4 *self.__radiusStar[1] *2)**2
-        errorTemperature = (self.__radiusStar[0]** 2 *4* (self.__TeffError / TSun) *(self.__Teff / TSun) ** 3)**2
+        errorRadius = (self.radiusStar[0] * (self.Teff / TSun) ** 4 *self.radiusStar[1] *2)**2
+        errorTemperature = (self.radiusStar[0]** 2 *4* (self.TeffError / TSun) *(self.Teff / TSun) ** 3)**2
 
         error = sqrt(errorRadius + errorTemperature)
 
-        self.__Luminosity = (self.__Luminosity,error)
+        self.Luminosity = (self.Luminosity,error)
 
     def calculateDistanceModulus(self,appMag,kicmag,magError,Av,NuMaxSun,DeltaNuSun,TSun):
 
         appMag = appMag if appMag != 0 else kicmag
-        if self.__Teff is None:
+        if self.Teff is None:
             self.logger.debug("TEff is None, no calculation of distance modulus takes place")
             return None
 
-        if self.__deltaNuCalculator is None:
+        if self.deltaNuCalculator is None:
             self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
-        if self.__numax is None:
+        if self.numax is None:
             self.logger.debug("NuMax is not calculated, need nuMax to proceed")
             return None
 
-        if self.__BCCalculator is None:
+        if self.BCCalculator is None:
             self.logger.debug("BC is not yet calculated, need to calculate that first")
             self.calculate
-            self.__BCCalculator = BCCalculator(self.__Teff)
-            self.__BC = self.__BCCalculator.getBC()
+            self.BCCalculator = BCCalculator(self.Teff)
+            self.BC = self.BCCalculator.getBC()
 
-        self.__mu = (6*log10(self.__numax[0]/NuMaxSun)+15*log10(self.__Teff/TSun) -12*log10(self.__deltaNuCalculator.getCen()[0]/DeltaNuSun)\
-                    +1.2*(appMag + self.__BC) -1.2*Av[0] - 5.7)/1.2
+        self.mu = (6*log10(self.numax[0]/NuMaxSun)+15*log10(self.Teff/TSun) -12*log10(self.deltaNuCalculator.getCen()[0]/DeltaNuSun)\
+                    +1.2*(appMag + self.BC) -1.2*Av[0] - 5.7)/1.2
 
-        self.__mu_kic = (6*log10(self.__numax[0]/NuMaxSun)+15*log10(self.__Teff/TSun) -12*log10(self.__deltaNuCalculator.getCen()[0]/DeltaNuSun)\
-                    +1.2*(kicmag + self.__BC) -1.2*Av[0] - 5.7)/1.2
+        self.mu_kic = (6*log10(self.numax[0]/NuMaxSun)+15*log10(self.Teff/TSun) -12*log10(self.deltaNuCalculator.getCen()[0]/DeltaNuSun)\
+                    +1.2*(kicmag + self.BC) -1.2*Av[0] - 5.7)/1.2
 
-        self.__mu_diff = self.__mu-self.__mu_kic
+        self.mu_diff = self.mu-self.mu_kic
 
         errorNuMax = (6*self.getNuMax()[1]/(self.getNuMax()[0]*log(10)*1.2))**2
         errorDeltaNu = ((12*self.getDeltaNuCalculator().getCen()[1]/(self.getDeltaNuCalculator().getCen()[0]*log(10)))/1.2)**2
         errorV = magError
         errorAv= (Av[1])**2
-        errorTemperature = ((15/1.2)*(self.__TeffError/self.__Teff))**2
+        errorTemperature = ((15/1.2)*(self.TeffError/self.Teff))**2
 
         self.logger.debug("Error"+str(errorNuMax)+","+str(errorDeltaNu)+","+str(errorV)+","+str(errorAv)+","+str(errorTemperature))
         error = sqrt(errorNuMax + errorDeltaNu+errorV+errorAv + errorTemperature)
 
-        self.__mu = (self.__mu,error)
+        self.mu = (self.mu,error)
 
-        return self.__mu
+        return self.mu
 
