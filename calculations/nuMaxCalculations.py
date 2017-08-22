@@ -141,7 +141,21 @@ class NuMaxCalculator:
 
         guess =tau_filter/8 if (filterFrequency == self.init_nu_filter) else tau_filter/4
 
-        popt = self.__scipyFit((self.lightCurve[0][0:int(length)]/4,autocor),guess)
+        try:
+            popt = self.__scipyFit((self.lightCurve[0][0:int(length)]/4,autocor),guess)
+        except RuntimeError as e:
+            self.logger.error("Failed to fit Autocorrelation")
+            self.logger.error("Tau guess is "+str(guess))
+            self.logger.error(str(e))
+            pl.plot(self.lightCurve[0][0:int(length)]/4,autocor,label='Autocorrelation')
+            x = np.linspace(0,20000,num=60000)
+            pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
+            pl.legend()
+            pl.show()
+            raise
+        except BaseException as e:
+            self.logger.error("Scipy fit failed!")
+            self.logger.error(str(e))
 
         tau_first_fit = popt[2]/60
         tau_first_fit /=9
@@ -210,7 +224,7 @@ class NuMaxCalculator:
 
 
 
-        popt, pcov = optimize.curve_fit(self.__fit, x, y,p0=arr)
+        popt, pcov = optimize.curve_fit(self.__fit, x, y,p0=arr,maxfev=5000)
         perr = np.sqrt(np.diag(pcov))
         self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
         self.logger.debug("b = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
@@ -230,9 +244,10 @@ class NuMaxCalculator:
     def getNyquistFrequency(self):
         if self.lightCurve is not None:
             self.logger.debug("Abtastfrequency is '"+str((self.lightCurve[0][3] - self.lightCurve[0][2])*24*3600)+"'")
-            self.__nyq = 10**6/(2*(self.lightCurve[0][200] -self.lightCurve[0][199])*24*3600)
+            self.nyq = 10**6/(2*(self.lightCurve[0][200] -self.lightCurve[0][199]))
+            self.logger.debug("Nyquist frequency is '"+str(self.nyq)+"'")
 
-            return self.__nyq
+            return self.nyq
         else:
             self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
             return None

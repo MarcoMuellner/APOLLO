@@ -88,6 +88,9 @@ logger = logging.getLogger(__name__)
 #input = "004346201_18"
 #input = '0603396438'
 input = "004770846_1435"
+input = "003744681_983"
+input = "004448777_771"
+
 #input = "0223976028"
 #input = "002437103_10"
 powerSpectrum = False
@@ -114,7 +117,7 @@ nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
 photonNoise = 0.02
-nyquist = 283.2116656017908
+nyquist = nuMaxCalc.getNyquistFrequency()
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
 
