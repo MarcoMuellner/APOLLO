@@ -34,9 +34,9 @@ class DiamondsProcess:
 
         with cd(self.__diamondsBinaryPath):
             p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
+            p.wait()
             for line in p.stdout:
                 self.logger.debug(line)
-            p.wait()
             self.logger.debug("Command '"+str(cmd)+"' done")
         return
 

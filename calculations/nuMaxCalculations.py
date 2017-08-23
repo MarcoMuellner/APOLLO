@@ -34,7 +34,7 @@ class NuMaxCalculator:
         self.elements = len(lightCurve[0])
         self.duty_cycle = np.mean(lightCurve[0][1:self.elements -1] - lightCurve[0][0:self.elements
                                                                           -2])
-        normalized_bin = np.round(filterTime*24*3600/int(self.duty_cycle))
+        normalized_bin = np.round(filterTime*3600/int(self.duty_cycle))
         bins = int(self.elements/normalized_bin)
 
         # Find out how many points are left
@@ -116,7 +116,7 @@ class NuMaxCalculator:
     def computeNuMax(self):
         self.marker["First Filter"] = (self.__iterativeFilter(self.init_nu_filter),'g')
         self.marker["Second Filter"] = (self.__iterativeFilter(self.lastFilter),'b')
-        return self.lastFilter
+        return 0.8717*self.lastFilter**0.9068
 
     def __iterativeFilter(self,filterFrequency):
         self.logger.debug("Filterfrequency for iterative filter is '"+str(filterFrequency)+"'")
@@ -158,7 +158,7 @@ class NuMaxCalculator:
             self.logger.error(str(e))
             raise e
 
-        pl.plot(self.lightCurve[0][0:int(length)]/4,'x',autocor,label='Autocorrelation')
+        pl.plot(self.lightCurve[0][0:int(length)]/4,autocor,'x',label='Autocorrelation')
         x = np.linspace(0,20000,num=60000)
         pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
         pl.plot(x,self.__fit(x,*popt),label="Corrected Fit")
