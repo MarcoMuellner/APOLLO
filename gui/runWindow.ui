@@ -110,9 +110,15 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="rightLayout">
+       <layout class="QVBoxLayout" name="rightLayout" stretch="0">
         <item>
          <widget class="QScrollArea" name="scrollResults">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -125,15 +131,103 @@
              <height>446</height>
             </rect>
            </property>
-           <widget class="QTableView" name="tableSettings">
+           <widget class="QTreeWidget" name="treeWidget">
             <property name="geometry">
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>172</width>
+              <width>171</width>
               <height>451</height>
              </rect>
             </property>
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Value</string>
+             </property>
+            </column>
+            <item>
+             <property name="text">
+              <string>Initial Filter Frequency</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <item>
+              <property name="text">
+               <string>Initial Filter Frequency</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Second Filter Frequency</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Third Filter Frequency</string>
+              </property>
+             </item>
+            </item>
+            <item>
+             <property name="text">
+              <string>Priors Guess</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Background Noise</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>First Harvey Frequency</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>First Harvey Amplitude</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Second Harvey Frequency</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Second Harvey Amplitude</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Third Harvey Frequency</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Third Harvey Amplitude</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Oscillation Power</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Frequency of maximum oscillation</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Standard deviation</string>
+              </property>
+             </item>
+            </item>
            </widget>
           </widget>
          </widget>
