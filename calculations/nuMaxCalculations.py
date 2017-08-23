@@ -158,6 +158,13 @@ class NuMaxCalculator:
             self.logger.error(str(e))
             raise e
 
+        pl.plot(self.lightCurve[0][0:int(length)]/4,'x',autocor,label='Autocorrelation')
+        x = np.linspace(0,20000,num=60000)
+        pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
+        pl.plot(x,self.__fit(x,*popt),label="Corrected Fit")
+        pl.legend()
+        pl.show()
+
         tau_first_fit = popt[2]/60
         tau_first_fit /=9
 
@@ -218,7 +225,7 @@ class NuMaxCalculator:
         return corrs2
 
     def __scipyFit(self,data,tauGuess):
-        y = data[1] 
+        y = data[1]
         x = data[0]
 
         self.logger.debug("Initial Guess is "+str(tauGuess))
@@ -254,11 +261,3 @@ class NuMaxCalculator:
         else:
             self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
             return None
-
-
-
-
-
-
-
-
