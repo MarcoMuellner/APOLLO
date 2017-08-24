@@ -222,7 +222,7 @@ def plotLightCurve(data):
     annotationList[r'Flux'] = annotation
     dfData = pd.DataFrame.from_dict(dataList)
     p = ggplot(dfData, aes(x=r'Observation Time [d]'))
-    p = p + geom_line(aes(y=r'Flux'), color=annotationList[r'Flux']['color'],
+    p = p + geom_point(aes(y=r'Flux'), color=annotationList[r'Flux']['color'],
     linetype=annotationList[r'Flux']['linetype'])
     p = p+ylab(r'Flux')
     p = p+xlab(r'Observation Time [d]')

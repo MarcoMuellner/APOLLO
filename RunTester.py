@@ -2,6 +2,7 @@ from filehandler.fitsReading import FitsReader
 from calculations.powerspectraCalculations import PowerspectraCalculator
 from calculations.nuMaxCalculations import NuMaxCalculator
 from calculations.priorCalculations import PriorCalculator
+from filehandler.Diamonds.diamondsResultsFile import Results
 from plotter.plotFunctions import *
 from filehandler.Diamonds.diamondsFileCreating import FileCreater
 from diamonds.diamondsProcesses import DiamondsProcess
@@ -81,44 +82,70 @@ def plotPSDTemp(runGauss,psd,backgroundModel):
 
 setup_logging()
 logger = logging.getLogger(__name__)
-
-#003656476_12
-#004346201_18
-#004351319_19
+#KeplerData
+#input = "003656476_12"
+#input = "004346201_18"
+#input = "004351319_19"
 #input = "004346201_18"
 #input = '0603396438'
-input = "004770846_1435"
-input = "003744681_983"
-input = "004448777_771"
+#RG_ENRICO
+input = "004770846_1435" #works
+input = "003744681_983" #works
+input = "004448777_771" #works
+input = "004659821_1181" #okayish
+input = "004770846_1435" #okayish
+input = "005184199_539" #works
+input = "005356201_979" #failed
+input = "005858947_2366" #not perfect, nuMax is a bit off
+input = "006144777_350" #works
+input = "007467630_1088" #perfect
+input = "007581399_1298" #nuMax and Hosc to high
+input = "008366239_1241" #okayish
+#input = "008962923_2846"
+#input = "009267654_634"
+#input = "009332840_813"
+#input = "009346602_873"
+#input = "009574650_1445"
+#input = "009882316_2399"
+#input = "010777816_1965"
+#input = "010866415_2167"
+#input = "011550492_1262"
+#input = "012008916_19"
 #Corot -> Young stars
 #input = "0223978308"
-
+#Kepler -> Young stars
+input = "224321303"
+input = "224399118"
 #input = "0223976028"
 #input = "002437103_10"
 powerSpectrum = False
 #KeplerData
-filename = "../Sterndaten/KeplerData/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
+#filename = "../Sterndaten/KeplerData/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
 #Young Stars
 #filename = "../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
+#Kepler Young stars
+filename = "../Sterndaten/k2data/g_like/EPIC_"+input+"_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
 
 #New data
 #filename = "../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
 
 #Reviewed Data by Enrico
-filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + (
-    "PSD_" if powerSpectrum else "") + "filt_inp.fits"
+#filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
 
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.setKicID(input)
-
+plotLightCurve(powerCalc)
 plotPSD(powerCalc,True,True)
+
+#plotPSD(powerCalc,True,True)
 #plotLightCurve(powerCalc)
 
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
-photonNoise = 0.2
+marker = nuMaxCalc.marker
+photonNoise = 0.1
 nyquist = nuMaxCalc.getNyquistFrequency()
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
@@ -146,6 +173,7 @@ logger.info("Third Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency
 logger.info("Amplitude: '" + str(priorCalculator.getAmplitude()) + "'")
 logger.info("nuMax: '" + str(nuMax) + "'")
 logger.info("Sigma: '" + str(priorCalculator.getSigma()) + "'")
+plotPSD(powerCalc,True,True,marker)
 
 priors = []
 priors.append(priorCalculator.getPhotonNoiseBoundary())
@@ -186,5 +214,7 @@ backgroundModel = createBackgroundModel(True,median,powerCalc.getPSD(),nyquist)
 proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
 proc.start()
 
-plotPSDTemp(True,powerCalc.getPSD(),backgroundModel)
+result = Results(kicID=input,runID="00")
+plotPSD(result,True,False)
+plotParameterTrend(result)
 show()

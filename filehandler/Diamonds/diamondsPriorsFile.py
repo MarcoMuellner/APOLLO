@@ -2,6 +2,7 @@ from settings.settings import Settings
 import numpy as np
 import glob
 from support.strings import *
+import logging
 
 class Priors:
 
@@ -11,6 +12,7 @@ class Priors:
     m_priors = {}
 
     def __init__(self,kicID = None,runID = None):
+        self.logger = logging.getLogger(__name__)
         self.m_kicID = kicID
         self.m_runId = runID
 
@@ -83,4 +85,3 @@ class Priors:
                     'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId) + "'")
             print("Setting Data to None")
             self.m_priors = {}
-

@@ -34,7 +34,9 @@ class NuMaxCalculator:
         self.elements = len(lightCurve[0])
         self.duty_cycle = np.mean(lightCurve[0][1:self.elements -1] - lightCurve[0][0:self.elements
                                                                           -2])
+        self.logger.debug("Duty cycle is '"+str(self.duty_cycle) +"'" )
         normalized_bin = np.round(filterTime*3600/int(self.duty_cycle))
+        self.logger.debug("Normalized Bin is '"+str(normalized_bin)+"'")
         bins = int(self.elements/normalized_bin)
 
         # Find out how many points are left
@@ -116,7 +118,7 @@ class NuMaxCalculator:
     def computeNuMax(self):
         self.marker["First Filter"] = (self.__iterativeFilter(self.init_nu_filter),'g')
         self.marker["Second Filter"] = (self.__iterativeFilter(self.lastFilter),'b')
-        return 0.8717*self.lastFilter**0.9068
+        return self.lastFilter
 
     def __iterativeFilter(self,filterFrequency):
         self.logger.debug("Filterfrequency for iterative filter is '"+str(filterFrequency)+"'")
@@ -139,10 +141,11 @@ class NuMaxCalculator:
         autocor = autocor[0:int(length)]
         autocor = autocor**2
 
-        guess =tau_filter/8 if (filterFrequency == self.init_nu_filter) else tau_filter/4
+        #guess =tau_filter/8 if (filterFrequency == self.init_nu_filter) else tau_filter/4
+        guess = tau_filter/2
 
         try:
-            popt = self.__scipyFit((self.lightCurve[0][0:int(length)]/4,autocor),guess)
+            popt = self.__iterativeFit((self.lightCurve[0][0:int(length)]/4,autocor),guess)
         except RuntimeError as e:
             self.logger.error("Failed to fit Autocorrelation")
             self.logger.error("Tau guess is "+str(guess))
@@ -163,12 +166,15 @@ class NuMaxCalculator:
         pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
         pl.plot(x,self.__fit(x,*popt),label="Corrected Fit")
         pl.legend()
+        pl.title("Final Fit")
         pl.show()
 
         tau_first_fit = popt[2]/60
-        tau_first_fit /=9
 
-        self.lastFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
+        self.logger.debug("Tau fit is "+str(tau_first_fit))
+
+        self.compFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
+        self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6*1.5/popt[2])
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
@@ -231,9 +237,6 @@ class NuMaxCalculator:
         self.logger.debug("Initial Guess is "+str(tauGuess))
 
         arr = [1.0,1/20,tauGuess]
-
-
-
         popt, pcov = optimize.curve_fit(self.__fit, x, y,p0=arr,maxfev=5000)
         perr = np.sqrt(np.diag(pcov))
         self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
@@ -241,6 +244,59 @@ class NuMaxCalculator:
         self.logger.debug("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
 
         return popt
+
+    def __iterativeFit(self,data,tauGuess):
+        y = data[1]#[0:int(len(data[1])/3)]
+        x = data[0]#[0:int(len(data[0])/3)]
+
+        self.logger.debug("Initial Guess is "+str(tauGuess))
+
+        arr = [1,tauGuess]
+        pl.plot(x,y,'x',label='data')
+        pl.plot(x,self.__fit(x,1,1/20,tauGuess),label="Initial Guess")
+        pl.legend()
+        pl.title("Initial Guess Fit")
+        pl.show()
+        popt, pcov = optimize.curve_fit(self.__sinc,x,y,p0=arr,maxfev = 5000)
+
+        #compute residuals
+
+        pl.plot(x,y,'x',label='data')
+        pl.plot(x,self.__sinc(x,*popt),label="Fit")
+        pl.legend()
+        pl.title("Initial Sinc fit")
+        pl.show()
+
+        residuals = y-self.__sinc(x,*popt)
+        scaled_time_array = x / popt[1]
+        cut = x[scaled_time_array<=2]
+        residuals = residuals[scaled_time_array<=2]
+
+        #fit sin to residual!
+        arr = [1/20,popt[1]]
+
+        popt,pcov = optimize.curve_fit(self.__sin,cut,residuals,p0=arr,maxfev=5000)
+        b = popt[0]
+        pl.plot(cut,residuals,'x',label="Residual data")
+        pl.plot(cut,self.__sin(cut,*popt),label="sin fit")
+        pl.legend()
+        pl.title("Sin fit")
+        pl.show()
+
+        y =  y[scaled_time_array<=2] - self.__sin(cut,*popt)
+
+        popt, pcov = optimize.curve_fit(self.__sinc,cut,y,p0=arr,maxfev = 5000)
+
+        pl.plot(cut,y,'x',label='data')
+        pl.plot(cut,self.__sinc(cut,*popt),label='sinc fit')
+        pl.legend()
+        pl.title("Second sinc fit")
+        pl.show()
+
+        returnList = [popt[0],b,popt[1]]
+
+        return returnList
+
 
     def __sin(self,x,amp,tau):
        return amp*np.sin(2*np.pi*4*x/tau)

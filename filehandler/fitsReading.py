@@ -19,6 +19,11 @@ class FitsReader:
             hdulist.info()
             scidata = hdulist[0].data
             self.mode = "fits"#todo in string
+        elif ".dat.txt" in filename:
+            self.logger.debug("Opening EPIC file'" +filename + "'")
+            scidata = np.loadtxt(filename,skiprows=1,usecols=(0,10))
+            self.logger.debug("Shape of array is "+str(scidata.shape))
+            self.mode = "txt"
         elif ".txt" in filename:
             self.logger.debug("Opening txt file '" + filename + "'")
             scidata = np.loadtxt(filename)
@@ -87,7 +92,8 @@ class FitsReader:
     def __refineDataCuttingMethod(self,scidata):
         time = np.zeros(scidata.shape[0])
         flux = np.zeros(scidata.shape[0])
-
+        self.logger.debug("First x value is "+str(scidata[0][0]))
+        self.logger.debug("Second x value is "+str(scidata[1][0]))
 
         prevTime = scidata[0][0]
         intervall = 0
@@ -142,6 +148,7 @@ class FitsReader:
         #flux = np.delete(flux, nullID[0])
         #time = time - np.amin(time)
 
+
         return npArrays[maxIndex]
 
     def getLightCurve(self):
@@ -152,18 +159,25 @@ class FitsReader:
             return self.lightCurve
 
     def setFitsFile(self,fileName):
-        mode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
-        self.logger.debug("Mode is '"+mode+"'")
+        splitMode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
+        self.logger.debug("Mode is '"+splitMode+"'")
         self.fileContent = self.__readData(fileName)
-        if mode == strLightCombining:
+        if splitMode == strLightCombining:
             self.lightCurve = self.__refineDataCombiningMethod(self.fileContent)
-        elif mode == strLightCutting:
+        elif splitMode == strLightCutting:
             self.lightCurve = self.__refineDataCuttingMethod(self.fileContent)
         else:
             self.logger.debug("Failed to find refine data method with: '" + mode+"'")
             raise ValueError
         self.logger.debug(len(self.getLightCurve()[0]))
         self.logger.debug(len(self.getLightCurve()[1]))
-        pl.figure()
+        self.logger.debug(np.mean(self.getLightCurve()[1])*0.9)
+        x = self.lightCurve[0][self.lightCurve[1]>np.mean(self.lightCurve[1])*0.9]
+        y = self.lightCurve[1][self.lightCurve[1]>np.mean(self.lightCurve[1])*0.9]
+
+        x = x[y<np.mean(y)*1.1]
+        y = y[y<np.mean(y)*1.1]
+        y -=np.amin(y)
+        self.lightCurve = np.array((x,y))
         #todo temporary
-        return self.getLightCurve()
+        return self.lightCurve

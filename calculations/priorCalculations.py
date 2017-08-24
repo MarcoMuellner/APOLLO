@@ -75,7 +75,7 @@ class PriorCalculator:
         return (0.018 * self.__a,0.31*self.__a)
 
     def getNuMaxBoundary(self):
-        return (0.9*self.__nuMax,1.1*self.__nuMax)
+        return (0.9*self.__nuMax,1.2*self.__nuMax)
 
     def getSigmaBoundary(self):
         return (0.2*self.__sigma,1.5*self.__sigma)

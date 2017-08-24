@@ -13,11 +13,13 @@ from settings.settings import Settings
 from support.strings import *
 from calculations.deltaNuCalculations import DeltaNuCalculator
 from calculations.bolometricCorrectionCalculations import BCCalculator
+import logging
 
 
 class Results:
 
     def __init__(self,kicID,runID,Teff = None):
+        self.logger = logging.getLogger(__name__)
         self.kicID = kicID
         self.runID = runID
         self.Teff = Teff
@@ -26,6 +28,10 @@ class Results:
         self.evidence = Evidence(kicID, runID)
         self.prior = Priors(kicID)
         self.backgroundPriors = Priors(kicID, runID)
+        self.backgroundParameter = []
+        self.marginalDistributions = []
+        self.names = []
+        self.units = []
         self.dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
         nyqFile = glob.glob(self.dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]
         self.nyq = np.loadtxt(nyqFile)
@@ -350,4 +356,3 @@ class Results:
         self.mu = (self.mu,error)
 
         return self.mu
-
