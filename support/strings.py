@@ -16,6 +16,7 @@ strSectLightCurveAlgorithm = 'Refine lightcurves algorithm'
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
 strSectDiamondsBinaryPath = 'Diamonds binary path'
+strSectStarType= 'Star Type'
 #SettingOptions
 strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'
@@ -27,6 +28,9 @@ strPowerModeSciPy = 'scipy'
 #LightcurveAlgorithmValues
 strLightCutting = 'cutting'
 strLightCombining = 'combining'
+#StartypeValues
+strStarTypeYoungStar = 'Young Star'
+strStarTypeRedGiant = 'Red Giant'
 #ParameterSummaryStrings
 strSummaryMean = "I Moment (Mean)"
 strSummaryMedian = "Median"
@@ -53,5 +57,3 @@ strPriorSigma = "Sigma"
 #DiamondsBinaryNames
 strDiamondsNoGaussian = "multirun_noise"
 strDiamondsGaussian = "multirun"
-
-

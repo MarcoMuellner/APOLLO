@@ -22,6 +22,11 @@
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
                 "Value":"combining"
+            },
+            "Star Type":{
+                "GUI Name":"Star Type",
+                "GUI Type":"textEdit",
+                "Value":"Red Giant"
             }
         },
         "Diamonds Settings":{

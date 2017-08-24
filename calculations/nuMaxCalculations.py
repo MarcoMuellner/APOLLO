@@ -4,6 +4,8 @@ from scipy import optimize,stats
 from sympy.ntheory import factorint
 #local imports
 from calculations.powerspectraCalculations import PowerspectraCalculator
+from settings.settings import Settings
+from support.strings import *
 from plotter.plotFunctions import *
 import logging
 
@@ -162,19 +164,23 @@ class NuMaxCalculator:
             raise e
 
         pl.plot(self.lightCurve[0][0:int(length)]/4,autocor,'x',label='Autocorrelation')
-        x = np.linspace(0,20000,num=60000)
-        pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
-        pl.plot(x,self.__fit(x,*popt),label="Corrected Fit")
+        pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,guess),label="initial fit")
+        pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),*popt),label="Corrected Fit")
         pl.legend()
         pl.title("Final Fit")
         pl.show()
 
         tau_first_fit = popt[2]/60
+        if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
+            tau_first_fit /=9
 
         self.logger.debug("Tau fit is "+str(tau_first_fit))
 
         self.compFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
-        self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6*1.5/popt[2])
+        if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
+            self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6/popt[2])
+        elif Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
+            self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6*1.5/popt[2])        
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
@@ -253,7 +259,7 @@ class NuMaxCalculator:
 
         arr = [1,tauGuess]
         pl.plot(x,y,'x',label='data')
-        pl.plot(x,self.__fit(x,1,1/20,tauGuess),label="Initial Guess")
+        pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess),label="Initial Guess")
         pl.legend()
         pl.title("Initial Guess Fit")
         pl.show()
@@ -262,7 +268,7 @@ class NuMaxCalculator:
         #compute residuals
 
         pl.plot(x,y,'x',label='data')
-        pl.plot(x,self.__sinc(x,*popt),label="Fit")
+        pl.plot(np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt),label="Fit")
         pl.legend()
         pl.title("Initial Sinc fit")
         pl.show()
@@ -278,7 +284,7 @@ class NuMaxCalculator:
         popt,pcov = optimize.curve_fit(self.__sin,cut,residuals,p0=arr,maxfev=5000)
         b = popt[0]
         pl.plot(cut,residuals,'x',label="Residual data")
-        pl.plot(cut,self.__sin(cut,*popt),label="sin fit")
+        pl.plot(np.linspace(0,20000,num=50000),self.__sin(np.linspace(0,20000,num=50000),*popt),label="sin fit")
         pl.legend()
         pl.title("Sin fit")
         pl.show()
@@ -288,7 +294,7 @@ class NuMaxCalculator:
         popt, pcov = optimize.curve_fit(self.__sinc,cut,y,p0=arr,maxfev = 5000)
 
         pl.plot(cut,y,'x',label='data')
-        pl.plot(cut,self.__sinc(cut,*popt),label='sinc fit')
+        pl.plot(np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt),label='sinc fit')
         pl.legend()
         pl.title("Second sinc fit")
         pl.show()

@@ -145,7 +145,7 @@ nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
-photonNoise = 0.1
+photonNoise = 2.5
 nyquist = nuMaxCalc.getNyquistFrequency()
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
