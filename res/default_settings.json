@@ -23,6 +23,11 @@
                 "GUI Type":"textEdit",
                 "Value":"combining"
             },
+            "Refinement of Data":{
+                "GUI Name":"Refinement of Data",
+                "GUI Type":"textEdit",
+                "Value":"None"
+            },
             "Star Type":{
                 "GUI Name":"Star Type",
                 "GUI Type":"textEdit",
@@ -36,11 +41,10 @@
                 "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/build/"
             },
             "Fitting mode":{
-              "GUI Name":"Fitting mode",
-              "GUI Type":"textEdit",
-              "Value":"Full Background Model"
+                "GUI Name":"Fitting mode",
+                "GUI Type":"textEdit",
+                "Value":"Full Background Model"
             }
-
         }
     }
 }

@@ -9,35 +9,38 @@ import logging
 class DiamondsProcess:
     def __init__(self,model,kicID,runID,kernels):
         self.logger = logging.getLogger(__name__)
-        self.__diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
-        if model == strDiamondsNoGaussian or model == strDiamondsGaussian:
-            self.__diamondsModelBinary = model
-        else:
-            self.logger.debug("No binary with name '"+model+"' exists!")
-            raise ValueError
+        self.diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
+        self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        self.binaryListToExecute = []
 
-        self.__binary = self.__diamondsBinaryPath +self.__diamondsModelBinary
-        self.__kicID = kicID
-        self.__runID = runID
-        self.__kernels = kernels
+        if self.diamondsModel in [strFitModeFullBackground,strFitModeBayesianComparison]:
+            self.binaryListToExecute.append(strDiamondsGaussian)
+
+        if self.diamondsModel in [strFitModeNoiseBackground,strFitModeBayesianComparison]:
+            self.binaryListToExecute.append(strDiamondsNoGaussian)
+
+        self.kicID = kicID
+        self.runID = runID
+        self.kernels = kernels
         return
 
     def start(self):
-        self.logger.debug("Starting diamonds process.")
-        self.logger.debug("Binary path: '"+self.__diamondsBinaryPath+"'")
-        self.logger.debug("Binary used: '"+self.__diamondsModelBinary+"'")
-        self.logger.debug("KicID: '"+self.__kicID+"'")
-        self.logger.debug("RunID: '"+self.__runID+"'")
-        self.logger.debug("Kernels: '"+self.__kernels+"'")
-        cmd = [self.__binary,self.__kicID,self.__runID,self.__kernels]
-        self.logger.debug("Full Command: '"+str(cmd)+"'")
+        self.logger.debug("Starting diamonds process(es).")
+        for i in self.binaryListToExecute:
+            self.logger.debug("Binary path: '"+self.diamondsBinaryPath+"'")
+            self.logger.debug("Binary used: '"+i+"'")
+            self.logger.debug("KicID: '"+self.kicID+"'")
+            self.logger.debug("RunID: '"+self.runID+"'")
+            self.logger.debug("Kernels: '"+self.kernels+"'")
+            cmd = [(self.diamondsBinaryPath + i),self.kicID,self.runID,self.kernels]
+            self.logger.debug("Full Command: '"+str(cmd)+"'")
 
-        with cd(self.__diamondsBinaryPath):
-            p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
-            p.wait()
-            for line in p.stdout:
-                self.logger.debug(line)
-            self.logger.debug("Command '"+str(cmd)+"' done")
+            with cd(self.diamondsBinaryPath):
+                p = subprocess.Popen(cmd,stdout=subprocess.PIPE)
+                p.wait()
+                for line in p.stdout:
+                    self.logger.debug(line)
+                    self.logger.debug("Command '"+str(cmd)+"' done")
         return
 
     def stop(self):

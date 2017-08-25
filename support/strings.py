@@ -13,10 +13,11 @@ strDiamondsSettings ='Diamonds Settings'
 #strDataSettings
 strSectBackgroundResPath   = 'Background Results Path'
 strSectLightCurveAlgorithm = 'Refine lightcurves algorithm'
+strSectDataRefinement = 'Refinement of Data'
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
 strSectDiamondsBinaryPath = 'Diamonds binary path'
-strSectDiamondsBinaryPath = 'Fitting mode'
+strSectFittingMode = 'Fitting mode'
 strSectStarType= 'Star Type'
 #SettingOptions
 strOptionName       = 'GUI_Name'
@@ -26,6 +27,9 @@ strOptionValue      = 'Value'
 #SettingValues
 strPowerModeNumpy = "numpy"
 strPowerModeSciPy = 'scipy'
+#Data Refinement values
+strRefineNone = "None"
+strRefineStray = "Remove Stray"
 #LightcurveAlgorithmValues
 strLightCutting = 'cutting'
 strLightCombining = 'combining'
@@ -60,5 +64,5 @@ strPriorHeight = "HeightOscillation"
 strPriorNuMax = "NuMax"
 strPriorSigma = "Sigma"
 #DiamondsBinaryNames
-strDiamondsNoGaussian = "multirun_noise"
+strDiamondsNoGaussian = "noiseMultirun"
 strDiamondsGaussian = "multirun"

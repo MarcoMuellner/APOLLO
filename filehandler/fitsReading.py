@@ -172,12 +172,15 @@ class FitsReader:
         self.logger.debug(len(self.getLightCurve()[0]))
         self.logger.debug(len(self.getLightCurve()[1]))
         self.logger.debug(np.mean(self.getLightCurve()[1])*0.9)
-        x = self.lightCurve[0][self.lightCurve[1]>np.mean(self.lightCurve[1])*0.9]
-        y = self.lightCurve[1][self.lightCurve[1]>np.mean(self.lightCurve[1])*0.9]
+        x = self.lightCurve[0]
+        y = self.lightCurve[1]
+        if strRefineStray == Settings.Instance().getSetting(strDataSettings,strSectDataRefinement).value:
+            x = self.lightCurve[0][y>np.mean(y)*0.9]
+            y = self.lightCurve[1][y>np.mean(y)*0.9]
 
-        x = x[y<np.mean(y)*1.1]
-        y = y[y<np.mean(y)*1.1]
-        y -=np.amin(y)
+            x = x[y<np.mean(y)*1.1]
+            y = y[y<np.mean(y)*1.1]
+            y -=np.amin(y)
         self.lightCurve = np.array((x,y))
         #todo temporary
         return self.lightCurve
