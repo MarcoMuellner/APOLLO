@@ -34,7 +34,13 @@
                 "GUI Name":"Diamonds path to binaries",
                 "GUI Type":"textEdit",
                 "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/build/"
+            },
+            "Fitting mode":{
+              "GUI Name":"Fitting mode",
+              "GUI Type":"textEdit",
+              "Value":"Full Background Model"
             }
+
         }
     }
 }

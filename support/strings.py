@@ -16,6 +16,7 @@ strSectLightCurveAlgorithm = 'Refine lightcurves algorithm'
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
 strSectDiamondsBinaryPath = 'Diamonds binary path'
+strSectDiamondsBinaryPath = 'Fitting mode'
 strSectStarType= 'Star Type'
 #SettingOptions
 strOptionName       = 'GUI_Name'
@@ -31,6 +32,10 @@ strLightCombining = 'combining'
 #StartypeValues
 strStarTypeYoungStar = 'Young Star'
 strStarTypeRedGiant = 'Red Giant'
+#Fit Mode values
+strFitModeFullBackground = 'Full Background Model'
+strFitModeNoiseBackground = 'Noise Background Model'
+strFitModeBayesianComparison = 'Bayesian Evidence mode (both models and comparison)'
 #ParameterSummaryStrings
 strSummaryMean = "I Moment (Mean)"
 strSummaryMedian = "Median"
