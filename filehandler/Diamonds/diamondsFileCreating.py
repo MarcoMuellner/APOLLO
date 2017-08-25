@@ -34,7 +34,7 @@ class FileCreater:
 
     def __createPriors(self):
         arr_full = self.priors
-        arr_min = self.priors[:6]
+        arr_min = self.priors[:7]
         filename_full = "background_hyperParameters.txt"
         filename_min = "background_hyperParameters_noise.txt"
         self.__saveNumpyArray(self.fullResultPath,filename_full,arr_full,'14')
