@@ -23,7 +23,7 @@ class AnalyserResults:
         pass
 
     def setKicID(self,kicID):
-        self.kicID = None
+        self.kicID = kicID
 
     def collectDiamondsResult(self):
         if self.kicID is None:
