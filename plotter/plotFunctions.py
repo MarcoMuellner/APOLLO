@@ -6,11 +6,14 @@ from fitter.fitFunctions import *
 import random as r
 import logging
 from support.strings import *
+from settings.settings import Settings
+
 
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
-def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True):
+def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLevel = 0):
+    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     psd = data.getPSD()
     backgroundModel = None
     if psdOnly is False:
@@ -98,7 +101,8 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True):
 
     p = p + scale_x_log() + scale_y_log() + ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2) + ggtitle(title) + ylab(
         r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
-    print(p)
+    if visibilityLevel <= debugLevel:
+        print(p)
 
 
 def plotMarginalDistributions(data):
@@ -130,7 +134,8 @@ def plotParameterTrend(data):
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
 
-def plotDeltaNuFit(deltaNuCalculator,kicID):
+def plotDeltaNuFit(deltaNuCalculator,kicID,visibilityLevel = 0):
+    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     deltaNuEst = deltaNuCalculator.getDeltaNuEst()
     deltaF = deltaNuCalculator.getDeltaF()
     best_fit = deltaNuCalculator.getBestFit()
@@ -153,7 +158,8 @@ def plotDeltaNuFit(deltaNuCalculator,kicID):
     p = p +ylim(0,1.5*max(deltaNuCalculator.gaussian(deltaF, *best_fit)))
     p = p + xlim(deltaNuEst - 0.2 * deltaNuEst, deltaNuEst + 0.2 * deltaNuEst)
     p = p +geom_vline(x=[deltaNuEst],linetype='dashed',color='blue')
-    print(p)
+    if visibilityLevel <= debugLevel:
+        print(p)
 
 
 def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='linear',scalex='linear',fitDegree = None,fill=True):
@@ -211,7 +217,8 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
     pl.ylabel(yLabel)
     pl.title(Title)
 
-def plotLightCurve(data):
+def plotLightCurve(data,visibilityLevel = 0):
+    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     lightCurve = data.getLightCurve()
     title = "Lightcurve " + data.getKicID()
     dataList = {}
@@ -229,10 +236,13 @@ def plotLightCurve(data):
     p = p+ylim(1.1*min(lightCurve[1]),1.1*max(lightCurve[1]))
     p = p+xlim(min(lightCurve[0]),max(lightCurve[0]))
     p = p+ggtitle(title)
-    print(p)
+    if visibilityLevel <= debugLevel:
+        print(p)
 
 
 
 
-def show():
-    pl.show()
+def show(visibilityLevel=0):
+    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
+    if visibilityLevel <= debugLevel:
+        pl.show()

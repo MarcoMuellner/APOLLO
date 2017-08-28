@@ -53,7 +53,7 @@ powerSpectrum = False
 #Young Stars
 #filename = "../Sterndaten/CoRoT_lightcurves/G-type/" + input + "_LC_poly.txt"
 #Kepler Young stars
-#filename = "../Sterndaten/k2data/g_like/EPIC_"+input+"_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
+filename = "../Sterndaten/k2data/g_like/EPIC_"+input+"_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
 #New data
 #filename = "../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
 #Reviewed Data by Enrico
@@ -62,13 +62,9 @@ filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSp
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
 
-np.savetxt(input,np.transpose(powerCalc.getLightCurve()))
 powerCalc.setKicID(input)
-plotLightCurve(powerCalc)
-plotPSD(powerCalc,True,True)
-
-#plotPSD(powerCalc,True,True)
-#plotLightCurve(powerCalc)
+plotLightCurve(powerCalc,2)
+plotPSD(powerCalc,True,True,visibilityLevel=2)
 
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
@@ -139,10 +135,10 @@ median.append(priorCalculator.getAmplitude())
 median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
-proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
+proc = DiamondsProcess(input)
 proc.start()
 
 result = Results(kicID=input,runID="00")
 plotPSD(result,True,False)
 plotParameterTrend(result)
-show()
+show(2)

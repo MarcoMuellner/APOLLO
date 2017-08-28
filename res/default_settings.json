@@ -8,16 +8,6 @@
             }
         },
         "Data Settings":{
-            "Background Data Path":{
-                "GUI Name":"Data Path for diamonds",
-                "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/data/"
-            },
-            "Background Results Path":{
-                "GUI Name":"Results Path for diamonds",
-                "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/results/solved/"
-            },
             "Refine lightcurves algorithm":{
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
@@ -35,6 +25,16 @@
             }
         },
         "Diamonds Settings":{
+            "Background Data Path":{
+                "GUI Name":"Data Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/data/"
+            },
+            "Background Results Path":{
+                "GUI Name":"Results Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/results/solved/"
+            },
             "Diamonds binary path":{
                 "GUI Name":"Diamonds path to binaries",
                 "GUI Type":"textEdit",
@@ -44,6 +44,13 @@
                 "GUI Name":"Fitting mode",
                 "GUI Type":"textEdit",
                 "Value":"Full Background Model"
+            }
+        },
+        "Misc Settings":{
+            "Developer Mode":{
+                "GUI Name":"Developer Mode",
+                "GUI Type":"textEdit",
+                "Value":"0"
             }
         }
     }

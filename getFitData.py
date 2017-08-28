@@ -6,7 +6,7 @@ from support.directoryManager import cd
 from math import sqrt,pi
 
 resultList = []
-dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
 print(dataFolder)
 
 kicList = []

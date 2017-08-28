@@ -162,6 +162,6 @@ backgroundModel = createBackgroundModel(True,median,powerCalc.getPSD(),nyquist)
 plotPSDTemp(True,powerCalc.getPSD(),backgroundModel)
 #show()
 
-proc = DiamondsProcess(strDiamondsGaussian,input,"0","1")
+proc = DiamondsProcess(strDiamondsExecFull, input, "0", "1")
 proc.start()
 

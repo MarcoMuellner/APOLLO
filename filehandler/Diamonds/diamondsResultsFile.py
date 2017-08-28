@@ -32,7 +32,7 @@ class Results:
         self.marginalDistributions = []
         self.names = []
         self.units = []
-        self.dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+        self.dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
         nyqFile = glob.glob(self.dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]
         self.nyq = np.loadtxt(nyqFile)
 

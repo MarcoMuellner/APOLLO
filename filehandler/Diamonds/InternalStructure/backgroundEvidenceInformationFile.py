@@ -56,7 +56,7 @@ class Evidence:
 
     def __readData(self):
         try:
-            self.m_dataFolder = Settings.Instance().getSetting(strDataSettings,
+            self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
                                                                strSectBackgroundResPath).value
             mpFile = glob.glob(self.m_dataFolder + 'KIC{}/{}/background_evidenceInformation.txt'
                                .format(self.m_kicID, self.m_runId))[0]

@@ -59,7 +59,7 @@ class Priors:
 
     def __readData(self):
         try:
-            self.m_dataFolder = Settings.Instance().getSetting(strDataSettings,
+            self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
                                                                strSectBackgroundResPath).value
             mpFile = None
             if self.m_runId is not None:

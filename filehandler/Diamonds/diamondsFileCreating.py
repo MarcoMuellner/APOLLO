@@ -4,11 +4,13 @@ import numpy as np
 from settings.settings import Settings
 from support.strings import *
 from support.directoryManager import cd
+import logging
 
 class FileCreater:
     def __init__(self,kicID,powerspectrum,nyquistFrequency,priors):
-        self.dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundDataPath).value
-        self.resultsFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+        self.logger = logging.getLogger(__name__)
+        self.dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+        self.resultsFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
 
         self.kicID = kicID
         self.powerSpectrum = powerspectrum
@@ -61,6 +63,7 @@ class FileCreater:
         return
 
     def __saveNumpyArray(self,path,filename,array,comma ='14'):
+        self.logger.debug("Saving filename "+filename+" to "+path)
         with cd(path):
             np.savetxt(filename,array,fmt='%10.'+comma+'f')
 

@@ -39,7 +39,7 @@ class DataFile():
         :return: Numpy array containing data
         '''
         self. m_kicID = kicID
-        self.m_dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundDataPath).value
+        self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
         self.m_psdFile = glob.glob(self.m_dataFolder+'KIC{}.txt'.format(kicID))[0]
         self.m_psd = np.loadtxt(self.m_psdFile).T
         return self.getPSD()

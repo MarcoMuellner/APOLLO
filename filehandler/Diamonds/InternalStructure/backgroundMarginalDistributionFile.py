@@ -115,7 +115,7 @@ class MarginalDistribution:
         '''
         Reads the Data. Should be only used internally
         '''
-        self.m_dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+        self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
         try:
             mpFile = glob.glob(self.m_dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
                                .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]

@@ -41,7 +41,7 @@ robustnessDistanceModulusList = []
 colorList = []
 nullList = []
 
-dataFolder = Settings.Instance().getSetting(strDataSettings, strSectBackgroundResPath).value
+dataFolder = Settings.Instance().getSetting(strDiamondsSettingsstrDiamondsSettings, strSectBackgroundResPath).value
 print(dataFolder)
 arrSun = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICSun.txt")
 arrTemperatures = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICID_Temperature.txt")

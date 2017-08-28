@@ -210,7 +210,7 @@ class NuMaxCalculator:
             x = np.linspace(0,20000,num=60000)
             pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
             pl.legend()
-            pl.show()
+            show()
             raise e
         except BaseException as e:
             self.logger.error("Scipy fit failed!")
@@ -222,9 +222,10 @@ class NuMaxCalculator:
         pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),*popt),label="Corrected Fit")
         pl.legend()
         pl.title("Final Fit")
-        pl.show()
+        show(2)
 
         tau_first_fit = popt[2]/60
+        #this is total hack. FIXME
         if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
             tau_first_fit /=9
 
@@ -234,7 +235,7 @@ class NuMaxCalculator:
         if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
             self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6/popt[2])
         elif Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
-            self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6*1.5/popt[2])        
+            self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6*1.5/popt[2]) #This shouldn't be necessary FIXME
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
@@ -340,7 +341,7 @@ class NuMaxCalculator:
         pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess),label="Initial Guess")
         pl.legend()
         pl.title("Initial Guess Fit")
-        pl.show()
+        show(4)
         popt, pcov = optimize.curve_fit(self.__sinc,x,y,p0=arr,maxfev = 5000)
 
         #compute residuals
@@ -349,7 +350,7 @@ class NuMaxCalculator:
         pl.plot(np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt),label="Fit")
         pl.legend()
         pl.title("Initial Sinc fit")
-        pl.show()
+        show(4)
 
         residuals = y-self.__sinc(x,*popt)
         scaled_time_array = x / popt[1]
@@ -365,7 +366,7 @@ class NuMaxCalculator:
         pl.plot(np.linspace(0,20000,num=50000),self.__sin(np.linspace(0,20000,num=50000),*popt),label="sin fit")
         pl.legend()
         pl.title("Sin fit")
-        pl.show()
+        show(4)
 
         y =  y[scaled_time_array<=2] - self.__sin(cut,*popt)
 
@@ -375,7 +376,7 @@ class NuMaxCalculator:
         pl.plot(np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt),label='sinc fit')
         pl.legend()
         pl.title("Second sinc fit")
-        pl.show()
+        show(4)
 
         returnList = [popt[0],b,popt[1]]
 
