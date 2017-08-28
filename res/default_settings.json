@@ -51,6 +51,11 @@
                 "GUI Name":"Developer Mode",
                 "GUI Type":"textEdit",
                 "Value":"0"
+            },
+            "Analyzer Results Path":{
+                "GUI Name":"Analyzer Results Path",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/lightcurve_analyzer/results"
             }
         }
     }

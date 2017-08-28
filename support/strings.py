@@ -23,6 +23,7 @@ strSectDiamondsBinaryPath = 'Diamonds binary path'
 strSectFittingMode = 'Fitting mode'
 #strMiscSettings
 strSectDevMode = "Developer Mode"
+strSectAnalyzerResults = "Analyzer Results Path"
 #SettingOptions
 strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'

@@ -45,7 +45,6 @@ class Results:
 
         self.m_PSDOnly = False
 
-        #todo this should happen again if Diamondsrun is finished!
         for i in range(0,10):
             try:
                 par_median = self.summary.getData(strSummaryMedian)[i]  # median values

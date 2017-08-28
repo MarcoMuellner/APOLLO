@@ -5,6 +5,7 @@ from calculations.priorCalculations import PriorCalculator
 from filehandler.Diamonds.diamondsResultsFile import Results
 from plotter.plotFunctions import *
 from filehandler.Diamonds.diamondsFileCreating import FileCreater
+from filehandler.analyzerResults import AnalyserResults
 from diamonds.diamondsProcesses import DiamondsProcess
 from loghandler.loghandler import *
 import logging
@@ -61,6 +62,10 @@ filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSp
 
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
+AnalyserResults.Instance().setKicID(input)
+AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
+
+
 
 powerCalc.setKicID(input)
 plotLightCurve(powerCalc,2)
@@ -72,6 +77,7 @@ nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
 photonNoise = 2.5
 nyquist = nuMaxCalc.getNyquistFrequency()
+AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
 
@@ -137,6 +143,9 @@ median.append(priorCalculator.getSigma())
 
 proc = DiamondsProcess(input)
 proc.start()
+
+AnalyserResults.Instance().collectDiamondsResult()
+AnalyserResults.performAnalysis()
 
 result = Results(kicID=input,runID="00")
 plotPSD(result,True,False)
