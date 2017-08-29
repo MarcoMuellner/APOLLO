@@ -51,7 +51,7 @@ strSummaryMedian = "Median"
 strSummaryMode = "Mode"
 strSummaryIIMoment = "II Moment (Variance if Normal distribution)"
 strSummaryLowCredLim = "Lower Credible Limit"
-strSummaryUpCredlim = "Upper Credible Limit"
+strSummaryUpCredLim = "Upper Credible Limit"
 strSummarySkew = "Skewness"
 #EvidenceFileStrings
 strEvidenceSkillLog = "Skilling's log(Evidence)"
