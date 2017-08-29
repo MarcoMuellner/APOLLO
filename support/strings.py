@@ -74,3 +74,8 @@ strDiamondsModeFull = "FullBackground"
 #DiamondsBinaryNames
 strDiamondsExecNoise = "noiseBackground"
 strDiamondsExecFull = "background"
+#DiamondsErrorStrings
+strDiamondsErrBetterLikelihood = "Can't find point with a better Likelihood"
+#DiamondsStatus
+strDiamondsStatusGood = "Good"
+strDiamondsStatusLikelihood = "Failed/Couldn't find point with better likelihood"

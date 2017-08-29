@@ -36,18 +36,25 @@ starList.append("010866415_2167")
 starList.append("011550492_1262")
 starList.append("012008916_19")
 
+yStarList = []
+#yStarList.append("224321303")
+yStarList.append("224399118")
+yStarList.append("0223976028")
+yStarList.append("002437103_10")
+
 powerSpectrum = False
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
-for i in starList:
+for i in yStarList:
     logger.info("************************************")
     logger.info("STARTING STAR "+i)
     logger.info("************************************")
 
 
-    filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
+    #filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
+    filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
     AnalyserResults.Instance().setKicID(i)
 
     file = FitsReader(filename)
@@ -94,6 +101,7 @@ for i in starList:
 
     proc = DiamondsProcess(i)
     proc.start()
+    AnalyserResults.Instance().setDiamondsRunner(proc)
 
     diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
 

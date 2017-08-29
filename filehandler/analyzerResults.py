@@ -14,6 +14,7 @@ class AnalyserResults:
     def __init__(self):
         self.powerSpectraCalculator = None
         self.diamondsResults = {}
+        self.diamondsRunner = {}
         self.nuMaxCalculator = None
         self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
         self.kicID = None
@@ -30,6 +31,7 @@ class AnalyserResults:
         self.diamondsResults = {}
         self.nuMaxCalculator = None
         self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        self.diamondsRunner = {}
         self.images = {}
 
 
@@ -66,6 +68,9 @@ class AnalyserResults:
 
     def setPowerSpectraCalculator(self,calc):
         self.powerSpectraCalculator = calc
+
+    def setDiamondsRunner(self,runner):
+        self.diamondsRunner=runner
 
     def performAnalysis(self):
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
@@ -117,6 +122,16 @@ class AnalyserResults:
                             resultDict["Analysis"][key][backPriorKey] = "Not okay (Upper Limit!)"
                         else:
                             resultDict["Analysis"][key][backPriorKey] = "Okay"
+
+            if len(self.diamondsRunner.getStatus().items()) != 0:
+                if "Diamonds" not in resultDict.keys():
+                    resultDict["Diamonds"] = {}
+
+                for key,value in self.diamondsRunner.getStatus().items():
+                    if key not in resultDict["Diamonds"].keys():
+                        resultDict["Diamonds"][key]={}
+
+                    resultDict["Diamonds"][key]["Status"] = value
 
             if len(self.images.keys()) != 0:
                 with cd(imagePath):

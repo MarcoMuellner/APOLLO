@@ -8,6 +8,7 @@ import logging
 
 class DiamondsProcess:
     def __init__(self,kicID):
+        self.status = {}
         self.logger = logging.getLogger(__name__)
         self.diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
         self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
@@ -41,14 +42,30 @@ class DiamondsProcess:
                 self.logger.debug("Directory "+resultsPath+" doesn't exist. Creating...")
                 os.makedirs(resultsPath)
 
-            with cd(self.diamondsBinaryPath):
-                p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                while p.poll() is None:
-                    line = p.stderr.readline()
-                    self.logger.debug(line)
+            finished = False
+            errorCount = 0
 
-                self.logger.debug(p.stdout.read())
-                self.logger.debug("Command '"+str(cmd)+"' done")
+            mode = strDiamondsModeNoise if i == strDiamondsExecNoise else strDiamondsModeFull
+
+            while finished is False:
+                errorCount +=1
+                with cd(self.diamondsBinaryPath):
+                    p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    while p.poll() is None:
+                        line = p.stderr.readline()
+                        self.logger.debug(line)
+                        if strDiamondsErrBetterLikelihood in str(line) and errorCount <=3:
+                            self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
+                            self.status[mode] = strDiamondsStatusLikelihood
+                            continue
+                        elif errorCount >3:
+                            self.logger.error("Diamonds failed to find good values")
+                            break
+
+                    self.logger.debug(p.stdout.read())
+                    self.logger.debug("Command '"+str(cmd)+"' done")
+                    finished = True
+                    self.status[mode] = strDiamondsStatusGood
 
                 #Some error handling needs to take place here!
         return
@@ -68,3 +85,6 @@ class DiamondsProcess:
     def finished(self):
         self.logger.debug("Yet to implement!")
         return
+
+    def getStatus(self):
+        return self.status
