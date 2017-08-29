@@ -6,12 +6,8 @@ import logging
 
 class Priors:
 
-    m_kicID = None
-    m_runId = None
-    m_dataFolder = None
-    m_priors = {}
-
     def __init__(self,kicID = None,runID = None):
+        self.m_priors = {}
         self.logger = logging.getLogger(__name__)
         self.m_kicID = kicID
         self.m_runId = runID
@@ -54,7 +50,7 @@ class Priors:
             try:
                 return self.m_priors[key]
             except:
-                print("No value for key '"+key+"', returning full dict")
+                self.logger.warning("No value for key '"+key+"', returning full dict")
                 return self.m_priors
 
     def __readData(self):
@@ -77,11 +73,12 @@ class Priors:
             self.m_priors[strPriorFreqHarvey2] = (values[0][4], values[1][4])
             self.m_priors[strPriorAmpHarvey3] = (values[0][5], values[1][5])
             self.m_priors[strPriorFreqHarvey3] = (values[0][6], values[1][6])
-            self.m_priors[strPriorHeight] = (values[0][7], values[1][7])
-            self.m_priors[strPriorNuMax] = (values[0][8], values[1][8])
-            self.m_priors[strPriorSigma] = (values[0][9], values[1][9])
-        except:
-            print("Failed to open File '" + self.m_dataFolder +
-                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId) + "'")
-            print("Setting Data to None")
+            if len(values[0])>7:
+                self.m_priors[strPriorHeight] = (values[0][7], values[1][7])
+                self.m_priors[strPriorNuMax] = (values[0][8], values[1][8])
+                self.m_priors[strPriorSigma] = (values[0][9], values[1][9])
+        except Exception as e:
+            self.logger.warning("Failed to open Priors '" + self.m_dataFolder)
+            self.logger.warning(e)
+            self.logger.warning("Setting Data to None")
             self.m_priors = {}

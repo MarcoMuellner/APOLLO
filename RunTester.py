@@ -68,8 +68,10 @@ AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
 
 
 powerCalc.setKicID(input)
-plotLightCurve(powerCalc,2)
-plotPSD(powerCalc,True,True,visibilityLevel=2)
+p = plotLightCurve(powerCalc,2)
+saveFigToResults("Lightcurve.png",p)
+p = plotPSD(powerCalc,True,True,visibilityLevel=2)
+saveFigToResults("PSD.png",p)
 
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
@@ -104,7 +106,7 @@ logger.info("Third Harvey Frequency: '" + str(priorCalculator.getHarveyFrequency
 logger.info("Amplitude: '" + str(priorCalculator.getAmplitude()) + "'")
 logger.info("nuMax: '" + str(nuMax) + "'")
 logger.info("Sigma: '" + str(priorCalculator.getSigma()) + "'")
-plotPSD(powerCalc,True,True,marker)
+plotPSD(powerCalc,True,True,marker,visibilityLevel=1)
 
 priors = []
 priors.append(priorCalculator.getPhotonNoiseBoundary())
@@ -142,12 +144,25 @@ median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
 proc = DiamondsProcess(input)
-proc.start()
+#proc.start()
+
+diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+
+if diamondsModel in [strFitModeNoiseBackground,strFitModeBayesianComparison]:
+    result = Results(kicID=input,runID=strDiamondsModeNoise)
+    p = plotPSD(result,False,False,visibilityLevel=1)
+    saveFigToResults("PSD_Noise_fit.png",p)
+    p = plotParameterTrend(result)
+    saveFigToResults("Noise_Parametertrend.png",p)
+    show(2)
+
+if diamondsModel in [strFitModeFullBackground,strFitModeBayesianComparison]:
+    result = Results(kicID=input,runID=strDiamondsModeFull)
+    p = plotPSD(result,True,False,visibilityLevel=1)
+    saveFigToResults("PSD_Full_Background_fit.png",p)
+    p = plotParameterTrend(result)
+    saveFigToResults("Full_Background_Parametertrend.png",p)
+    show(2)
 
 AnalyserResults.Instance().collectDiamondsResult()
-AnalyserResults.performAnalysis()
-
-result = Results(kicID=input,runID="00")
-plotPSD(result,True,False)
-plotParameterTrend(result)
-show(2)
+AnalyserResults.Instance().performAnalysis()

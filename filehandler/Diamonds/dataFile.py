@@ -8,10 +8,6 @@ class DataFile():
     '''
     Creates an object representing one KIC file.
     '''
-    m_kicID = None
-    m_psd = None
-    m_psdFile = None
-    m_dataFolder = None
 
     def __init__(self,kicID = None):
         '''

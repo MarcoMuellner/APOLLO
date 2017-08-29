@@ -17,7 +17,6 @@ import logging
 
 
 class Results:
-
     def __init__(self,kicID,runID,Teff = None):
         self.logger = logging.getLogger(__name__)
         self.kicID = kicID
@@ -49,7 +48,7 @@ class Results:
             try:
                 par_median = self.summary.getData(strSummaryMedian)[i]  # median values
                 par_le = self.summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
-                par_ue = self.summary.getData(strSummaryUpCredlim)[i]  # upper credible limits
+                par_ue = self.summary.getData(strSummaryUpCredLim)[i]  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
             except:
                 par_median = 0  # median values
@@ -57,13 +56,12 @@ class Results:
                 par_ue = 0  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
                 self.logger.debug("Problem creating median,le,ue values. Creating them with 0")
-
-            self.backgroundParameter.append(BackgroundParameter(self.names[i], self.units[i], kicID, runID, i))
-
-            self.marginalDistributions.append(MarginalDistribution(self.names[i], self.units[i], kicID, runID, i))
-            self.marginalDistributions[i].setBackgroundParameters(backGroundParameters)
-            if self.backgroundParameter[i].getData() is None:
-                self.m_PSDOnly = True
+            if par_median != 0 or par_le != 0 or par_ue != 0:
+                self.backgroundParameter.append(BackgroundParameter(self.names[i], self.units[i], kicID, runID, i))
+                self.marginalDistributions.append(MarginalDistribution(self.names[i], self.units[i], kicID, runID, i))
+                self.marginalDistributions[i].setBackgroundParameters(backGroundParameters)
+                if self.backgroundParameter[i].getData() is None:
+                    self.m_PSDOnly = True
 
         if Teff is not None:
             self.TeffError = 200
@@ -169,7 +167,7 @@ class Results:
         backgroundModel = self.createBackgroundModel(True)
         par_median = self.summary.getData(strSummaryMedian)  # median values
         par_le = self.summary.getData(strSummaryLowCredLim)  # lower credible limits
-        par_ue = self.summary.getData(strSummaryUpCredlim)   # upper credible limits
+        par_ue = self.summary.getData(strSummaryUpCredLim)   # upper credible limits
         backGroundParameters = np.vstack((par_median, par_le, par_ue))
 
         self.deltaNuCalculator = DeltaNuCalculator(self.numax[0], self.sigma[0], self.dataFile.getPSD(),
@@ -198,7 +196,7 @@ class Results:
         freq, psd = self.dataFile.getPSD()
         par_median = self.summary.getData(strSummaryMedian)  # median values
         par_le = self.summary.getData(strSummaryLowCredLim)  # lower credible limits
-        par_ue = self.summary.getData(strSummaryUpCredlim) # upper credible limits
+        par_ue = self.summary.getData(strSummaryUpCredLim) # upper credible limits
         if runGauss:
             self.bgNoise = (par_median[0],par_median[0] - par_le[0])
             self.harveyA1 = (par_median[1],par_median[1] - par_le[1])
