@@ -165,6 +165,7 @@ class NuMaxCalculator:
         This method triggers the computation of nuMax and all other necessary values.
         :return: Float value representing nuMax
         """
+        self.lastFilter = 0
         self.marker["First Filter"] = (self.__iterativeFilter(self.init_nu_filter),'g')
         self.marker["Second Filter"] = (self.__iterativeFilter(self.lastFilter),'b')
         return self.lastFilter
@@ -177,6 +178,7 @@ class NuMaxCalculator:
         :param filterFrequency: This frequency is used for filtering the intial signal contained in self.__lightcurve
         :return: The smoothed lightcurve. More importantly, it sets self.lastFilter
         """
+        self.figAppendix = str("1st_Fit_" if self.lastFilter == 0 else "2nd_Fit_")  # needed for figure saving
         self.logger.debug("Filterfrequency for iterative filter is '"+str(filterFrequency)+"'")
         tau_filter = 1/(filterFrequency)
         tau_filter *= 10**6
@@ -206,10 +208,11 @@ class NuMaxCalculator:
             self.logger.error("Failed to fit Autocorrelation")
             self.logger.error("Tau guess is "+str(guess))
             self.logger.error(str(e))
-            pl.plot(self.lightCurve[0][0:int(length)]/4,autocor,label='Autocorrelation')
-            x = np.linspace(0,20000,num=60000)
-            pl.plot(x,self.__fit(x,1,1/20,guess),label="initial fit")
-            pl.legend()
+
+            dataList = {'Autocorrelation': ('-',self.lightCurve[0][0:int(length)]/4,autocor), "Initial Guess": (
+                '-', np.linspace(0, 20000, num=50000),
+                self.__fit(np.linspace(0, 20000, num=50000), 1, 1 / 20, guess))}
+            plotCustom(dataList,title="Failed fit result",showLegend=True,fileName=self.figAppendix+"Sinc_Fit_error.png")
             show()
             raise e
         except BaseException as e:
@@ -217,11 +220,12 @@ class NuMaxCalculator:
             self.logger.error(str(e))
             raise e
 
-        pl.plot(self.lightCurve[0][0:int(length)]/4,autocor,'x',label='Autocorrelation')
-        pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,guess),label="initial fit")
-        pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),*popt),label="Corrected Fit")
-        pl.legend()
-        pl.title("Final Fit")
+
+        dataList = {}
+        dataList['Autocorrelation'] = ('x',self.lightCurve[0][0:int(length)]/4,autocor)
+        dataList['Initial Fit'] = ('-',np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,guess))
+        dataList['Corrected Fit'] = ('-',np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),*popt))
+        plotCustom(dataList,title="Final Fit",showLegend=True,fileName=self.figAppendix+"Final_fit_.png")
         show(2)
 
         tau_first_fit = popt[2]/60
@@ -337,19 +341,18 @@ class NuMaxCalculator:
         self.logger.debug("Initial Guess is "+str(tauGuess))
 
         arr = [1,tauGuess]
-        pl.plot(x,y,'x',label='data')
-        pl.plot(np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess),label="Initial Guess")
-        pl.legend()
-        pl.title("Initial Guess Fit")
+
+        dataList = {'data':('x',x,y),"Initial Guess":(
+        '-',np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess))}
+        plotCustom(dataList,title='Initial Guess Fit',showLegend=True,fileName=self.figAppendix+"InitGuess.png")
         show(4)
         popt, pcov = optimize.curve_fit(self.__sinc,x,y,p0=arr,maxfev = 5000)
 
         #compute residuals
 
-        pl.plot(x,y,'x',label='data')
-        pl.plot(np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt),label="Fit")
-        pl.legend()
-        pl.title("Initial Sinc fit")
+        dataList = {'data': ('x', x, y), "Fit": (
+        '-', np.linspace(0, 20000, num=50000), self.__sinc(np.linspace(0, 20000, num=50000),*popt))}
+        plotCustom(dataList, title='Initial Sinc fit', showLegend=True,fileName=self.figAppendix + "InitSincFit.png")
         show(4)
 
         residuals = y-self.__sinc(x,*popt)
@@ -362,20 +365,19 @@ class NuMaxCalculator:
 
         popt,pcov = optimize.curve_fit(self.__sin,cut,residuals,p0=arr,maxfev=5000)
         b = popt[0]
-        pl.plot(cut,residuals,'x',label="Residual data")
-        pl.plot(np.linspace(0,20000,num=50000),self.__sin(np.linspace(0,20000,num=50000),*popt),label="sin fit")
-        pl.legend()
-        pl.title("Sin fit")
+
+        dataList = {"Residual data": ('x', cut, residuals), "Sin Fit": (
+            '-', np.linspace(0,20000,num=50000),self.__sin(np.linspace(0,20000,num=50000),*popt))}
+        plotCustom(dataList, title='Sin fit', showLegend=True, fileName=self.figAppendix + "SinFit.png")
         show(4)
 
         y =  y[scaled_time_array<=2] - self.__sin(cut,*popt)
 
         popt, pcov = optimize.curve_fit(self.__sinc,cut,y,p0=arr,maxfev = 5000)
 
-        pl.plot(cut,y,'x',label='data')
-        pl.plot(np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt),label='sinc fit')
-        pl.legend()
-        pl.title("Second sinc fit")
+        dataList = {"data": ('x', cut, y), "Sinc fit": (
+            '-', np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt))}
+        plotCustom(dataList, title='Second Sinc fit', showLegend=True, fileName=self.figAppendix + "SecondSinc.png")
         show(4)
 
         returnList = [popt[0],b,popt[1]]

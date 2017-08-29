@@ -3,7 +3,7 @@ import numpy as np
 from ggplot import *
 import pandas as pd
 from fitter.fitFunctions import *
-import random as r
+from filehandler.analyzerResults import AnalyserResults
 import logging
 from support.strings import *
 from settings.settings import Settings
@@ -103,6 +103,7 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
         r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
     if visibilityLevel <= debugLevel:
         print(p)
+    return p
 
 
 def plotMarginalDistributions(data):
@@ -112,7 +113,7 @@ def plotMarginalDistributions(data):
 
     par_median = summary.getData(strSummaryMedian)  # median values
     par_le = summary.getData(strSummaryLowCredLim)  # lower credible limits
-    par_ue = summary.getData(strSummaryUpCredlim)  # upper credible limits
+    par_ue = summary.getData(strSummaryUpCredLim)  # upper credible limits
 
     for iii in range(0,len(marginalDists)):
         pl.subplot(2,5,iii+1)
@@ -127,12 +128,13 @@ def plotMarginalDistributions(data):
 
 def plotParameterTrend(data):
     backgroundParameters = data.getBackgroundParameters()
-
+    fig = pl.figure()
     for iii in range(0,len(backgroundParameters)):
         par = backgroundParameters[iii].getData()
         pl.subplot(2, 5, iii + 1)
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
+    return fig
 
 def plotDeltaNuFit(deltaNuCalculator,kicID,visibilityLevel = 0):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
@@ -160,6 +162,7 @@ def plotDeltaNuFit(deltaNuCalculator,kicID,visibilityLevel = 0):
     p = p +geom_vline(x=[deltaNuEst],linetype='dashed',color='blue')
     if visibilityLevel <= debugLevel:
         print(p)
+    return p
 
 
 def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='linear',scalex='linear',fitDegree = None,fill=True):
@@ -216,6 +219,7 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
     pl.xlabel(xLabel)
     pl.ylabel(yLabel)
     pl.title(Title)
+    return fig
 
 def plotLightCurve(data,visibilityLevel = 0):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
@@ -238,6 +242,24 @@ def plotLightCurve(data,visibilityLevel = 0):
     p = p+ggtitle(title)
     if visibilityLevel <= debugLevel:
         print(p)
+    return p
+
+def plotCustom(dataList,title = "",showLegend=False,fileName=""):
+    fig = pl.figure()
+    for label,(marker,x,y) in dataList.items():
+        pl.plot(x,y,marker,label=label)
+
+    if title != "":
+        pl.title(title)
+
+    if showLegend:
+        pl.legend()
+
+    if fileName != "":
+        saveFigToResults(fileName,fig)
+    return fig
+
+
 
 
 
@@ -246,3 +268,8 @@ def show(visibilityLevel=0):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     if visibilityLevel <= debugLevel:
         pl.show()
+    else:
+        pl.close()
+
+def saveFigToResults(filename,figure):
+    AnalyserResults.Instance().addImage(filename,figure)
