@@ -2,15 +2,12 @@ from settings.settings import Settings
 import numpy as np
 import glob
 from support.strings import *
+import logging
 
 class Evidence:
-    m_kicID = None
-    m_runId = None
-    m_dataFolder = None
-    m_evidence = {}
-    m_kicID = None
-
     def __init__(self,kicID = None,runID = None):
+        self.m_evidence = {}
+        self.logger = logging.getLogger(__name__)
         self.m_kicID = kicID
         self.m_runId = runID
 
@@ -51,7 +48,7 @@ class Evidence:
             try:
                 return self.m_evidence[key]
             except:
-                print("No value for key '"+key+"', returning full dict")
+                self.logger.warning("No value for key '"+key+"', returning full dict")
                 return self.m_evidence
 
     def __readData(self):
@@ -65,7 +62,7 @@ class Evidence:
             self.m_evidence[strEvidenceSkillErrLog] = values[1] 
             self.m_evidence[strEvidenceSkillInfLog] = values[2] 
         except:
-            print("Failed to open File '" + self.m_dataFolder +
+            self.logger.warning("Failed to open File '" + self.m_dataFolder +
                     'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId) + "'")
-            print("Setting Data to None")
+            self.logger.warning("Setting Data to None")
             self.m_evidence = {}

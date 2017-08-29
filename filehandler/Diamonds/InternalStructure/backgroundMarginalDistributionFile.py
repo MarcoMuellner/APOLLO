@@ -2,16 +2,9 @@ import glob
 import numpy as np
 from settings.settings import Settings
 from support.strings import *
+import logging
 
 class MarginalDistribution:
-    m_kicID = None
-    m_runId = None
-    m_dataFolder = None
-    m_id = None
-    m_data = None
-    m_name = None
-    m_unit = None
-    m_backgroundData = None
 
     def __init__(self,name, unit, kickId=None,runID = 00,id = None):
         '''
@@ -22,6 +15,7 @@ class MarginalDistribution:
         :param runID: The RunID used by Diamonds (subfolder in results file)!
         :param id: Id used between 0 and 9 (last three digits of Filename)
         '''
+        self.logger = logging.getLogger(__name__)
         self.m_kicID = kickId
         self.m_runId = runID
         self.m_id = id
@@ -96,7 +90,7 @@ class MarginalDistribution:
 
     def createMarginalDistribution(self):
         if self.m_backgroundData is None:
-            print("BackgroundData is not set, returning")
+            self.logger.warning("BackgroundData is not set, returning")
             return
 
         par_median, par_le, par_ue = self.m_backgroundData
@@ -121,7 +115,7 @@ class MarginalDistribution:
                                .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]
             self.m_data = np.loadtxt(mpFile).T
         except:
-            print("Failed to open File '"+self.m_dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
+            self.logger.warning("Failed to open File '"+self.m_dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
                                .format(self.m_kicID, self.m_runId, '00'+str(self.m_id))+"'")
-            print("Setting Data to None")
+            self.logger.warning("Setting Data to None")
             self.m_data = None
