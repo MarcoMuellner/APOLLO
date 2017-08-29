@@ -9,3 +9,7 @@ __pycache__/
 008366239_1241
 
 *.pyc
+
+debug\.log\.1
+
+results/*

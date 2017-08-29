@@ -70,14 +70,14 @@ AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
 powerCalc.setKicID(input)
 p = plotLightCurve(powerCalc,2)
 saveFigToResults("Lightcurve.png",p)
-p = plotPSD(powerCalc,True,True,visibilityLevel=2)
+p = plotPSD(powerCalc,True,True,visibilityLevel=1)
 saveFigToResults("PSD.png",p)
 
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
-photonNoise = 2.5
+photonNoise = powerCalc.getPhotonNoise()
 nyquist = nuMaxCalc.getNyquistFrequency()
 AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
 
@@ -144,7 +144,7 @@ median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
 proc = DiamondsProcess(input)
-#proc.start()
+proc.start()
 
 diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
 

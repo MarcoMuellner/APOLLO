@@ -26,6 +26,12 @@ class AnalyserResults:
 
     def setKicID(self,kicID):
         self.kicID = kicID
+        self.powerSpectraCalculator = None
+        self.diamondsResults = {}
+        self.nuMaxCalculator = None
+        self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        self.images = {}
+
 
     def collectDiamondsResult(self):
         if self.kicID is None:
@@ -62,8 +68,9 @@ class AnalyserResults:
         self.powerSpectraCalculator = calc
 
     def performAnalysis(self):
+        starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
-        analyserResultsPath += "/" + self.kicID +"/"
+        analyserResultsPath += "/" + starType + "_" +self.kicID +"/"
         imagePath = analyserResultsPath + "images/"
         resultDict = {}
 

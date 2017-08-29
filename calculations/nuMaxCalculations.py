@@ -168,6 +168,7 @@ class NuMaxCalculator:
         self.lastFilter = 0
         self.marker["First Filter"] = (self.__iterativeFilter(self.init_nu_filter),'g')
         self.marker["Second Filter"] = (self.__iterativeFilter(self.lastFilter),'b')
+
         return self.lastFilter
 
     def __iterativeFilter(self,filterFrequency):
@@ -422,3 +423,6 @@ class NuMaxCalculator:
         else:
             self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
             return None
+
+    def getPhotonNoise(self):
+        return self.photonNoise

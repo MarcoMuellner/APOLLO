@@ -12,7 +12,7 @@ from settings.settings import Settings
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
-def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLevel = 0):
+def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLevel = 0,fileName = ""):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     psd = data.getPSD()
     backgroundModel = None
@@ -103,6 +103,10 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
         r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]),max(psd[0]))
     if visibilityLevel <= debugLevel:
         print(p)
+
+    if fileName != "":
+        saveFigToResults(fileName,p)
+
     return p
 
 
@@ -126,7 +130,7 @@ def plotMarginalDistributions(data):
         pl.axvline(par_median[iii],c='r')
         pl.xlabel(marginalDists[iii].getName() + ' (' + marginalDists[iii].getUnit()+')',fontsize=16)
 
-def plotParameterTrend(data):
+def plotParameterTrend(data,fileName = ""):
     backgroundParameters = data.getBackgroundParameters()
     fig = pl.figure()
     for iii in range(0,len(backgroundParameters)):
@@ -134,6 +138,9 @@ def plotParameterTrend(data):
         pl.subplot(2, 5, iii + 1)
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
+
+    if fileName != "":
+        saveFigToResults(fileName,fig)
     return fig
 
 def plotDeltaNuFit(deltaNuCalculator,kicID,visibilityLevel = 0):
@@ -221,7 +228,7 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
     pl.title(Title)
     return fig
 
-def plotLightCurve(data,visibilityLevel = 0):
+def plotLightCurve(data,visibilityLevel = 0,fileName = ""):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     lightCurve = data.getLightCurve()
     title = "Lightcurve " + data.getKicID()
@@ -242,6 +249,10 @@ def plotLightCurve(data,visibilityLevel = 0):
     p = p+ggtitle(title)
     if visibilityLevel <= debugLevel:
         print(p)
+
+    if fileName != "":
+        saveFigToResults(fileName,p)
+
     return p
 
 def plotCustom(dataList,title = "",showLegend=False,fileName=""):
