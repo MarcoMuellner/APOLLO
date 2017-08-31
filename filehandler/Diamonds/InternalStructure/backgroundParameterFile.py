@@ -6,7 +6,7 @@ import logging
 
 class BackgroundParameter:
 
-    def __init__(self,name, unit, kickId=None,runID = 00,id = None,readData = True,readLiveData = False):
+    def __init__(self,name, unit, kickId=None,runID = 00,id = None,readData = True,readLiveData = True):
         '''
         Constructs an object containing the content of one backgroundparameter file.
         :param name: The name of the parameter, i.e. H
@@ -80,7 +80,7 @@ class BackgroundParameter:
         self.setID(id)
         return self.getData()
 
-    def getLivedata(self,reReadData = True):
+    def getLiveData(self,reReadData = True):
         '''
         :return: Live Data set. Single numpy array
         '''

@@ -3,7 +3,9 @@ import subprocess
 from settings.settings import Settings
 from support.strings import *
 from support.directoryManager import cd
+from plotter.fileAnimator import FileAnimator
 import logging
+import pylab as pl
 
 
 class DiamondsProcess:
@@ -51,10 +53,18 @@ class DiamondsProcess:
                 errorCount +=1
                 self.status[mode] = strDiamondsStatusRunning
                 with cd(self.diamondsBinaryPath):
+                    fileDict = self.getParameterDict(mode)
+                    anim = FileAnimator(fileDict)
+
+                    animStart = False
+
                     p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     while p.poll() is None:
                         line = p.stderr.readline()
                         self.logger.debug(line)
+                        if "Nit" in str(line) and animStart == False:
+                            animStart = True
+                            anim.start()
                         if strDiamondsErrBetterLikelihood in str(line):
                             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
                             self.status[mode] = strDiamondsStatusLikelihood
@@ -95,3 +105,33 @@ class DiamondsProcess:
 
     def getStatus(self):
         return self.status
+
+    def getParameterDict(self,runID):
+        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        file = dataFolder + 'KIC' + self.kicID + "/" + runID + "/background_parameter_live00";
+
+        fileDict = {}
+
+        names = ['w', '$\sigma_\mathrm{long}$', '$b_\mathrm{long}$', '$\sigma_\mathrm{gran,1}$',
+                      '$b_\mathrm{gran,1}$', '$\sigma_\mathrm{gran,2}$', '$b_\mathrm{gran,2}$']
+        units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz']
+
+        if runID == strDiamondsModeNoise:
+            names.append['$H_\mathrm{osc}$', '$f_\mathrm{max}$ ', '$\sigma_\mathrm{env}$']
+            units.append['ppm$^2$/$\mu$Hz','$\mu$Hz', '$\mu$Hz']
+            counter = 9
+        else:
+            counter = 6
+
+        for i in range(0,counter):
+            try:
+                self.logger.info("Deleting file "+file+str(i)+".txt")
+                os.remove(file+str(i)+".txt")
+            except OSError:
+                self.logger.debug("File " + file+str(i) + " doesnt exist")
+
+            fileDict[names[i]] = (units[i],file+str(i)+".txt")
+
+        return fileDict
+
+
