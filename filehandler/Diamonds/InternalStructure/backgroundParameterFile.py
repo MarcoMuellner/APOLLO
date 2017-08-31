@@ -6,7 +6,7 @@ import logging
 
 class BackgroundParameter:
 
-    def __init__(self,name, unit, kickId=None,runID = 00,id = None):
+    def __init__(self,name, unit, kickId=None,runID = 00,id = None,readData = True,readLiveData = False):
         '''
         Constructs an object containing the content of one backgroundparameter file.
         :param name: The name of the parameter, i.e. H
@@ -21,8 +21,13 @@ class BackgroundParameter:
         self.m_id = id
         self.m_name = name
         self.m_unit = unit
+        self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+
+#        if readLiveData == True:
+#            self.__deleteFile("_live")
+
         if (kickId is not None and runID is not None and id is not None):
-            self.__readData()
+            self.__readData(readData,readLiveData)
 
     def setKICID(self,kicId):
         '''
@@ -75,27 +80,52 @@ class BackgroundParameter:
         self.setID(id)
         return self.getData()
 
-    def getData(self):
+    def getLivedata(self,reReadData = True):
+        '''
+        :return: Live Data set. Single numpy array
+        '''
+
+        if self.m_liveParameters is None or reReadData == True:
+            self.__readData(readParameters=False, readLiveParameters=True)
+
+        return self.m_liveParameters
+
+
+
+    def getData(self,reReaddata = False):
         '''
         :return: The Dataset. Single numpy array
         '''
-        if self.m_parameters is None:
-            self.__readData()
+        if self.m_parameters is None or reReaddata == True:
+            self.__readData(readParameters=True,readLiveParameters=False)
 
         return self.m_parameters
 
-    def __readData(self):
+    def __readData(self,readParameters = True,readLiveParameters = True):
         '''
         Reads the Data. Should be only used internally
         '''
-        self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        if readParameters == True:
+            self.m_parameters = self.__readInternalData()
+
+        if readLiveParameters == True:
+            self.m_liveParameters = self.__readInternalData("_live")
+
+    def __readInternalData(self,appendix = ""):
+        file = self.m_dataFolder + 'KIC' + self.m_kicID + "/" + self.m_runId + "/background_parameter" + appendix + "00" + str(
+            self.m_id)+".txt"
         try:
-            mpFile = glob.glob(self.m_dataFolder+'KIC{}/{}/background_parameter*{}.txt'
-                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]
-            self.m_parameters = np.loadtxt(mpFile).T
+            return np.loadtxt(file).T
         except:
-            self.logger.warning("Failed to open File '"+self.m_dataFolder+'KIC*{}*/{}/background_parameter*{}.txt'
-                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id))+"'")
+            self.logger.warning("Failed to open File '"+file+"'")
             self.logger.warning("Setting Data to None")
-            self.m_parameters = None
+            return None
+
+    def __deleteFile(self,appendix):
+        file = self.m_dataFolder + 'KIC' + self.m_kicID + "/" + self.m_runId + "/background_parameter" + appendix + "00" + str(
+            self.m_id) + ".txt"
+        try:
+            os.remove(file)
+        except OSError:
+            self.logger.debug("File "+file+" doesnt exist")
 

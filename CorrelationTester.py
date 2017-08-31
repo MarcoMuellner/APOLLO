@@ -48,15 +48,15 @@ powerSpectrum = False
 setup_logging()
 logger = logging.getLogger(__name__)
 
-for i in yStarList:
+for i in starList:
     try:
         logger.info("************************************")
         logger.info("STARTING STAR "+i)
         logger.info("************************************")
 
 
-        #filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
-        filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
+        filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
+        #filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
         AnalyserResults.Instance().setKicID(i)
 
         file = FitsReader(filename)
