@@ -45,27 +45,34 @@ class DiamondsProcess:
             finished = False
             errorCount = 0
 
-            mode = strDiamondsModeNoise if i == strDiamondsExecNoise else strDiamondsModeFull
+            mode = strDiamondsModeNoise if i == strDiamondsModeNoise else strDiamondsModeFull
 
-            while finished is False:
+            while finished == False:
                 errorCount +=1
+                self.status[mode] = strDiamondsStatusRunning
                 with cd(self.diamondsBinaryPath):
                     p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     while p.poll() is None:
                         line = p.stderr.readline()
                         self.logger.debug(line)
-                        if strDiamondsErrBetterLikelihood in str(line) and errorCount <=3:
+                        if strDiamondsErrBetterLikelihood in str(line):
                             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
                             self.status[mode] = strDiamondsStatusLikelihood
-                            continue
-                        elif errorCount >3:
-                            self.logger.error("Diamonds failed to find good values")
-                            break
+                        elif strDiamondsErrCovarianceFailed in str(line):
+                            self.logger.warning("Diamonds cannot decompose covariance. Repeat!")
+                            self.status[mode] = strDiamondsStatusCovariance
+                        elif strDiamondsErrAssertionFailed in str(line):
+                            self.logger.warning("Diamonds assertion failed. Repeat!")
+                            self.status[mode] = strDiamondsStatusAssertion
 
                     self.logger.debug(p.stdout.read())
                     self.logger.debug("Command '"+str(cmd)+"' done")
-                    finished = True
-                    self.status[mode] = strDiamondsStatusGood
+                    if self.status[mode] == strDiamondsStatusRunning:
+                        finished = True
+                        self.status[mode] = strDiamondsStatusGood
+                    elif errorCount >3:
+                        self.logger.error("Diamonds failed to find good values!")
+                        break
 
                 #Some error handling needs to take place here!
         return

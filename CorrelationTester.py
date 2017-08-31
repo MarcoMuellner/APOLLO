@@ -9,6 +9,7 @@ from filehandler.analyzerResults import AnalyserResults
 from diamonds.diamondsProcesses import DiamondsProcess
 from loghandler.loghandler import *
 import logging
+import traceback
 
 starList = []
 
@@ -37,7 +38,7 @@ starList.append("011550492_1262")
 starList.append("012008916_19")
 
 yStarList = []
-#yStarList.append("224321303")
+yStarList.append("224321303")
 yStarList.append("224399118")
 yStarList.append("0223976028")
 yStarList.append("002437103_10")
@@ -48,75 +49,87 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 for i in yStarList:
-    logger.info("************************************")
-    logger.info("STARTING STAR "+i)
-    logger.info("************************************")
+    try:
+        logger.info("************************************")
+        logger.info("STARTING STAR "+i)
+        logger.info("************************************")
 
 
-    #filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
-    filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
-    AnalyserResults.Instance().setKicID(i)
+        #filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
+        filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
+        AnalyserResults.Instance().setKicID(i)
 
-    file = FitsReader(filename)
+        file = FitsReader(filename)
 
-    powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
-    powerCalc.setKicID(i)
-    AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
+        powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
+        powerCalc.setKicID(i)
+        AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
 
-    plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
-    plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
+        plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
+        plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
 
-    nuMaxCalc = NuMaxCalculator(file.getLightCurve())
-    AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
+        nuMaxCalc = NuMaxCalculator(file.getLightCurve())
+        AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
 
-    nuMax = nuMaxCalc.computeNuMax()
-    marker = nuMaxCalc.marker
-    photonNoise = powerCalc.getPhotonNoise()
-    nyquist = nuMaxCalc.getNyquistFrequency()
+        nuMax = nuMaxCalc.computeNuMax()
+        marker = nuMaxCalc.marker
+        photonNoise = powerCalc.getPhotonNoise()
+        nyquist = nuMaxCalc.getNyquistFrequency()
 
-    priorCalculator = PriorCalculator(nuMax,photonNoise)
-    plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
+        priorCalculator = PriorCalculator(nuMax,photonNoise)
+        plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
 
-    priors = []
-    priors.append(priorCalculator.getPhotonNoiseBoundary())
-    priors.append(priorCalculator.getHarveyAmplitudesBoundary())
-    priors.append(priorCalculator.getFirstHarveyFrequencyBoundary())
-    priors.append(priorCalculator.getHarveyAmplitudesBoundary())
-    priors.append(priorCalculator.getSecondHarveyFrequencyBoundary())
-    priors.append(priorCalculator.getHarveyAmplitudesBoundary())
-    priors.append(priorCalculator.getThirdHarveyFrequencyBoundary())
-    priors.append(priorCalculator.getAmplitudeBounday())
-    priors.append(priorCalculator.getNuMaxBoundary())
-    priors.append(priorCalculator.getSigmaBoundary())
+        priors = []
+        priors.append(priorCalculator.getPhotonNoiseBoundary())
+        priors.append(priorCalculator.getHarveyAmplitudesBoundary())
+        priors.append(priorCalculator.getFirstHarveyFrequencyBoundary())
+        priors.append(priorCalculator.getHarveyAmplitudesBoundary())
+        priors.append(priorCalculator.getSecondHarveyFrequencyBoundary())
+        priors.append(priorCalculator.getHarveyAmplitudesBoundary())
+        priors.append(priorCalculator.getThirdHarveyFrequencyBoundary())
+        priors.append(priorCalculator.getAmplitudeBounday())
+        priors.append(priorCalculator.getNuMaxBoundary())
+        priors.append(priorCalculator.getSigmaBoundary())
 
-    lowerBounds = np.zeros(len(priors))
-    upperBounds = np.zeros(len(priors))
+        lowerBounds = np.zeros(len(priors))
+        upperBounds = np.zeros(len(priors))
 
-    for x in range(0, len(priors)):
-        lowerBounds[x] = priors[x][0]
-        upperBounds[x] = priors[x][1]
+        for x in range(0, len(priors)):
+            lowerBounds[x] = priors[x][0]
+            upperBounds[x] = priors[x][1]
 
-    priors = np.array((lowerBounds, upperBounds)).transpose()
-    files = FileCreater(i, powerCalc.getPSD(), nyquist, priors)
+        priors = np.array((lowerBounds, upperBounds)).transpose()
+        files = FileCreater(i, powerCalc.getPSD(), nyquist, priors)
 
-    proc = DiamondsProcess(i)
-    proc.start()
-    AnalyserResults.Instance().setDiamondsRunner(proc)
+        proc = DiamondsProcess(i)
+        proc.start()
+        AnalyserResults.Instance().setDiamondsRunner(proc)
 
-    diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
 
-    if diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]:
-        result = Results(kicID=i, runID=strDiamondsModeNoise)
-        p = plotPSD(result, False, False, visibilityLevel=1,fileName="PSD_Noise_fit.png")
-        p = plotParameterTrend(result,fileName="Noise_Parametertrend.png")
-        show(2)
+        if diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]:
+            result = Results(kicID=i, runID=strDiamondsModeNoise)
+            p = plotPSD(result, False, False, visibilityLevel=1,fileName="PSD_Noise_fit.png")
+            p = plotParameterTrend(result,fileName="Noise_Parametertrend.png")
+            show(2)
 
-    if diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]:
-        result = Results(kicID=i, runID=strDiamondsModeFull)
-        p = plotPSD(result, True, False, visibilityLevel=1,fileName="PSD_Full_Background_fit.png")
-        p = plotParameterTrend(result,fileName="Full_Background_Parametertrend.png")
-        show(2)
+        if diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]:
+            result = Results(kicID=i, runID=strDiamondsModeFull)
+            p = plotPSD(result, True, False, visibilityLevel=1,fileName="PSD_Full_Background_fit.png")
+            p = plotParameterTrend(result,fileName="Full_Background_Parametertrend.png")
+            show(2)
 
-    AnalyserResults.Instance().collectDiamondsResult()
-    AnalyserResults.Instance().performAnalysis()
+        AnalyserResults.Instance().collectDiamondsResult()
+        AnalyserResults.Instance().performAnalysis()
+    except Exception as e:
+        logger.error("Failed to run Correlation Test for "+i)
+        logger.error(e)
+        logger.error(traceback.format_exc())
+        try:
+            AnalyserResults.Instance().performAnalysis()
+        except Exception as d:
+            logger.error("Cannot proceed with analysis!")
+            logger.error(d)
+            logger.error(traceback.format_exc())
+        continue
 

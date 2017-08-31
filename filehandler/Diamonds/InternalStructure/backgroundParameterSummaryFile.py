@@ -44,7 +44,6 @@ class ParameterSummary:
     def getData(self,key=None,priorData=False):
         if any(self.rawValues) is False:
             self.__readData()
-        retDict = {}
 
         if priorData == True:
             retDict = self.priorValues
