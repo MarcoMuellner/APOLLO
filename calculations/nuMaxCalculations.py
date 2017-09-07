@@ -1,13 +1,10 @@
-import numpy as np
-import pylab as pl
-from scipy import optimize,stats
-from sympy.ntheory import factorint
 #local imports
-from calculations.powerspectraCalculations import PowerspectraCalculator
-from settings.settings import Settings
-from support.strings import *
+
+from sympy.ntheory import factorint
+
+# local imports
 from plotter.plotFunctions import *
-import logging
+
 
 class NuMaxCalculator:
     """
@@ -27,38 +24,18 @@ class NuMaxCalculator:
 
     For more information see Kallinger (2016) on the algorithm used here.
     """
-    def __init__(self,lightCurve):
+    def _init_(self, lightCurve):
         """
         The constructor takes the lightcurve of a given star. This lightcurve is then processed
         through the algorithm
-        :param lightCurve: 2-Dimensional numpy array.
+        :type lightCurve: 2-D numpy array
+        :param lightCurve: Data containing the lightCurve. 1st axis -> temporal axis in days,
+        2nd Axis -> Flux
         """
         self.logger = logging.getLogger(__name__)
-        self.__setLightCurve(lightCurve)
-
-    def __setLightCurve(self,lightCurve):
-        """
-        Internal convenience function. Checks the lightcurve for sanity, rebases temporal axis to
-        seconds and starts computation of initial NuMax. Only used within the constructor.
-        :param lightCurve: 2-Dimensional numpy array
-        :return: Float number representing the initial filter frequency
-        """
-        #sanity check
-        if len(lightCurve) != 2:
-            self.logger.error("Lightcurve must be of dimension 2")
-            self.logger.error("Lightcurve dimension: '"+str(len(lightCurve))+"'")
-            raise ValueError
-
-        #normalize lightCurve and switch to seconds
         self.lightCurve = lightCurve
-        self.lightCurve[0] -= self.lightCurve[0][0]
-        self.lightCurve[0] *=3600*24
 
-        #compute flicker Amplitude and initial filter frequency
-        self.__calculateFlickerAmplitude(self.lightCurve)
-        return self.__calculateInitFilterFrequency()
-
-    def __calculateFlickerAmplitude(self,lightCurve):
+    def _calculateFlickerAmplitude(self):
         """
         This method computes the flicker Amplitude of a given lightcurve. The algorithm works as follows:
         - a "filter time" is chosen. This will serve as the bin size, on which we will compute the flicker
@@ -67,13 +44,14 @@ class NuMaxCalculator:
           can be transformed into the initial filter frequency.
 
         This method is only used internally in the class.
-        :param lightCurve: 2-Dimensional numpy array
-        :return: Float number, representing the flicker amplitude.
+        :rtype: float
+        :return: The flicker amplitude.
         """
         #find the new number of bins after the filter
+        self._nyq = 0
         filterTime = 5
-        self.elements = len(lightCurve[0])
-        self.duty_cycle = np.mean(lightCurve[0][1:self.elements -1] - lightCurve[0][0:self.elements
+        self.elements = len(self.lightCurve[0])
+        self.duty_cycle = np.mean(self.lightCurve[0][1:self.elements -1] - self.lightCurve[0][0:self.elements
                                                                           -2])
         self.logger.debug("Duty cycle is '"+str(self.duty_cycle) +"'" )
         normalized_bin = np.round(filterTime*3600/int(self.duty_cycle))
@@ -115,14 +93,14 @@ class NuMaxCalculator:
                 ref_time = i
                 count = 1
 
-                while i < (self.elements-1) and (lightCurve[0][i] - lightCurve[0][ref_time])/(3600*24) <filterTime:
-                    bin_mean +=lightCurve[1][i]
-                    if lightCurve[1][i] != 0:
+                while i < (self.elements-1) and (self.lightCurve[0][i] - self.lightCurve[0][ref_time])/(3600*24) <filterTime:
+                    bin_mean +=self.lightCurve[1][i]
+                    if self.lightCurve[1][i] != 0:
                         count +=1
                     i+=1
 
-                bin_mean += lightCurve[1][i]
-                if lightCurve[1][i] != 0:
+                bin_mean += self.lightCurve[1][i]
+                if self.lightCurve[1][i] != 0:
                     count +=1
                 count_float = float(count)
 
@@ -132,7 +110,7 @@ class NuMaxCalculator:
                 amp_rebin_array[ref_time - k*index_shift:(i-1)-k*index_shift] = bin_mean
                 n_points_per_bin_array[ref_time - k*index_shift:(i-1) - k*index_shift] = count
 
-            amp_substract_array = lightCurve[1][k*index_shift:k*index_shift+len(amp_rebin_array)] -amp_rebin_array
+            amp_substract_array = self.lightCurve[1][k*index_shift:k*index_shift+len(amp_rebin_array)] -amp_rebin_array
             amp_substract_array = amp_substract_array[n_points_per_bin_array>=normalized_bin/2]
             amp_mean_array[k] = np.mean(amp_substract_array)
 
@@ -150,7 +128,7 @@ class NuMaxCalculator:
 
         self.logger.debug("Flicker amplitude is '"+str(amp_flic))
 
-    def __calculateInitFilterFrequency(self):
+    def _calculateInitFilterFrequency(self):
         """
         This function computes the initial filter Frequency using an empirical function. More information in
         Kallinger (2016). Only used internally.
@@ -166,17 +144,19 @@ class NuMaxCalculator:
         :return: Float value representing nuMax
         """
         self.lastFilter = 0
-        self.marker["First Filter"] = (self.__iterativeFilter(self.init_nu_filter),'g')
-        self.marker["Second Filter"] = (self.__iterativeFilter(self.lastFilter),'b')
+        self.marker["First Filter"] = (self._iterativeFilter(self.init_nu_filter),'g')
+        self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter),'b')
 
         return self.lastFilter
 
-    def __iterativeFilter(self,filterFrequency):
+    def _iterativeFilter(self,filterFrequency):
         """
         This method is called within computeNuMax 2 times, and will, using an ACF, compute the
         proper Numax. For this the signal is filtered at the input filterFrequency using a custom
         IDL-like Trismooth method, and then autocorrelated.
-        :param filterFrequency: This frequency is used for filtering the intial signal contained in self.__lightcurve
+        :rtype: 1-D numpy array
+        :type filterFrequency: float
+        :param filterFrequency: This frequency is used for filtering the intial signal contained in self._lightcurve
         :return: The smoothed lightcurve. More importantly, it sets self.lastFilter
         """
         self.figAppendix = str("1st_Fit_" if self.lastFilter == 0 else "2nd_Fit_")  # needed for figure saving
@@ -187,8 +167,8 @@ class NuMaxCalculator:
         self.logger.debug("Tau Filter is '"+str(tau_filter)+"'")
         new_normalized_bin_size = int(np.round(tau_filter/self.duty_cycle))
         self.logger.debug("New normalized bin size is '"+str(new_normalized_bin_size)+"'")
-        amp_smoothed_array = self.__trismooth(self.lightCurve[1],new_normalized_bin_size)
-        amp_filtered_array = self.lightCurve[1]-amp_smoothed_array
+        amp_smoothed_array = self._trismooth(self._lightCurve[1],new_normalized_bin_size)
+        amp_filtered_array = self._lightCurve[1]-amp_smoothed_array
 
         length = 1.5*tau_filter*4/self.duty_cycle
         if length > self.elements:
@@ -196,7 +176,7 @@ class NuMaxCalculator:
         if length > self.elements:
             length = self.elements - 1
 
-        autocor = self.__calculateAutocorrelation(amp_filtered_array)
+        autocor = self._calculateAutocorrelation(amp_filtered_array)
         autocor = autocor[0:int(length)]
         autocor = autocor**2
 
@@ -204,15 +184,15 @@ class NuMaxCalculator:
         guess = tau_filter/2
 
         try:
-            popt = self.__iterativeFit((self.lightCurve[0][0:int(length)]/4,autocor),guess)
+            popt = self._iterativeFit((self._lightCurve[0][0:int(length)]/4,autocor),guess)
         except RuntimeError as e:
             self.logger.error("Failed to fit Autocorrelation")
             self.logger.error("Tau guess is "+str(guess))
             self.logger.error(str(e))
 
-            dataList = {'Autocorrelation': ('-',self.lightCurve[0][0:int(length)]/4,autocor), "Initial Guess": (
+            dataList = {'Autocorrelation': ('-',self._lightCurve[0][0:int(length)]/4,autocor), "Initial Guess": (
                 '-', np.linspace(0, 20000, num=50000),
-                self.__fit(np.linspace(0, 20000, num=50000), 1, 1 / 20, guess))}
+                self._fit(np.linspace(0, 20000, num=50000), 1, 1 / 20, guess))}
             plotCustom(dataList,title="Failed fit result",showLegend=True,fileName=self.figAppendix+"Sinc_Fit_error.png")
             show()
             raise e
@@ -223,9 +203,9 @@ class NuMaxCalculator:
 
 
         dataList = {}
-        dataList['Autocorrelation'] = ('x',self.lightCurve[0][0:int(length)]/4,autocor)
-        dataList['Initial Fit'] = ('-',np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,guess))
-        dataList['Corrected Fit'] = ('-',np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),*popt))
+        dataList['Autocorrelation'] = ('x',self._lightCurve[0][0:int(length)]/4,autocor)
+        dataList['Initial Fit'] = ('-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,guess))
+        dataList['Corrected Fit'] = ('-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),*popt))
         plotCustom(dataList,title="Final Fit",showLegend=True,fileName=self.figAppendix+"Final_fit_.png")
         show(2)
 
@@ -244,13 +224,15 @@ class NuMaxCalculator:
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
-    def __trismooth(self,x,window_width,gauss=False):
+    def _trismooth(self,x,window_width):
         """
         This function is implemented to create a similar function to the Trismooth function of idl
+        :rtype: 1-D numpy array
+        :type window_width: int
         :param x: The array containg the data which should be filtered. In our case this represents the Flux within the
                   lightCurve
+        :type x: 1-D numpy array
         :param window_width: The bin size which the function will look at
-        :param gauss: Not in use
         :return: The smoothed variant of x
         """
         if window_width%2 != 0:
@@ -261,7 +243,7 @@ class NuMaxCalculator:
             self.logger.error("Vector too short!")
             self.logger.error("lend: '"+str(lend)+"'")
             self.logger.error("window_width: '"+str(window_width)+"'")
-            raise
+            raise ValueError
 
         halfWeights = np.arange(window_width/2)
         weights = np.append(halfWeights,[window_width/2])
@@ -290,14 +272,16 @@ class NuMaxCalculator:
 
         return smoothed
 
-    def __calculateAutocorrelation(self,oscillatingData):
+    def _calculateAutocorrelation(self,oscillatingData):
         """
-        The numpy variant of computing the autocorrelation. See the documentation of the numpy function for more information
-        :param oscillatingData: 1-D numpy array. The data that should be correlated (in our case the y function)
+        The numpy variant of computing the autocorrelation. See the documentation of the numpy function for more
+        information
+        :type oscillatingData: 1-D numpy array
+        :rtype: 1-D numpy array
+        :param oscillatingData:The data that should be correlated (in our case the y function)
         :return: The correlation of oscillatingData
         """
         corrs2 = np.correlate(oscillatingData, oscillatingData, mode='same')
-        #
         N = len(corrs2)
         corrs2 = corrs2[N // 2:]
         lengths = range(N, N // 2, -1)
@@ -307,12 +291,15 @@ class NuMaxCalculator:
         corrs2 = corrs2 / corrs2[maxcorr]
         return corrs2
 
-    def __scipyFit(self,data,tauGuess):
+    def _scipyFit(self,data,tauGuess):
         """
         Single fit variant (fits the total function all at ones to the data)
-        :param data: 2-D numpy array. [0] -> temporal axis, [1] -> flux
+        :rtype: List containing 3 elements
+        :type tauGuess: float
+        :type data: 2-D numpy array
+        :param data:[0] -> temporal axis in seconds, [1] -> normalized flux
         :param tauGuess: The initial Guess for Tau. The rest is fixed
-        :return: a List with 3 entries (values for a,b, tau_acf)
+        :return: Values for a,b, tau_acf
         """
         y = data[1]
         x = data[0]
@@ -320,7 +307,7 @@ class NuMaxCalculator:
         self.logger.debug("Initial Guess is "+str(tauGuess))
 
         arr = [1.0,1/20,tauGuess]
-        popt, pcov = optimize.curve_fit(self.__fit, x, y,p0=arr,maxfev=5000)
+        popt, pcov = optimize.curve_fit(self._fit, x, y,p0=arr,maxfev=5000)
         perr = np.sqrt(np.diag(pcov))
         self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
         self.logger.debug("b = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
@@ -328,35 +315,38 @@ class NuMaxCalculator:
 
         return popt
 
-    def __iterativeFit(self,data,tauGuess):
+    def _iterativeFit(self,data,tauGuess):
         """
         The iterative Fit approach. Fitting the sinc first, then the sin, subtracting the sin from the original signal and
         fitting the sinc again. Result is then returned
-        :param data: 2-D numpy array. [0] -> temporal axis, [1] -> flux
+        :rtype: List containing 3 elements
+        :type tauGuess: float
+        :type data: 2-D numpy array
+        :param data:[0] -> temporal axis in seconds, [1] -> normalized flux
         :param tauGuess: Initial Guess for Tau. The rest is fixed
-        :return: a List with 3 entries (values for a,b, tau_acf)
+        :return: Values for a,b, tau_acf
         """
-        y = data[1]#[0:int(len(data[1])/3)]
-        x = data[0]#[0:int(len(data[0])/3)]
+        y = data[1]
+        x = data[0]
 
         self.logger.debug("Initial Guess is "+str(tauGuess))
 
         arr = [1,tauGuess]
 
         dataList = {'data':('x',x,y),"Initial Guess":(
-        '-',np.linspace(0,20000,num=50000),self.__fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess))}
+        '-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess))}
         plotCustom(dataList,title='Initial Guess Fit',showLegend=True,fileName=self.figAppendix+"InitGuess.png")
         show(4)
-        popt, pcov = optimize.curve_fit(self.__sinc,x,y,p0=arr,maxfev = 5000)
+        popt, pcov = optimize.curve_fit(self._sinc,x,y,p0=arr,maxfev = 5000)
 
         #compute residuals
 
         dataList = {'data': ('x', x, y), "Fit": (
-        '-', np.linspace(0, 20000, num=50000), self.__sinc(np.linspace(0, 20000, num=50000),*popt))}
+        '-', np.linspace(0, 20000, num=50000), self._sinc(np.linspace(0, 20000, num=50000),*popt))}
         plotCustom(dataList, title='Initial Sinc fit', showLegend=True,fileName=self.figAppendix + "InitSincFit.png")
         show(4)
 
-        residuals = y-self.__sinc(x,*popt)
+        residuals = y-self._sinc(x,*popt)
         scaled_time_array = x / popt[1]
         cut = x[scaled_time_array<=2]
         residuals = residuals[scaled_time_array<=2]
@@ -364,20 +354,20 @@ class NuMaxCalculator:
         #fit sin to residual!
         arr = [1/20,popt[1]]
 
-        popt,pcov = optimize.curve_fit(self.__sin,cut,residuals,p0=arr,maxfev=5000)
+        popt,pcov = optimize.curve_fit(self._sin,cut,residuals,p0=arr,maxfev=5000)
         b = popt[0]
 
         dataList = {"Residual data": ('x', cut, residuals), "Sin Fit": (
-            '-', np.linspace(0,20000,num=50000),self.__sin(np.linspace(0,20000,num=50000),*popt))}
+            '-', np.linspace(0,20000,num=50000),self._sin(np.linspace(0,20000,num=50000),*popt))}
         plotCustom(dataList, title='Sin fit', showLegend=True, fileName=self.figAppendix + "SinFit.png")
         show(4)
 
-        y =  y[scaled_time_array<=2] - self.__sin(cut,*popt)
+        y =  y[scaled_time_array<=2] - self._sin(cut,*popt)
 
-        popt, pcov = optimize.curve_fit(self.__sinc,cut,y,p0=arr,maxfev = 5000)
+        popt, pcov = optimize.curve_fit(self._sinc,cut,y,p0=arr,maxfev = 5000)
 
         dataList = {"data": ('x', cut, y), "Sinc fit": (
-            '-', np.linspace(0,20000,num=50000),self.__sinc(np.linspace(0,20000,num=50000),*popt))}
+            '-', np.linspace(0,20000,num=50000),self._sinc(np.linspace(0,20000,num=50000),*popt))}
         plotCustom(dataList, title='Second Sinc fit', showLegend=True, fileName=self.figAppendix + "SecondSinc.png")
         show(4)
 
@@ -386,43 +376,78 @@ class NuMaxCalculator:
         return returnList
 
 
-    def __sin(self,x,amp,tau):
+    def _sin(self,x,amp,tau):
         """
         Represents the used sin within our Fit
-        :param x: 1-D numpy array
-        :param amp: float, Amplitude of sin
-        :param tau: float
+        :type x: 1-D numpy array
+        :param amp: Amplitude of sin
+        :type amp: float
+        :type tau: float
         :return: the functional values for the array x
+        :rtype: 1-D numpy array
         """
         return amp*np.sin(2*np.pi*4*x/tau)
 
-    def __sinc(self,x, a, tau_acf):
+    def _sinc(self,x, a, tau_acf):
         """
         Represents the used sinc within our Fit
         :param x: 1-D numpy array
         :param a: float, amplitude of the sinc
         :param tau_acf: float
         :return: the functional value for the array x
+        :rtype: 1-D numpy array
         """
         return a * np.sinc((4* np.pi*x / tau_acf))**2
 
-    def __fit(self,x,a,b,tau_acf):
-        return self.__sinc(x,a,tau_acf) + self.__sin(x,b,tau_acf)
+    def _fit(self,x,a,b,tau_acf):
+        return self._sinc(x,a,tau_acf) + self._sin(x,b,tau_acf)
 
-    def getNyquistFrequency(self):
+    @property
+    def nyqFreq(self):
         """
         Computes the Nyquist frequency for the lightcurve supplied in the constructor.
-        :return:
+        :return: Nyquist frequency
+        :rtype: float
         """
-        if self.lightCurve is not None:
-            self.logger.debug("Abtastfrequency is '"+str((self.lightCurve[0][3] - self.lightCurve[0][2])*24*3600)+"'")
-            self.nyq = 10**6/(2*(self.lightCurve[0][200] -self.lightCurve[0][199]))
-            self.logger.debug("Nyquist frequency is '"+str(self.nyq)+"'")
+        if self._lightCurve is not None and self._nyq == 0:
+            self.logger.debug("Abtastfrequency is '"+str((self._lightCurve[0][3] - self._lightCurve[0][2])*24*3600)+"'")
+            self._nyq = 10**6/(2*(self._lightCurve[0][200] -self._lightCurve[0][199]))
+            self.logger.debug("Nyquist frequency is '"+str(self._nyq)+"'")
 
-            return self.nyq
-        else:
-            self.logger.debug("Lightcurve is None, therefore no calculation of nyquist frequency possible")
-            return None
+        return self._nyq
 
-    def getPhotonNoise(self):
-        return self.photonNoise
+    @property
+    def lightCurve(self):
+        """
+        Property of lightCurve.
+        :return: Normalized data of lightCurve. 1st Axis -> temporal axis in seconds. 2nd axis -> normalized flux
+        :rtype: 2-D numpy array
+        """
+        return self._lightCurve
+
+    @lightCurve.setter
+    def lightCurve(self, value):
+        """
+        Setter function for lightCurve. Checks the data for sanity, rebases temporal axis (1st axis)
+        to seconds and starts computation of initial numax.
+        :param value: Represents the lightCurve of a star. 1st axis -> temporal axis in days
+        2nd axis -> flux
+        :type value: 2-D numpy array
+        :return: Initial Filter frequency
+        :rtype: float
+        """
+        # sanity check
+        if value is not None and len(value) != 2:
+            self.logger.error("Lightcurve must be of dimension 2")
+            self.logger.error("Lightcurve data: "+str(value))
+            self.logger.error("Lightcurve dimension: '" + str(len(value)) + "'")
+            raise ValueError
+
+        # normalize lightCurve and switch to seconds
+        self._lightCurve = value
+        self._lightCurve[0] -= self._lightCurve[0][0]
+        self._lightCurve[0] *= 3600 * 24
+
+        # compute flicker Amplitude and initial filter frequency
+        self._calculateFlickerAmplitude(self._lightCurve)
+        self._calculateInitFilterFrequency()

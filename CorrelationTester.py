@@ -74,7 +74,7 @@ for i in starList:
         nuMax = nuMaxCalc.computeNuMax()
         marker = nuMaxCalc.marker
         photonNoise = powerCalc.getPhotonNoise()
-        nyquist = nuMaxCalc.getNyquistFrequency()
+        nyquist = nuMaxCalc.nyqFreq
 
         priorCalculator = PriorCalculator(nuMax,photonNoise)
         plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")

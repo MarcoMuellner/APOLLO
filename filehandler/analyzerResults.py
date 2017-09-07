@@ -95,7 +95,7 @@ class AnalyserResults:
                 for key,(value,color) in self.nuMaxCalculator.marker.items():
                     resultDict["NuMaxCalc"][key]=value
 
-                resultDict["NuMaxCalc"]["Nyquist"] = self.nuMaxCalculator.getNyquistFrequency()
+                resultDict["NuMaxCalc"]["Nyquist"] = self.nuMaxCalculator.nyqFreq
 
             if len(self.diamondsResults.keys()) != 0:
                 resultDict["Diamonds_Priors"] = {}

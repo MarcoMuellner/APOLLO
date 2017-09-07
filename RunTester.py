@@ -78,7 +78,7 @@ nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
 photonNoise = powerCalc.getPhotonNoise()
-nyquist = nuMaxCalc.getNyquistFrequency()
+nyquist = nuMaxCalc.nyqFreq
 AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
