@@ -5,6 +5,7 @@ from scipy import signal
 import logging
 
 class PowerspectraCalculator:
+    
 
     def __init__(self,lightCurve = None,powerSpectra = None,kicID = ''):
         self.logger = logging.getLogger(__name__)
