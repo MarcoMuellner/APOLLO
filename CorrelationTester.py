@@ -131,5 +131,6 @@ for i in starList:
             logger.error("Cannot proceed with analysis!")
             logger.error(d)
             logger.error(traceback.format_exc())
+            raise ValueError
         continue
 

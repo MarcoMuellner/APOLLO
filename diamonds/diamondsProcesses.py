@@ -62,9 +62,9 @@ class DiamondsProcess:
                     while p.poll() is None:
                         line = p.stderr.readline()
                         self.logger.debug(line)
-                        if "Nit" in str(line) and animStart == False:
-                            animStart = True
-                            anim.start()
+                        #if "Nit" in str(line) and animStart == False:
+                        #    animStart = True
+                        #    anim.start()
                         if strDiamondsErrBetterLikelihood in str(line):
                             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
                             self.status[mode] = strDiamondsStatusLikelihood

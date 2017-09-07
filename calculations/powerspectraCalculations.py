@@ -11,16 +11,18 @@ class PowerspectraCalculator:
         self.logger = logging.getLogger(__name__)
         self.lightCurve = lightCurve
         self.powerSpectrum = powerSpectrum
-        self._nyq = 0
         self.kicID = kicID
         self._smoothedData = None
 
         self._powerSpectrumMode = Settings.Instance().getSetting(strCalcSettings, strSectPowerMode).value
 
-        if self._lightCurve is not None and self.powerSpectrum is None:
+        if self.lightCurve is not None and self.powerSpectrum is None:
             self.powerSpectrum = self.lightCurveToPowerspectra(self.lightCurve)
+        elif self.lightCurve is None and self.powerSpectrum is not None:
+            self.logger.warning("Cannot create Lightcurve from PSD alone")
 
         self.photonNoise = np.mean(self.powerSpectrum[1][int(0.9*len(self.powerSpectrum[1])):len(self.powerSpectrum[1])-1])
+        self._nyq = 0
 
 
     def lightCurveToPowerspectra(self,lightCurve):
@@ -29,9 +31,9 @@ class PowerspectraCalculator:
             raise ValueError
 
         if self._powerSpectrumMode == strPowerModeNumpy:
-            return self._lightCurveToPowerspectraFFT(lightCurve)
+            return self.lightCurveToPowerspectraFFT(lightCurve)
         elif self._powerSpectrumMode == strPowerModeSciPy:
-            return self._lightCurveToPowerspectraPeriodogramm(lightCurve)
+            return self.lightCurveToPowerspectraPeriodogramm(lightCurve)
         else:
             self.logger.debug("No available Mode named '"+self._powerSpectrumMode+"'")
             raise KeyError
@@ -42,18 +44,16 @@ class PowerspectraCalculator:
 
         freq = np.fft.fftfreq(lightCurve[1].size,d=(lightCurve[0][3]-lightCurve[0][2])*24*3600)
 
-        self.powerSpectrum = np.array((freq,psd))
-        return self.powerSpectrum
+        return np.array((freq,psd))
 
     def lightCurveToPowerspectraPeriodogramm(self,lightCurve):
         fs = 1 / ((lightCurve[0][10] - lightCurve[0][9]) * 24 * 3600) #doesnt matter which timepoint is used.
         f, psd = signal.periodogram(lightCurve[1], fs,scaling='spectrum')
         f = f*10**6
-        self.powerSpectrum = np.array((f,psd))
-        return self.powerSpectrum
+        return np.array((f,psd))
 
     def __butter_lowpass_filtfilt(self,data,order=5):
-        normal_cutoff = 0.7 / self.nyq #TODO 0.7 is only empirical, maybe change this
+        normal_cutoff = 0.7 / self.nyqFreq #TODO 0.7 is only empirical, maybe change this
         b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
         psd = data
         return signal.filtfilt(b, a,psd)
@@ -95,6 +95,7 @@ class PowerspectraCalculator:
     def powerSpectrum(self):
         if self._powerSpectrum is None:
             self.logger.warning("Powerspectra is None!")
+            return self._powerSpectrum
 
         return np.array((self._powerSpectrum[0][1:], self._powerSpectrum[1][1:]))
 
@@ -103,7 +104,7 @@ class PowerspectraCalculator:
         if data is None or len(data) == 2:
             self._powerSpectrum = data
         else:
-            self.logger.error("Powerspectra should have 2 dimesions (frequency,power)")
+            self.logger.error("Powerspectra should have 2 dimensions (frequency,power)")
             raise ValueError
 
     @property

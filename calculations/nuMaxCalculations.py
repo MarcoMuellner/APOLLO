@@ -24,7 +24,7 @@ class NuMaxCalculator:
 
     For more information see Kallinger (2016) on the algorithm used here.
     """
-    def _init_(self, lightCurve):
+    def __init__(self, data):
         """
         The constructor takes the lightcurve of a given star. This lightcurve is then processed
         through the algorithm
@@ -33,7 +33,7 @@ class NuMaxCalculator:
         2nd Axis -> Flux
         """
         self.logger = logging.getLogger(__name__)
-        self.lightCurve = lightCurve
+        self.lightCurve = data
 
     def _calculateFlickerAmplitude(self):
         """
@@ -449,5 +449,5 @@ class NuMaxCalculator:
         self._lightCurve[0] *= 3600 * 24
 
         # compute flicker Amplitude and initial filter frequency
-        self._calculateFlickerAmplitude(self._lightCurve)
+        self._calculateFlickerAmplitude()
         self._calculateInitFilterFrequency()
