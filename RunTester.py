@@ -67,7 +67,7 @@ AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
 
 
 
-powerCalc.setKicID(input)
+powerCalc.kicID = input
 p = plotLightCurve(powerCalc,2)
 saveFigToResults("Lightcurve.png",p)
 p = plotPSD(powerCalc,True,True,visibilityLevel=1)
@@ -77,7 +77,7 @@ nuMaxCalc = NuMaxCalculator(file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
-photonNoise = powerCalc.getPhotonNoise()
+photonNoise = powerCalc.photonNoise
 nyquist = nuMaxCalc.nyqFreq
 AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
 
@@ -129,7 +129,7 @@ for i in range(0,len(priors) ):
 
 priors = np.array((lowerBounds,upperBounds)).transpose()
 
-files = FileCreater(input,powerCalc.getPSD(),nyquist,priors)
+files = FileCreater(input,powerCalc.powerSpectrum,nyquist,priors)
 
 median = []
 median.append(priorCalculator.getPhotonNoise())

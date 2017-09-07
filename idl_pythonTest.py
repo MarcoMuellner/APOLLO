@@ -130,7 +130,7 @@ filterTime = 5
 file = FitsReader(filename)
 
 powerCalc = PowerspectraCalculator(file.getLightCurve())
-powerCalc.setKicID(input)
+powerCalc.kicID = input
 
 #plotPSD(powerCalc,True,True)
 #plotLightCurve(powerCalc)
@@ -233,7 +233,7 @@ amp_smoothed_array = trismooth(lightCurve[1],new_normalized_bin_size)
 amp_filtered_array = lightCurve[1]-amp_smoothed_array
 
 powerCalc2 = PowerspectraCalculator((lightCurve[0],amp_filtered_array))
-powerCalc2.setKicID("test2")
+powerCalc2.kicID = "test2"
 
 #plotPSD(powerCalc,True,True,smooth = False)
 #plotPSD(powerCalc2,True,True,smooth = False)
@@ -290,7 +290,7 @@ amp_smoothed_array = trismooth(lightCurve[1],new_normalized_bin_size)
 amp_filtered_array = lightCurve[1] - amp_smoothed_array
 
 powerCalc3 = PowerspectraCalculator((lightCurve[0],amp_filtered_array))
-powerCalc3.setKicID("Test3")
+powerCalc3.kicID = "Test3"
 
 #plotPSD(powerCalc2,True,True,smooth = False)
 #plotPSD(powerCalc3,True,True,smooth = False)

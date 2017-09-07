@@ -62,7 +62,7 @@ for i in starList:
         file = FitsReader(filename)
 
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
-        powerCalc.setKicID(i)
+        powerCalc.kicID = i
         AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
@@ -73,7 +73,7 @@ for i in starList:
 
         nuMax = nuMaxCalc.computeNuMax()
         marker = nuMaxCalc.marker
-        photonNoise = powerCalc.getPhotonNoise()
+        photonNoise = powerCalc.photonNoise
         nyquist = nuMaxCalc.nyqFreq
 
         priorCalculator = PriorCalculator(nuMax,photonNoise)
@@ -99,7 +99,7 @@ for i in starList:
             upperBounds[x] = priors[x][1]
 
         priors = np.array((lowerBounds, upperBounds)).transpose()
-        files = FileCreater(i, powerCalc.getPSD(), nyquist, priors)
+        files = FileCreater(i, powerCalc.powerSpectrum, nyquist, priors)
 
         proc = DiamondsProcess(i)
         proc.start()

@@ -88,7 +88,7 @@ input = "003744681_983"
 filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
-powerCalc.setKicID(input)
+powerCalc.kicID = input
 plotPSD(powerCalc,True,True)
 
 nuMaxCalc = NuMaxCalculator(file.getLightCurve())
@@ -144,7 +144,7 @@ for i in range(0,len(priors) ):
 
 priors = np.array((lowerBounds,upperBounds)).transpose()
 
-files = FileCreater(input,powerCalc.getPSD(),nyquist,priors)
+files = FileCreater(input,powerCalc.powerSpectrum,nyquist,priors)
 
 median = []
 median.append(priorCalculator.getPhotonNoise())
@@ -158,8 +158,8 @@ median.append(priorCalculator.getAmplitude())
 median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
-backgroundModel = createBackgroundModel(True,median,powerCalc.getPSD(),nyquist)
-plotPSDTemp(True,powerCalc.getPSD(),backgroundModel)
+backgroundModel = createBackgroundModel(True,median,powerCalc.powerSpectrum,nyquist)
+plotPSDTemp(True,powerCalc.powerSpectrum,backgroundModel)
 #show()
 
 proc = DiamondsProcess(strDiamondsExecFull, input, "0", "1")

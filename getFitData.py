@@ -71,7 +71,7 @@ for i in kicList:
             print('----------------------------------------------------------------')
 
 for i in resultList:
-    print('--------------Result KIC'+i.getKicID()[0]+'------------')
+    print('--------------Result KIC'+i.kicID[0]+'------------')
     print('nuMax = '+str(i.getNuMax()[0])+'('+str(i.getNuMax()[1])+')')
     print('Amplitude = '+str(i.getHg()[0])+"'")
     print('Sigma = '+str(i.getSigma()[0])+"'")

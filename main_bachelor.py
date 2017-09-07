@@ -175,7 +175,7 @@ for i in range(0,len(resultList)):
         M = "M"
     else:
         M='NM'
-    file.write(str(resultList[i].getKicID())+";"+M+";"+str(resultList[i].getNuMax()[0])+";"+str(resultList[i].getNuMax()[1])+";")
+    file.write(str(resultList[i].kicID)+";"+M+";"+str(resultList[i].getNuMax()[0])+";"+str(resultList[i].getNuMax()[1])+";")
     file.write(str(resultList[i].getDistanceModulus()[0])+";"+str(resultList[i].getDistanceModulus()[1])+";")
     file.write(str(resultList[i].getKICDistanceModulus())+";")
     file.write(str(resultList[i].getRobustnessValue())+";")

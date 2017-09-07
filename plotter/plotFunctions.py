@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLevel = 0,fileName = ""):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
-    psd = data.getPSD()
+    psd = data.powerSpectrum
     backgroundModel = None
     if psdOnly is False:
         backgroundModel = data.createBackgroundModel(runGauss)
 
     title = "Standardmodel" if runGauss else "Noise Backgroundmodel"
-    title += ' KIC' + data.getKicID()
+    title += ' KIC' + data.kicID
     dataList = {}
     annotationList = {}
     dataList[r'Frequency [$\mu$Hz]'] = psd[0]
@@ -28,10 +28,9 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
     annotation = {'color': 'grey', 'linetype': 'solid'}
     annotationList[r'PSD [ppm$^2$/$\mu$Hz]'] = annotation
     if smooth:
-        smoothedData = data.getSmoothing()
-        dataList['Smoothed'] = smoothedData
+        dataList['Smoothed'] = data.smoothedData
         if len(dataList['Smoothed']) != len(dataList[r'Frequency [$\mu$Hz]']):
-            dataList['Smoothed'] = smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
+            dataList['Smoothed'] = data.smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
 
     annotation = {'color': 'green', 'linetype': 'solid'}
     annotationList['Smoothed'] = annotation
@@ -229,8 +228,8 @@ def plotStellarRelations(kicList,x,y,xError,yError,xLabel,yLabel,Title,scaley='l
 
 def plotLightCurve(data,visibilityLevel = 0,fileName = ""):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
-    lightCurve = data.getLightCurve()
-    title = "Lightcurve " + data.getKicID()
+    lightCurve = data.lightCurve
+    title = "Lightcurve " + data.kicID
     dataList = {}
     annotationList = {}
     dataList[r'Observation Time [d]'] = lightCurve[0]

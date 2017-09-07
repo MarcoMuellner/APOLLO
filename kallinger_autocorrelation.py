@@ -37,9 +37,9 @@ powerSpectrum = False
 filename = "../../Sterndaten/LC_CORR/kplr" + input + "_COR.fits"
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
-powerCalc.setKicID(input)
+powerCalc.kicID = input
 
-nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.getPSD())
+nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.powerSpectrum)
 
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
 initLowIndex = nuMaxCalc.getNearestIndex() + 10
