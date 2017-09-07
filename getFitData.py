@@ -47,8 +47,8 @@ for i in kicList:
 
         print('--------------Result KIC' + result.getKicID() + '------------')
         print('nuMax = ' + str(result.getNuMax()) + '(' + str(result.getSigma()) + ')')
-        print('DeltaNu = ' + str(result.getDeltaNuCalculator().getCen()[0]) + '(' + str(
-            result.getDeltaNuCalculator().getCen()[1]) + ')')
+        print('DeltaNu = ' + str(result.getDeltaNuCalculator().deltaNu[0]) + '(' + str(
+            result.getDeltaNuCalculator().deltaNu[1]) + ')')
         print(float(result.getKicID()))
         print('----------------------------------------------------------------')
 
@@ -61,7 +61,7 @@ for i in kicList:
             print('--------------Calculations KIC' + result.getKicID() + '------------')
             print("Temperature is '"+str(temp))
             print("Temperature of the sun '"+str(tempSun)+"'")
-            R = (arrSun[1] / result.getDeltaNuCalculator().getCen()[0]) ** 2 * (result.getNuMax()[0] / arrSun[0]) * \
+            R = (arrSun[1] / result.getDeltaNuCalculator().deltaNu[0]) ** 2 * (result.getNuMax()[0] / arrSun[0]) * \
                 sqrt(temp / tempSun)
 
             L = R**2*(temp/tempSun)**4
@@ -75,7 +75,7 @@ for i in resultList:
     print('nuMax = '+str(i.getNuMax()[0])+'('+str(i.getNuMax()[1])+')')
     print('Amplitude = '+str(i.getHg()[0])+"'")
     print('Sigma = '+str(i.getSigma()[0])+"'")
-    print('DeltaNu = '+str(i.getDeltaNuCalculator().getCen()[0])+'('+str(i.getDeltaNuCalculator().getCen()[1])+')')
+    print('DeltaNu = ' + str(i.getDeltaNuCalculator().deltaNu[0]) + '(' + str(i.getDeltaNuCalculator().deltaNu[1]) + ')')
     print('----------------------------------------------------------------')
 
 

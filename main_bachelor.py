@@ -75,8 +75,8 @@ for i in kicList:
 
         print('--------------Result KIC' + result.getKicID() + '------------')
         print('nuMax = ' + str(result.getNuMax()) + '(' + str(result.getSigma()) + ')')
-        print('DeltaNu = ' + str(result.getDeltaNuCalculator().getCen()[0]) + '(' + str(
-            result.getDeltaNuCalculator().getCen()[1]) + ')')
+        print('DeltaNu = ' + str(result.getDeltaNuCalculator().deltaNu[0]) + '(' + str(
+            result.getDeltaNuCalculator().deltaNu[1]) + ')')
         print(float(result.getKicID()))
         print('----------------------------------------------------------------')
 
@@ -113,8 +113,8 @@ for i in kicList:
         colorList.append(struct.unpack('BBB', bytes.fromhex(rgbstr)))
         nuMaxList.append(result.getNuMax()[0])
         errorNuMaxList.append(result.getNuMax()[1])
-        deltaNuList.append(result.getDeltaNuCalculator().getCen()[0])
-        errorDeltaNuList.append(result.getDeltaNuCalculator().getCen()[1])
+        deltaNuList.append(result.getDeltaNuCalculator().deltaNu[0])
+        errorDeltaNuList.append(result.getDeltaNuCalculator().deltaNu[1])
         distanceModulusList.append(result.getDistanceModulus()[0])
         errorDistanceModulusList.append(result.getDistanceModulus()[1])
         radiusList.append(result.getRadius()[0])
@@ -180,7 +180,7 @@ for i in range(0,len(resultList)):
     file.write(str(resultList[i].getKICDistanceModulus())+";")
     file.write(str(resultList[i].getRobustnessValue())+";")
     file.write(str(resultList[i].getRobustnessSigma()) + ";")
-    file.write(str(resultList[i].getDeltaNuCalculator().getCen()[0])+";"+str(resultList[i].getDeltaNuCalculator().getCen()[1])+";")
+    file.write(str(resultList[i].getDeltaNuCalculator().deltaNu[0]) + ";" + str(resultList[i].getDeltaNuCalculator().deltaNu[1]) + ";")
     file.write(str(resultList[i].getRadius()[0])+";"+str(resultList[i].getRadius()[1])+";")
     file.write(str(resultList[i].getLuminosity()[0])+";"+str(resultList[i].getLuminosity()[1])+"\n")
 file.close()

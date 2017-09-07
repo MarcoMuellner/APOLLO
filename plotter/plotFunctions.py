@@ -145,11 +145,10 @@ def plotParameterTrend(data,fileName = ""):
 
 def plotDeltaNuFit(deltaNuCalculator,kicID,visibilityLevel = 0):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
-    deltaNuEst = deltaNuCalculator.getDeltaNuEst()
-    deltaF = deltaNuCalculator.getDeltaF()
-    best_fit = deltaNuCalculator.getBestFit()
-    corrs = deltaNuCalculator.getCorrelations()
-    init_fit = deltaNuCalculator.getInitFit()
+    deltaNuEst = deltaNuCalculator.deltaNuEst
+    deltaF = deltaNuCalculator.deltaF
+    best_fit = deltaNuCalculator.bestFit
+    corrs = deltaNuCalculator.correlations
 
     dfData = pd.DataFrame({r'Frequency [$\mu$Hz]':deltaF,
                            'Correlation':corrs,

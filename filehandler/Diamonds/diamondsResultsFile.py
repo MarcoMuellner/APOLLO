@@ -66,7 +66,7 @@ class Results:
         if Teff is not None:
             self.TeffError = 200
             self.BCCalculator = BCCalculator(Teff)
-            self.BC = self.BCCalculator.getBC()
+            self.BC = self.BCCalculator.BC
 
 
 
@@ -172,7 +172,6 @@ class Results:
 
         self.deltaNuCalculator = DeltaNuCalculator(self.numax[0], self.sigma[0], self.dataFile.getPSD(),
                                                      self.nyq, backGroundParameters, backgroundModel)
-        self.deltaNuCalculator.calculateFit()
 
     def getDeltaNuCalculator(self):
         return self.deltaNuCalculator
@@ -273,17 +272,17 @@ class Results:
             self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
-        self.radiusStar = (self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
-                            sqrt(self.Teff / TSun)
+        self.radiusStar = (self.getDeltaNuCalculator().deltaNu[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
+                          sqrt(self.Teff / TSun)
 
-        errorNuMax = ((1/NuMaxSun)*(self.getDeltaNuCalculator().getCen()[0]/DeltaNuSun)**-2 *
-                      sqrt(self.Teff/TSun)*self.getNuMax()[1])**2
+        errorNuMax = ((1/NuMaxSun) * (self.getDeltaNuCalculator().deltaNu[0] / DeltaNuSun) ** -2 *
+                      sqrt(self.Teff/TSun) * self.getNuMax()[1])**2
 
-        errorDeltaNu = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -3 * (self.getNuMax()[0] / NuMaxSun) * \
-                            sqrt(self.Teff / TSun) *(2*self.getDeltaNuCalculator().getCen()[1]/DeltaNuSun))**2
+        errorDeltaNu = ((self.getDeltaNuCalculator().deltaNu[0] / DeltaNuSun) ** -3 * (self.getNuMax()[0] / NuMaxSun) * \
+                        sqrt(self.Teff / TSun) * (2 * self.getDeltaNuCalculator().deltaNu[1] / DeltaNuSun)) ** 2
 
-        errorTemperature = ((self.getDeltaNuCalculator().getCen()[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
-                            self.TeffError/(TSun * sqrt(self.Teff / TSun)))**2
+        errorTemperature = ((self.getDeltaNuCalculator().deltaNu[0] / DeltaNuSun) ** -2 * (self.getNuMax()[0] / NuMaxSun) * \
+                            self.TeffError / (TSun * sqrt(self.Teff / TSun)))**2
 
         error = sqrt(errorNuMax+errorDeltaNu+errorTemperature)
 
@@ -331,18 +330,18 @@ class Results:
             self.logger.debug("BC is not yet calculated, need to calculate that first")
             self.calculate
             self.BCCalculator = BCCalculator(self.Teff)
-            self.BC = self.BCCalculator.getBC()
+            self.BC = self.BCCalculator.BC
 
-        self.mu = (6*log10(self.numax[0]/NuMaxSun)+15*log10(self.Teff/TSun) -12*log10(self.deltaNuCalculator.getCen()[0]/DeltaNuSun)\
+        self.mu = (6*log10(self.numax[0]/NuMaxSun)+15*log10(self.Teff/TSun) -12*log10(self.deltaNuCalculator.deltaNu[0] / DeltaNuSun)\
                     +1.2*(appMag + self.BC) -1.2*Av[0] - 5.7)/1.2
 
-        self.mu_kic = (6*log10(self.numax[0]/NuMaxSun)+15*log10(self.Teff/TSun) -12*log10(self.deltaNuCalculator.getCen()[0]/DeltaNuSun)\
+        self.mu_kic = (6*log10(self.numax[0]/NuMaxSun)+15*log10(self.Teff/TSun) -12*log10(self.deltaNuCalculator.deltaNu[0] / DeltaNuSun)\
                     +1.2*(kicmag + self.BC) -1.2*Av[0] - 5.7)/1.2
 
         self.mu_diff = self.mu-self.mu_kic
 
         errorNuMax = (6*self.getNuMax()[1]/(self.getNuMax()[0]*log(10)*1.2))**2
-        errorDeltaNu = ((12*self.getDeltaNuCalculator().getCen()[1]/(self.getDeltaNuCalculator().getCen()[0]*log(10)))/1.2)**2
+        errorDeltaNu = ((12 * self.getDeltaNuCalculator().deltaNu[1] / (self.getDeltaNuCalculator().deltaNu[0] * log(10))) / 1.2) ** 2
         errorV = magError
         errorAv= (Av[1])**2
         errorTemperature = ((15/1.2)*(self.TeffError/self.Teff))**2
