@@ -1,115 +1,253 @@
 from math import log10
 
 class PriorCalculator:
+    """
+    The prior calculator class computes initial guesses for the priors, which then can be used as Priors for DIAMONDS.
+    Most of the equations here are taken from the paper by Kallinger(2014), others are determined empirically. All of
+    the values are initial guesses. Proper values can be determined by fitting the PSD
+    """
     def __init__(self,nuMax,photonNoise):
-        self.__nuMax = nuMax
-        self.__photonNoise=photonNoise
-        self.calculateFirstHarveyFrequency(nuMax)
-        self.calculateHarveyFrequencies(nuMax)
-        self.calculateHarveyAmplitudes(nuMax)
-        self.calculateAmplitude(nuMax)
-        self.calculateSigma(nuMax)
+        """
+        Constructor of the priorCalculator. Automatically triggers the computation of the priors by setting the
+        nuMax property
+        :param nuMax: Represents the frequency of maximum oscillation -> in uHz
+        :type nuMax: float
+        :param photonNoise: Represents the background Photon noise. Should be computed in
+        PowerspectraCalculator -> ppm^2
+        :type photonNoise: float
+        """
+        self.photonNoise=photonNoise
+        self.nuMax = nuMax
 
-        return
+    def _runComputation(self):
+        """
+        Runs the computation of the priors. Triggered by setting the nuMax property
+        """
+        self._calculateFirstHarveyFrequency()
+        self._calculate2nd3rdHarveyFrequencies()
+        self._calculateHarveyAmplitudes()
+        self._calculateOscillationAmplitude()
+        self._calculateSigma()
 
-    def calculateHarveyFrequencies(self,nuMax):
-        '''
-        k_1 = 0.317 #Fit done by myself: 0.451
-        k_2 = 0.948 #Fit done by myself: 0.871
-        s_1 = 0.970 #Fit done by myself: 0.884
-        s_2 = 0.992 #Fit done by myself: 1.018
-'''
+    def _calculate2nd3rdHarveyFrequencies(self):
+        """
+        Calculates the 2nd and 3rd Harvey frequencies
+        """
         k_1 = 0.317  # Fit done by myself: 0.451
         k_2 = 0.948  # Fit done by myself: 0.871
         s_1 = 0.970  # Fit done by myself: 0.884
         s_2 = 0.992  # Fit done by myself: 1.018
 
-        self.__b_1 = k_1 * pow(nuMax, s_1)
-        self.__b_2 = k_2 * pow(nuMax, s_2)
+        self._secondHarveyFrequency = k_1 * pow(self.nuMax, s_1)
+        self._thirdHarveyFrequency = k_2 * pow(self.nuMax, s_2)
 
-        return self.__b_1, self.__b_2
-
-    def calculateHarveyAmplitudes(self,nuMax):
+    def _calculateHarveyAmplitudes(self):
+        """
+        Calculates the Harvey amplitude. Only one amplitude is computed, and given big enough boundaries so that the
+        fit does it properly
+        """
         k = 3335 #Second Harvey Fit done by myself: 2078
         s = -0.564 #Second Harvey  Fit done by myself: -0,496
 
         #Third Harvey Fit done by myself: 4545
         #Third Harvey Fit done by myself: -0.704
 
-        self.__a = k * pow(nuMax, s)
-        return self.__a
+        self._harveyAmplitude = k * pow(self.nuMax, s)
 
-    def calculateSigma(self,nuMax):
+    def _calculateSigma(self):
+        """
+        Calculates the standard deviation of the power excess of the area of oscillation
+        """
         k = 1.124
         s = 0.505
 
         #k = 1.66 # my values
         #s = 0.6
 
-        self.__sigma = k * pow(nuMax,s)
+        self._sigma = k * pow(self.nuMax, s)
 
-    def calculateAmplitude(self,nuMax):
+    def _calculateOscillationAmplitude(self):
+        """
+        Calculates the amplitude of the oscillation
+        """
         k = 216833
         s = -1.52
 
-        self.__amplitude = k*pow(nuMax,s)
+        self._oscillationAmplitude = k * pow(self._nuMax, s)
 
-    def calculateFirstHarveyFrequency(self,nuMax):
+    def _calculateFirstHarveyFrequency(self):
+        """
+        Calculates first harvey frequency
+        """
         #k = 1.951
         k = 19.51
         s = -0.071
         #s = -0.06 # test
 
-        self.__b_0 = k*pow(nuMax,s)
+        self._firstHarveyFrequency = k * pow(self.nuMax, s)
 
-    def getFirstHarveyFrequencyBoundary(self):
-        return (0.04*self.__b_0,1.15*self.__b_0)
+    @property
+    def firstHarveyFrequencyBoundary(self):
+        """
+        Property for the boundaries of the first Harvey frequency
+        :return: Min-Max value for the first harvey frequency in uHz
+        :rtype: tuple, 2 values as float
+        """
+        return (0.04 * self._firstHarveyFrequency, 1.15 * self._firstHarveyFrequency)
 
-    def getSecondHarveyFrequencyBoundary(self):
-        return (0.3 * self.__b_1,1.48 * self.__b_1)
+    @property
+    def secondHarveyFrequencyBoundary(self):
+        """
+        Property for the boundaries of the second Harvey frequency
+        :return: Min-Max value for the second harvey frequency in uHz
+        :rtype: tuple, 2 values as float
+        """
+        return (0.3 * self._secondHarveyFrequency, 1.48 * self._secondHarveyFrequency)
 
-    def getThirdHarveyFrequencyBoundary(self):
-        return (0.6 * self.__b_2,1.3 * self.__b_2)
+    @property
+    def thirdHarveyFrequencyBoundary(self):
+        """
+        Property for the boundaries of the third Harvey frequency
+        :return: Min-Max value for the third harvey frequency in uHz
+        :rtype: tuple, 2 values as float
+        """
+        return (0.6 * self._thirdHarveyFrequency, 1.3 * self._thirdHarveyFrequency)
 
-    def getHarveyAmplitudesBoundary(self):
-        return (0.018 * self.__a,0.31*self.__a)
+    @property
+    def harveyAmplitudeBoundary(self):
+        """
+        Property for the boundaries of harvey amplitudes
+        :return: Min-Max value for the harvey amplitudes in ppm^2
+        :rtype: tuple, 2 values as float
+        """
+        return (0.018 * self._harveyAmplitude, 0.31 * self._harveyAmplitude)
 
-    def getNuMaxBoundary(self):
-        return (0.9*self.__nuMax,1.2*self.__nuMax)
+    @property
+    def nuMaxBoundary(self):
+        """
+        Property for the boundaries of nuMax
+        :return: Min-Max value for nuMax in uHz
+        :rtype: tuple, 2 values as float
+        """
+        return (0.9 * self._nuMax, 1.2 * self._nuMax)
 
-    def getSigmaBoundary(self):
-        return (0.2*self.__sigma,1.5*self.__sigma)
+    @property
+    def sigmaBoundary(self):
+        """
+        Property for the boundaries of the standard deviation of the power excess
+        :return: Min-Max value for the standard deviation in uHz
+        :rtype: tuple, 2 values as float
+        """
+        return (0.2 * self._sigma, 1.5 * self._sigma)
 
-    def getAmplitudeBounday(self):
-        return (0.007*self.__amplitude,0.2
-                *self.__amplitude)
+    @property
+    def oscillationAmplitudeBoundary(self):
+        """
+        Property for the amplitude of the area of oscillation
+        :return: Min-Max value for the amplitude of oscillation in ppm^2
+        :rtype: tuple, 2 values as float
+        """
+        return (0.007 * self._oscillationAmplitude, 0.2
+                * self._oscillationAmplitude)
 
-    def getPhotonNoiseBoundary(self):
-        return (0.2*self.__photonNoise,2*self.__photonNoise)
+    @property
+    def photonNoiseBoundary(self):
+        """
+        Property for the boundaries of the photon noise
+        :return: Min-Max value for the photon noise in ppm^2
+        :rtype: tuple, 2 values as float
+        """
+        return (0.2 * self._photonNoise, 2 * self._photonNoise)
 
-    def getPhotonNoise(self):
-        return self.__photonNoise
+    @property
+    def photonNoise(self):
+        """
+        Property for the photon noise
+        :return: Value representing the photon noise in ppm^2
+        :rtype: float
+        """
+        return self._photonNoise
 
-    def getHarveyAmplitude(self):
-        return self.__a
+    @photonNoise.setter
+    def photonNoise(self,value):
+        """
+        Setter property for the photon noise
+        :param value: value representing the photon noise in ppm^2
+        :type value: float
+        """
+        self._photonNoise = value
 
-    def getHarveyFrequency1(self):
-        return self.__b_0
+    @property
+    def harveyAmplitude(self):
+        """
+        Property for the harvey amplitude
+        :return: Value representing the harvey amplitude in ppm^2
+        :rtype: float
+        """
+        return self._harveyAmplitude
 
-    def getHarveyFrequency2(self):
-        return self.__b_1
+    @property
+    def firstHarveyFrequency(self):
+        """
+        Property for first Harvey frequency
+        :return: Value representing the first harvey frequency in uHz
+        :rtype: float
+        """
+        return self._firstHarveyFrequency
 
-    def getHarveyFrequency3(self):
-        return self.__b_2
+    @property
+    def secondHarveyFrequency(self):
+        """
+        Property for the second harvey frequency
+        :return: Value representing the second harvey frequency in uHz
+        :rtype: float
+        """
+        return self._secondHarveyFrequency
 
-    def getSigma(self):
-        return self.__sigma
+    @property
+    def thirdHarveyFrequency(self):
+        """
+        Property for the third harvey frequency
+        :return: Value representing the third harvey frequency in uHz
+        :rtype: float
+        """
+        return self._thirdHarveyFrequency
 
-    def getHarveyFrequencies(self):
-        return self.__b_0,self.__b_1,self.__b_2
+    @property
+    def sigma(self):
+        """
+        Property for the standard deviation of the power excess
+        :return: Value representing the standard deviation in uHz
+        :rtype: float
+        """
+        return self._sigma
 
-    def getHarveyAmplitudes(self):
-        return self.__a
+    @property
+    def oscillationAmplitude(self):
+        """
+        Property for the amplitude of oscillation
+        :return: Value representing the amplitude of oscillation in ppm^2
+        :rtype: float
+        """
+        return self._oscillationAmplitude
 
-    def getAmplitude(self):
-        return self.__amplitude
+    @property
+    def nuMax(self):
+        """
+        Property for frequency of maximum oscillation
+        :return: Value representing the frequency of maximum oscillation in uHz
+        :rtype: float
+        """
+        return self._nuMax
+
+    @nuMax.setter
+    def nuMax(self,value):
+        """
+        Setter property for the frequency of maximum oscillation. Triggers the computation of all the other values, you
+        should therefore reread all other values
+        :param value: Value representing the frequency of maximum oscillation in uHz
+        :type value: float
+        """
+        self._nuMax = value
+        self._runComputation()
+
