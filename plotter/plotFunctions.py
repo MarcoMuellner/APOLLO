@@ -28,9 +28,12 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
     annotation = {'color': 'grey', 'linetype': 'solid'}
     annotationList[r'PSD [ppm$^2$/$\mu$Hz]'] = annotation
     if smooth:
-        dataList['Smoothed'] = data.smoothedData
-        if len(dataList['Smoothed']) != len(dataList[r'Frequency [$\mu$Hz]']):
-            dataList['Smoothed'] = data.smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
+        try:
+            dataList['Smoothed'] = data.smoothedData
+            if len(dataList['Smoothed']) != len(dataList[r'Frequency [$\mu$Hz]']):
+                dataList['Smoothed'] = data.smoothedData[1:] #todo this is a hack. Not terribly important, but we should investigate at some point
+        except AttributeError:
+            logger.warning("No smoothing available for type "+str(type(data)))
 
     annotation = {'color': 'green', 'linetype': 'solid'}
     annotationList['Smoothed'] = annotation

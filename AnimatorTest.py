@@ -4,8 +4,8 @@ from time import sleep
 import numpy as np
 import matplotlib.pyplot as plt
 
-parameter = BackgroundParameter("Background","ppm",kickId="224321303",runID="NoiseOnly",id=1,readData=False,readLiveData=True)
-parameter2 = BackgroundParameter("Background","ppm",kickId="224321303",runID="NoiseOnly",id=2,readData=False,readLiveData=True)
+parameter = BackgroundParameter("Background","ppm", kicID="224321303", runID="NoiseOnly", id=1, readData=False, readLiveData=True)
+parameter2 = BackgroundParameter("Background","ppm", kicID="224321303", runID="NoiseOnly", id=2, readData=False, readLiveData=True)
 
 data = parameter.getLiveData()
 data2 = parameter2.getLiveData()

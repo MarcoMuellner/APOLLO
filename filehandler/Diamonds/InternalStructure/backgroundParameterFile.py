@@ -4,22 +4,22 @@ import numpy as np
 
 from settings.settings import Settings
 from support.strings import *
+from filehandler.Diamonds.InternalStructure.backgroundAbstractFile import BaseBackgroundFile
 
 
-class BackgroundParameter:
+class BackgroundParameter(BaseBackgroundFile):
 
-    def __init__(self,name, unit, kickId=None,runID = 00,id = None,readData = True,readLiveData = True):
+    def __init__(self, name, unit, kicID=None, runID = 00, id = None, readData = True, readLiveData = True):
         '''
         Constructs an object containing the content of one backgroundparameter file.
         :param name: The name of the parameter, i.e. H
         :param unit: The unit contained in the values, i.e. uHz
-        :param kickId: the KicID of the Star
+        :param kicID: the KicID of the Star
         :param runID: The RunID used by Diamonds (subfolder in results file)!
         :param id: Id used between 0 and 9 (last three digits of Filename)
         '''
+        BaseBackgroundFile.__init__(self,kicID,runID)
         self.logger = logging.getLogger(__name__)
-        self.m_kicID = kickId
-        self.m_runId = runID
         self.m_id = id
         self.m_name = name
         self.m_unit = unit
@@ -28,28 +28,8 @@ class BackgroundParameter:
 #        if readLiveData == True:
 #            self.__deleteFile("_live")
 
-        if (kickId is not None and runID is not None and id is not None):
+        if (kicID is not None and runID is not None and id is not None):
             self.__readData(readData,readLiveData)
-
-    def setKICID(self,kicId):
-        '''
-        Sets the KicID and rereads data
-        :param kicId: KicID of the star
-        :return: returns Data. See getData()
-        '''
-        self.m_kicID = kicId
-        self.__readData()
-        return self.getData()
-
-    def setRunID(self,runId):
-        '''
-        Sets the RunID and rereads data
-        :param runId: runId of the Diamonds run (subfolder in results file)!
-        :return: returns Data. See getData()
-        '''
-        self.m_runId = runId
-        self.__readData()
-        return self.getData()
 
     def setID(self,id):
         '''
@@ -103,7 +83,7 @@ class BackgroundParameter:
             self.m_liveParameters = self.__readInternalData("_live")
 
     def __readInternalData(self,appendix = ""):
-        file = self.m_dataFolder + 'KIC' + self.m_kicID + "/" + self.m_runId + "/background_parameter" + appendix + "00" + str(
+        file = self.m_dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter" + appendix + "00" + str(
             self.m_id)+".txt"
         try:
             return np.loadtxt(file).T

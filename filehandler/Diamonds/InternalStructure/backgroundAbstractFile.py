@@ -30,7 +30,8 @@ class BaseBackgroundFile:
     @kicID.setter
     def kicID(self,value):
         self._kicID = value
-        self._readData()
+        if self._kicID is not None and self._runID is not None:
+            self._readData()
 
     @property
     def runID(self):
@@ -39,4 +40,5 @@ class BaseBackgroundFile:
     @runID.setter
     def runID(self,value):
         self._runID = value
-        self._readData()
+        if self._kicID is not None and self._runID is not None:
+            self._readData()

@@ -21,8 +21,6 @@ class MarginalDistribution(BaseBackgroundFile):
         '''
         BaseBackgroundFile.__init__(self,kickId,runID)
         self.logger = logging.getLogger(__name__)
-        self.m_kicID = kickId
-        self.m_runId = runID
         self.m_id = id
         self.m_name = name
         self.m_unit = unit
@@ -36,7 +34,7 @@ class MarginalDistribution(BaseBackgroundFile):
         :param kicId: KicID of the star
         :return: returns Data. See getData()
         '''
-        self.m_kicID = kicId
+        self.kicID = kicId
         self.__readData()
         return self.getData()
 
@@ -46,7 +44,7 @@ class MarginalDistribution(BaseBackgroundFile):
         :param runId: runId of the Diamonds run (subfolder in results file)!
         :return: returns Data. See getData()
         '''
-        self.m_runId = runId
+        self.runID = runId
         self.__readData()
         return self.getData()
 
@@ -108,10 +106,10 @@ class MarginalDistribution(BaseBackgroundFile):
         self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
         try:
             mpFile = glob.glob(self.m_dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
-                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id)))[0]
+                               .format(self.kicID, self.runID, '00'+str(self.m_id)))[0]
             self.m_data = np.loadtxt(mpFile).T
         except:
             self.logger.warning("Failed to open File '"+self.m_dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
-                               .format(self.m_kicID, self.m_runId, '00'+str(self.m_id))+"'")
+                               .format(self.kicID, self.runID, '00'+str(self.m_id))+"'")
             self.logger.warning("Setting Data to None")
             self.m_data = None
