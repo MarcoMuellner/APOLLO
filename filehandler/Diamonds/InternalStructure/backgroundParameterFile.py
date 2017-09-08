@@ -20,10 +20,10 @@ class BackgroundParameter(BaseBackgroundFile):
         '''
         BaseBackgroundFile.__init__(self,kicID,runID)
         self.logger = logging.getLogger(__name__)
-        self.m_id = id
-        self.m_name = name
-        self.m_unit = unit
-        self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        self._id = id
+        self._name = name
+        self._unit = unit
+        self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
 
 #        if readLiveData == True:
 #            self.__deleteFile("_live")
@@ -37,7 +37,7 @@ class BackgroundParameter(BaseBackgroundFile):
         :param id: The id of the file, last three digits of filename
         :return: returns Data. See getData()
         '''
-        self.m_id = id
+        self._id = id
         self.__readData()
         return self.getData()
 
@@ -45,46 +45,46 @@ class BackgroundParameter(BaseBackgroundFile):
         '''
         :return: The Name of the object
         '''
-        return self.m_name
+        return self._name
 
     def getUnit(self):
         '''
         :return: The Unit of the object
         '''
-        return self.m_unit
+        return self._unit
 
     def getLiveData(self,reReadData = True):
         '''
         :return: Live Data set. Single numpy array
         '''
 
-        if self.m_liveParameters is None or reReadData == True:
+        if self._liveParameters is None or reReadData == True:
             self.__readData(readParameters=False, readLiveParameters=True)
 
-        return self.m_liveParameters
+        return self._liveParameters
 
     def getData(self,reReaddata = False):
         '''
         :return: The Dataset. Single numpy array
         '''
-        if self.m_parameters is None or reReaddata == True:
+        if self._parameters is None or reReaddata == True:
             self.__readData(readParameters=True,readLiveParameters=False)
 
-        return self.m_parameters
+        return self._parameters
 
     def __readData(self,readParameters = True,readLiveParameters = True):
         '''
         Reads the Data. Should be only used internally
         '''
         if readParameters == True:
-            self.m_parameters = self.__readInternalData()
+            self._parameters = self.__readInternalData()
 
         if readLiveParameters == True:
-            self.m_liveParameters = self.__readInternalData("_live")
+            self._liveParameters = self.__readInternalData("_live")
 
     def __readInternalData(self,appendix = ""):
-        file = self.m_dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter" + appendix + "00" + str(
-            self.m_id)+".txt"
+        file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter" + appendix + "00" + str(
+            self._id)+".txt"
         try:
             return np.loadtxt(file).T
         except:
@@ -93,8 +93,8 @@ class BackgroundParameter(BaseBackgroundFile):
             return None
 
     def __deleteFile(self,appendix):
-        file = self.m_dataFolder + 'KIC' + self.m_kicID + "/" + self.m_runId + "/background_parameter" + appendix + "00" + str(
-            self.m_id) + ".txt"
+        file = self._dataFolder + 'KIC' + self._kicID + "/" + self._runId + "/background_parameter" + appendix + "00" + str(
+            self._id) + ".txt"
         try:
             os.remove(file)
         except OSError:

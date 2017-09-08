@@ -17,27 +17,6 @@ class ParameterSummary(BaseBackgroundFile):
         self.logger = logging.getLogger(__name__)
         if(kicID is not None and runID is not None):
             self.__readData()
-        return
-
-    def setKICID(self, kicId):
-        '''
-        Sets the KicID and rereads data
-        :param kicId: KicID of the star
-        :return: returns Data. See getData()
-        '''
-        self.kicID = kicId
-        self.__readData()
-        return self.getData()
-
-    def setRunID(self, runId):
-        '''
-        Sets the RunID and rereads data
-        :param runId: runId of the Diamonds run (subfolder in results file)!
-        :return: returns Data. See getData()
-        '''
-        self.runID = runId
-        self.__readData()
-        return self.getData()
 
     def getData(self,key=None,priorData=False):
         if any(self.rawValues) is False:

@@ -1,8 +1,18 @@
 import logging
 
 class BaseBackgroundFile:
-
+    """
+    Base class for the background filereaders. Creates some properties for the kicIDs, units and provides an interface
+    for some methods that have to be implemented
+    """
     def __init__(self,kicID = None,runID = None):
+        """
+        Constructor of the Baseclass
+        :param kicID: KICId of the star
+        :type kicID: string
+        :param runID: RunID of the star. Can be fullBackground/noiseOnly dependend on which file you want to read
+        :type runID: string
+        """
         self.logger = logging.getLogger(__name__)
         self._kicID = kicID
         self._runID = runID
