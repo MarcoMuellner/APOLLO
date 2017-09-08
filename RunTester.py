@@ -129,7 +129,7 @@ for i in range(0,len(priors) ):
 
 priors = np.array((lowerBounds,upperBounds)).transpose()
 
-files = FileCreater(input,powerCalc.powerSpectrum,nyquist,priors)
+files = FileCreater(input, powerCalc.powerSpectralDensity, nyquist, priors)
 
 median = []
 median.append(priorCalculator.getPhotonNoise())

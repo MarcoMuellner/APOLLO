@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLevel = 0,fileName = ""):
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
-    psd = data.powerSpectrum
+    psd = data.powerSpectralDensity
     backgroundModel = None
     if psdOnly is False:
         backgroundModel = data.createBackgroundModel(runGauss)

@@ -99,7 +99,7 @@ for i in starList:
             upperBounds[x] = priors[x][1]
 
         priors = np.array((lowerBounds, upperBounds)).transpose()
-        files = FileCreater(i, powerCalc.powerSpectrum, nyquist, priors)
+        files = FileCreater(i, powerCalc.powerSpectralDensity, nyquist, priors)
 
         proc = DiamondsProcess(i)
         proc.start()

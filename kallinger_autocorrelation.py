@@ -39,7 +39,7 @@ file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.kicID = input
 
-nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(),powerCalc.powerSpectrum)
+nuMaxCalc = NuMaxCalculator(powerCalc.getLightcurve(), powerCalc.powerSpectralDensity)
 
 corr,best_fit = nuMaxCalc.calculateIterativeFilterFrequency()
 initLowIndex = nuMaxCalc.getNearestIndex() + 10

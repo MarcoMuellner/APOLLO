@@ -88,7 +88,7 @@ class AnalyserResults:
         with cd(analyserResultsPath):
             if self.powerSpectraCalculator is not None:
                 np.savetxt("Lightcurve.txt",self.powerSpectraCalculator.lightCurve,header="Time(days) Flux")
-                np.savetxt("PSD.txt",self.powerSpectraCalculator.powerSpectrum,header="Frequency(uHz) PSD(ppm^2/uHz)")
+                np.savetxt("PSD.txt", self.powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
 
             if self.nuMaxCalculator is not None:
                 resultDict["NuMaxCalc"]={}

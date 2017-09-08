@@ -144,7 +144,7 @@ for i in range(0,len(priors) ):
 
 priors = np.array((lowerBounds,upperBounds)).transpose()
 
-files = FileCreater(input,powerCalc.powerSpectrum,nyquist,priors)
+files = FileCreater(input, powerCalc.powerSpectralDensity, nyquist, priors)
 
 median = []
 median.append(priorCalculator.getPhotonNoise())
@@ -158,8 +158,8 @@ median.append(priorCalculator.getAmplitude())
 median.append(nuMax)
 median.append(priorCalculator.getSigma())
 
-backgroundModel = createBackgroundModel(True,median,powerCalc.powerSpectrum,nyquist)
-plotPSDTemp(True,powerCalc.powerSpectrum,backgroundModel)
+backgroundModel = createBackgroundModel(True, median, powerCalc.powerSpectralDensity, nyquist)
+plotPSDTemp(True, powerCalc.powerSpectralDensity, backgroundModel)
 #show()
 
 proc = DiamondsProcess(strDiamondsExecFull, input, "0", "1")
