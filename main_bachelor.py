@@ -57,7 +57,7 @@ for i in kicList:
     if len(position > 0):
         Teff = arrTemperatures[1][position[0]]
     result = Results(i,'00',Teff)
-    if result.getPSDOnly() is False:
+    if result.psdOnlyFlag is False:
         nuMaxSun = arrSun[0]
         deltaNuSun = arrSun[1]
         tempSun = arrSun[2]
@@ -67,66 +67,66 @@ for i in kicList:
         #av = (0.16*3.1,0.08*3.1)
 
         result.calculateDeltaNu()
-        calc = result.getDeltaNuCalculator()
+        calc = result.deltaNuCalculator
         resultList.append(result)
         result.calculateRadius(tempSun,nuMaxSun,deltaNuSun)
         result.calculateLuminosity(tempSun)
         result.calculateDistanceModulus(vmag,kicmag,arrTemperatures[4][position[0]],av,nuMaxSun,deltaNuSun,tempSun)
 
-        print('--------------Result KIC' + result.getKicID() + '------------')
-        print('nuMax = ' + str(result.getNuMax()) + '(' + str(result.getSigma()) + ')')
-        print('DeltaNu = ' + str(result.getDeltaNuCalculator().deltaNu[0]) + '(' + str(
-            result.getDeltaNuCalculator().deltaNu[1]) + ')')
-        print(float(result.getKicID()))
+        print('--------------Result KIC' + result._kicID + '------------')
+        print('nuMax = ' + str(result.nuMax) + '(' + str(result._sigma) + ')')
+        print('DeltaNu = ' + str(result.deltaNuCalculator.deltaNu[0]) + '(' + str(
+            result.deltaNuCalculator.deltaNu[1]) + ')')
+        print(float(result._kicID))
         print('----------------------------------------------------------------')
 
 
-        print('--------------Calculations KIC' + result.getKicID() + '------------')
+        print('--------------Calculations KIC' + result._kicID + '------------')
         print("Temperature is '"+str(Teff))
         print("Temperature of the sun '"+str(tempSun)+"'")
-        print("Radius for KicID '" + str(result.getKicID()) + "'is '" + str(result.getRadius()[0])
-              + "'R_sun("+str(result.getRadius()[1])+")'")
-        print("Luminosity for KicID '" + str(result.getKicID()) + "'is '" + str(result.getLuminosity()[0])
-            + "'L_sun("+str(result.getLuminosity()[1])+")'")
-        print("Bolometric Correlation for star '"+str(result.getKicID())+"' is: '"+str(result.getBC()))
+        print("Radius for KicID '" + str(result._kicID) + "'is '" + str(result.radiusStar[0])
+              + "'R_sun(" + str(result.radiusStar[1]) + ")'")
+        print("Luminosity for KicID '" + str(result._kicID) + "'is '" + str(result.luminosity[0])
+              + "'L_sun(" + str(result.luminosity[1]) +")'")
+        print("Bolometric Correlation for star '" + str(result._kicID) + "' is: '" + str(result.bolometricCorrection))
         print("Apparent Magnitude :'"+str(vmag)+"("+str(arrTemperatures[4][position[0]])+")")
         print("Interstellar Extinction: '"+str(arrTemperatures[3][position[0]]))
-        print("Distance is :'"+str(result.getDistanceModulus()[0])+"("+str(result.getDistanceModulus()[1])+")'")
-        print("KIC Distance is: "+str(result.getKICDistanceModulus()))
-        print("Robustness is: "+str(result.getRobustnessValue()))
-        print("Robustness sigma is: "+str(result.getRobustnessSigma()))
+        print("Distance is :'"+str(result.distanceModulus[0])+"("+str(result.distanceModulus[1])+")'")
+        print("KIC Distance is: "+str(result.kicDistanceModulus))
+        print("Robustness is: "+str(result.robustnessValue))
+        print("Robustness sigma is: "+str(result.robustnessSigma))
         print('----------------------------------------------------------------')
 
         rgbstr = ''
 
-        if lowerBound <= result.getDistanceModulus()[0] <= upperBound:
-            print("KIC"+result.getKicID()+" is MEMBER of the starcluster")
+        if lowerBound <= result.distanceModulus[0] <= upperBound:
+            print("KIC" + result._kicID + " is MEMBER of the starcluster")
             rgbstr = '75bbfd'
-        elif lowerBound <=result.getDistanceModulus()[0]+result.getDistanceModulus()[1]<=upperBound:
-            print("Cant tell if "+result.getKicID()+" is Member of starcluster")
+        elif lowerBound <=result.distanceModulus[0]+result.distanceModulus[1]<=upperBound:
+            print("Cant tell if " + result._kicID + " is Member of starcluster")
             rgbstr = 'c7fdb5'
 
         else:
-            print("KIC"+result.getKicID()+" is NO MEMBER of the starcluster")
+            print("KIC" + result._kicID + " is NO MEMBER of the starcluster")
             rgbstr = '840000'
 
         colorList.append(struct.unpack('BBB', bytes.fromhex(rgbstr)))
-        nuMaxList.append(result.getNuMax()[0])
-        errorNuMaxList.append(result.getNuMax()[1])
-        deltaNuList.append(result.getDeltaNuCalculator().deltaNu[0])
-        errorDeltaNuList.append(result.getDeltaNuCalculator().deltaNu[1])
-        distanceModulusList.append(result.getDistanceModulus()[0])
-        errorDistanceModulusList.append(result.getDistanceModulus()[1])
-        radiusList.append(result.getRadius()[0])
-        errorRadiusList.append(result.getRadius()[1])
-        luminosityList.append(result.getLuminosity()[0])
-        errorLuminosityList.append(result.getLuminosity()[1])
-        kicDistanceModulusList.append(result.getKICDistanceModulus())
-        robustnessDistanceModulusList.append(result.getRobustnessValue())
+        nuMaxList.append(result.nuMax[0])
+        errorNuMaxList.append(result.nuMax[1])
+        deltaNuList.append(result.deltaNuCalculator.deltaNu[0])
+        errorDeltaNuList.append(result.deltaNuCalculator.deltaNu[1])
+        distanceModulusList.append(result.distanceModulus[0])
+        errorDistanceModulusList.append(result.distanceModulus[1])
+        radiusList.append(result.radiusStar[0])
+        errorRadiusList.append(result.radiusStar[1])
+        luminosityList.append(result.luminosity[0])
+        errorLuminosityList.append(result.luminosity[1])
+        kicDistanceModulusList.append(result.kicDistanceModulus)
+        robustnessDistanceModulusList.append(result.robustnessValue)
         nullList.append(0)
 
         #plotPSD(result,True,False)
-        #plotDeltaNuFit(result.getDeltaNuCalculator(),result.getKicID())
+        #plotDeltaNuFit(result.deltaNuCalculator,result.kicID)
 
 plotStellarRelations(kicList,nuMaxList,distanceModulusList,errorNuMaxList,errorDistanceModulusList,
                      r'$\nu_{max}$($\mu$Hz)',r'$\mu_0$(mag)',r'Distance modulus in relation to $\nu_{max}$',fitDegree=0,fill=True)
@@ -145,7 +145,7 @@ plotStellarRelations(kicList,arrTemperatures[1],luminosityList,nullList,errorLum
                      r'$\log (T_{eff})$',r'$\log(L(L_\odot)$',r'HR Diagramm',scalex='log',scaley='log')
 '''
 plotStellarRelations(radiusList,luminosityList,errorRadiusList,errorLuminosityList,
-                     r'R($R_\odot$)',r'L($L_\odot$)',r'Luminosity in relation to the radius')
+                     r'R($R_\odot$)',r'L($L_\odot$)',r'Luminosity in relation to the radiusStar')
 
 
 plotStellarRelations(luminosityList,arrTemperatures[2],errorLuminosityList,nullList,
@@ -159,7 +159,7 @@ file = open("DistanceModulus.csv","w")
 file.write("NuMax;DistanceModulus\n")
 
 for i in range(0,len(resultList)):
-    file.write(str(log10(resultList[i].getNuMax()[0]))+";"+str(resultList[i].getDistanceModulus())+"\n")
+    file.write(str(log10(resultList[i].getNuMax()[0]))+";"+str(resultList[i].distanceModulus)+"\n")
 file.close()
 
 file = open("results.csv","w")
@@ -167,22 +167,22 @@ file.write("KicID;Membership;NuMax;Error;Distance Modulus;Error;KIC Distance Mod
 
 for i in range(0,len(resultList)):
     M = ""
-    if lowerBound <= resultList[i].getDistanceModulus()[0] <= 11:
+    if lowerBound <= resultList[i].distanceModulus[0] <= 11:
         M="M"
-    elif lowerBound <= resultList[i].getDistanceModulus()[0] + resultList[i].getDistanceModulus()[1]  <= 11:
+    elif lowerBound <= resultList[i].distanceModulus[0] + resultList[i].distanceModulus[1]  <= 11:
         M = "M"
-    elif lowerBound <= resultList[i].getDistanceModulus()[0] - resultList[i].getDistanceModulus()[1]  <= 11:
+    elif lowerBound <= resultList[i].distanceModulus[0] - resultList[i].distanceModulus[1]  <= 11:
         M = "M"
     else:
         M='NM'
     file.write(str(resultList[i].kicID)+";"+M+";"+str(resultList[i].getNuMax()[0])+";"+str(resultList[i].getNuMax()[1])+";")
-    file.write(str(resultList[i].getDistanceModulus()[0])+";"+str(resultList[i].getDistanceModulus()[1])+";")
-    file.write(str(resultList[i].getKICDistanceModulus())+";")
-    file.write(str(resultList[i].getRobustnessValue())+";")
-    file.write(str(resultList[i].getRobustnessSigma()) + ";")
-    file.write(str(resultList[i].getDeltaNuCalculator().deltaNu[0]) + ";" + str(resultList[i].getDeltaNuCalculator().deltaNu[1]) + ";")
-    file.write(str(resultList[i].getRadius()[0])+";"+str(resultList[i].getRadius()[1])+";")
-    file.write(str(resultList[i].getLuminosity()[0])+";"+str(resultList[i].getLuminosity()[1])+"\n")
+    file.write(str(resultList[i].distanceModulus[0])+";"+str(resultList[i].distanceModulus[1])+";")
+    file.write(str(resultList[i].kicDistanceModulus)+";")
+    file.write(str(resultList[i].robustnessValue)+";")
+    file.write(str(resultList[i].robustnessSigma) + ";")
+    file.write(str(resultList[i].deltaNuCalculator.deltaNu[0]) + ";" + str(resultList[i].deltaNuCalculator.deltaNu[1]) + ";")
+    file.write(str(resultList[i].radiusStar[0]) + ";" + str(resultList[i].radiusStar[1]) + ";")
+    file.write(str(resultList[i].luminosity[0])+";"+str(resultList[i].luminosity[1])+"\n")
 file.close()
 
 

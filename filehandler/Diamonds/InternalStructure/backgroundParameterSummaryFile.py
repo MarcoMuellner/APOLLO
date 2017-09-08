@@ -1,9 +1,12 @@
-from settings.settings import Settings
-import numpy as np
 import glob
-from support.strings import *
-from uncertainties import ufloat
 import logging
+
+import numpy as np
+from uncertainties import ufloat
+
+from settings.settings import Settings
+from support.strings import *
+
 
 class ParameterSummary:
 
@@ -34,11 +37,6 @@ class ParameterSummary:
         '''
         self.m_runId = runId
         self.__readData()
-        return self.getData()
-
-    def setParameters(self, kicId, runId):
-        self.setKICID(kicId)
-        self.setRunID(runId)
         return self.getData()
 
     def getData(self,key=None,priorData=False):

@@ -1,8 +1,10 @@
-import glob
+import logging
+
 import numpy as np
+
 from settings.settings import Settings
 from support.strings import *
-import logging
+
 
 class BackgroundParameter:
 
@@ -71,15 +73,6 @@ class BackgroundParameter:
         '''
         return self.m_unit
 
-    def setParameters(self,kicId,runId,id):
-        '''
-        Convinience function for setting all parameters at once
-        '''
-        self.setKICID(kicId)
-        self.setRunID(runId)
-        self.setID(id)
-        return self.getData()
-
     def getLiveData(self,reReadData = True):
         '''
         :return: Live Data set. Single numpy array
@@ -89,8 +82,6 @@ class BackgroundParameter:
             self.__readData(readParameters=False, readLiveParameters=True)
 
         return self.m_liveParameters
-
-
 
     def getData(self,reReaddata = False):
         '''

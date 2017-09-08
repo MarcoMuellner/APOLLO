@@ -106,15 +106,15 @@ class AnalyserResults:
                     resultDict["Diamonds"][key]={}
                     resultDict["Analysis"][key] = {}
 
-                    for priorKey,priorValue in value.getPrior().getData().items():
+                    for priorKey,priorValue in value.prior.getData().items():
                         resultDict["Diamonds_Priors"][key][priorKey]=priorValue
 
                     resultDict["Diamonds"][key][strEvidenceSkillLog] = \
-                        format(ufloat(value.getEvidence().getData(strEvidenceSkillLog)
-                                      ,value.getEvidence().getData(strEvidenceSkillErrLog)))
-                    resultDict["Diamonds"][key][strEvidenceSkillInfLog] = value.getEvidence().getData(strEvidenceSkillInfLog)
+                        format(ufloat(value.evidence.getData(strEvidenceSkillLog)
+                                      ,value.evidence.getData(strEvidenceSkillErrLog)))
+                    resultDict["Diamonds"][key][strEvidenceSkillInfLog] = value.evidence.getData(strEvidenceSkillInfLog)
 
-                    for backPriorKey,backPriorValue in value.getSummary().getData(priorData=True).items():
+                    for backPriorKey,backPriorValue in value.summary.getData(priorData=True).items():
                         resultDict["Diamonds"][key][backPriorKey] = format(backPriorValue)
                         if backPriorValue/resultDict["Diamonds_Priors"][key][backPriorKey][0] < 1.05:
                             resultDict["Analysis"][key][backPriorKey] = "Not okay (Lower Limit!)"

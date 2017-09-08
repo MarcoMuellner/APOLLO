@@ -1,8 +1,11 @@
-from settings.settings import Settings
-import numpy as np
 import glob
-from support.strings import *
 import logging
+
+import numpy as np
+
+from settings.settings import Settings
+from support.strings import *
+
 
 class Evidence:
     def __init__(self,kicID = None,runID = None):
@@ -31,11 +34,6 @@ class Evidence:
         :return: returns Data. See getData()
         '''
         self.m_runId = runId
-        return self.getData()
-
-    def setParameters(self,kicId,runId):
-        self.setKICID(kicId)
-        self.setRunID(runId)
         return self.getData()
 
     def getData(self,key=None):

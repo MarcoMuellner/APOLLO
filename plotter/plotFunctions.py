@@ -112,7 +112,7 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
 def plotMarginalDistributions(data):
     pl.figure(figsize=(23,12))
     marginalDists = data.createMarginalDistribution()
-    summary = data.getSummary()
+    summary = data.summary
 
     par_median = summary.getData(strSummaryMedian)  # median values
     par_le = summary.getData(strSummaryLowCredLim)  # lower credible limits

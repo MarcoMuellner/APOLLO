@@ -1,10 +1,14 @@
 import glob
-import numpy as np
-from settings.settings import Settings
-from support.strings import *
 import logging
 
-class MarginalDistribution:
+import numpy as np
+
+from settings.settings import Settings
+from support.strings import *
+from filehandler.Diamonds.InternalStructure.backgroundAbstractFile import BaseBackgroundFile
+
+
+class MarginalDistribution(BaseBackgroundFile):
 
     def __init__(self,name, unit, kickId=None,runID = 00,id = None):
         '''
@@ -15,6 +19,7 @@ class MarginalDistribution:
         :param runID: The RunID used by Diamonds (subfolder in results file)!
         :param id: Id used between 0 and 9 (last three digits of Filename)
         '''
+        BaseBackgroundFile.__init__(self,kickId,runID)
         self.logger = logging.getLogger(__name__)
         self.m_kicID = kickId
         self.m_runId = runID
@@ -66,15 +71,6 @@ class MarginalDistribution:
         :return: The Unit of the object
         '''
         return self.m_unit
-
-    def setParameters(self,kicId,runId,id):
-        '''
-        Convinience function for setting all parameters at once
-        '''
-        self.setKICID(kicId)
-        self.setRunID(runId)
-        self.setID(id)
-        return self.getData()
 
     def getData(self):
         '''
