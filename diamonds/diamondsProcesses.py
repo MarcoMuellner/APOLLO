@@ -1,16 +1,28 @@
+import logging
 import subprocess
 
-from settings.settings import Settings
-from support.strings import *
-from support.directoryManager import cd
 from plotter.fileAnimator import FileAnimator
-import logging
-import pylab as pl
+from settings.settings import Settings
+from support.directoryManager import cd
+from support.strings import *
 
 
 class DiamondsProcess:
+    """
+    This class will run DIAMONDS. Dependent on the settings, it will run one or both models (full Background model,
+    noise Background model). To be able to run it successfully the prior File has to be set up, as well as the
+    results path in background/results/KIC***/. So you need to run all the calculators and filehandlers prior to
+    running diamonds. This class also does some rudimentary errorhandling of diamonds. It parses the log provided by
+    DIAMONDS to do so.
+    """
     def __init__(self,kicID):
-        self.status = {}
+        """
+        The constructor of the Process class. It sets up the binaries that need to be executed, gets various settings
+        and sets the proper KICId
+        :param kicID: The KICId of the star
+        :type kicID: string
+        """
+        self._status = {}
         self.logger = logging.getLogger(__name__)
         self.diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
         self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
@@ -27,6 +39,10 @@ class DiamondsProcess:
         return
 
     def start(self):
+        """
+        Runs the processes setup in the constructor. It also creates the proper directories, for each run it will create
+        one. Also logs the output of diamonds. Will raise a ValueError if DIAMONDS cannot finish the fitting.
+        """
         self.logger.debug("Starting diamonds process(es).")
         for i in self.binaryListToExecute.keys():
             resultsPath = self.diamondsResultsPath+"KIC"+self.kicID+"/"+i+"/"
@@ -51,87 +67,41 @@ class DiamondsProcess:
 
             while finished == False:
                 errorCount +=1
-                self.status[mode] = strDiamondsStatusRunning
+                self._status[mode] = strDiamondsStatusRunning
                 with cd(self.diamondsBinaryPath):
-                    fileDict = self.getParameterDict(mode)
-                    anim = FileAnimator(fileDict)
-
-                    animStart = False
-
                     p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     while p.poll() is None:
                         line = p.stderr.readline()
                         self.logger.debug(line)
-                        #if "Nit" in str(line) and animStart == False:
-                        #    animStart = True
-                        #    anim.start()
                         if strDiamondsErrBetterLikelihood in str(line):
                             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
-                            self.status[mode] = strDiamondsStatusLikelihood
+                            self._status[mode] = strDiamondsStatusLikelihood
                         elif strDiamondsErrCovarianceFailed in str(line):
                             self.logger.warning("Diamonds cannot decompose covariance. Repeat!")
-                            self.status[mode] = strDiamondsStatusCovariance
+                            self._status[mode] = strDiamondsStatusCovariance
                         elif strDiamondsErrAssertionFailed in str(line):
                             self.logger.warning("Diamonds assertion failed. Repeat!")
-                            self.status[mode] = strDiamondsStatusAssertion
+                            self._status[mode] = strDiamondsStatusAssertion
 
                     self.logger.debug(p.stdout.read())
                     self.logger.debug("Command '"+str(cmd)+"' done")
-                    if self.status[mode] == strDiamondsStatusRunning:
+                    if self._status[mode] == strDiamondsStatusRunning:
                         finished = True
-                        self.status[mode] = strDiamondsStatusGood
+                        self._status[mode] = strDiamondsStatusGood
                     elif errorCount >3:
                         self.logger.error("Diamonds failed to find good values!")
-                        break
+                        raise ValueError
 
                 #Some error handling needs to take place here!
         return
 
-    def stop(self):
-        self.logger.debug("Yet to implement!")
-        return
-
-    def getLog(self):
-        self.logger.debug("Yet to implement!")
-        return
-
-    def stillRunning(self):
-        self.logger.debug("Yet to implement!")
-        return
-
-    def finished(self):
-        self.logger.debug("Yet to implement!")
-        return
-
-    def getStatus(self):
-        return self.status
-
-    def getParameterDict(self,runID):
-        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
-        file = dataFolder + 'KIC' + self.kicID + "/" + runID + "/background_parameter_live00";
-
-        fileDict = {}
-
-        names = ['w', '$\sigma_\mathrm{long}$', '$b_\mathrm{long}$', '$\sigma_\mathrm{gran,1}$',
-                      '$b_\mathrm{gran,1}$', '$\sigma_\mathrm{gran,2}$', '$b_\mathrm{gran,2}$']
-        units = ['ppm$^2$/$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz', 'ppm', '$\mu$Hz']
-
-        if runID == strDiamondsModeNoise:
-            names.append['$H_\mathrm{osc}$', '$f_\mathrm{max}$ ', '$\sigma_\mathrm{env}$']
-            units.append['ppm$^2$/$\mu$Hz','$\mu$Hz', '$\mu$Hz']
-            counter = 9
-        else:
-            counter = 6
-
-        for i in range(0,counter):
-            try:
-                self.logger.info("Deleting file "+file+str(i)+".txt")
-                os.remove(file+str(i)+".txt")
-            except OSError:
-                self.logger.debug("File " + file+str(i) + " doesnt exist")
-
-            fileDict[names[i]] = (units[i],file+str(i)+".txt")
-
-        return fileDict
+    @property
+    def status(self):
+        """
+        Property for the status flag on diamonds. See strings.py for possible values
+        :return:Status flag
+        :rtype:string
+        """
+        return self._status
 
 

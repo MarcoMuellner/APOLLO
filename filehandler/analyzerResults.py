@@ -123,11 +123,11 @@ class AnalyserResults:
                         else:
                             resultDict["Analysis"][key][backPriorKey] = "Okay"
 
-            if len(self.diamondsRunner.getStatus().items()) != 0:
+            if len(self.diamondsRunner.status.items()) != 0:
                 if "Diamonds" not in resultDict.keys():
                     resultDict["Diamonds"] = {}
 
-                for key,value in self.diamondsRunner.getStatus().items():
+                for key,value in self.diamondsRunner.status.items():
                     if key not in resultDict["Diamonds"].keys():
                         resultDict["Diamonds"][key]={}
 
