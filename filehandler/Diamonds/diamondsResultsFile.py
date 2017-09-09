@@ -96,7 +96,7 @@ class Results:
 
     @property
     def powerSpectralDensity(self):
-        return self.dataFile.getPSD()
+        return self.dataFile.powerSpectralDensity
 
     @property
     def kicID(self):
@@ -186,11 +186,12 @@ class Results:
         par_ue = self.summary.getRawData(strSummaryUpCredLim)   # upper credible limits
         backGroundParameters = np.vstack((par_median, par_le, par_ue))
 
-        self._deltaNuCalculator = DeltaNuCalculator(self.numax[0], self._sigma[0], self.dataFile.getPSD(),
+        self._deltaNuCalculator = DeltaNuCalculator(self.numax[0], self._sigma[0],
+                                                    self.dataFile.powerSpectralDensity,
                                                     self.nyq, backGroundParameters, backgroundModel)
 
     def createBackgroundModel(self, runGauss):
-        freq, psd = self.dataFile.getPSD()
+        freq, psd = self.dataFile.powerSpectralDensity
         par_median = self.summary.getRawData(strSummaryMedian)  # median values
         par_le = self.summary.getRawData(strSummaryLowCredLim)  # lower credible limits
         par_ue = self.summary.getRawData(strSummaryUpCredLim) # upper credible limits
