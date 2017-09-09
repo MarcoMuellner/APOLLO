@@ -114,7 +114,7 @@ class AnalyserResults:
                                       ,value.evidence.getData(strEvidenceSkillErrLog)))
                     resultDict["Diamonds"][key][strEvidenceSkillInfLog] = value.evidence.getData(strEvidenceSkillInfLog)
 
-                    for backPriorKey,backPriorValue in value.summary.getData(priorData=True).items():
+                    for backPriorKey,backPriorValue in value.summary.getData().items():
                         resultDict["Diamonds"][key][backPriorKey] = format(backPriorValue)
                         if backPriorValue/resultDict["Diamonds_Priors"][key][backPriorKey][0] < 1.05:
                             resultDict["Analysis"][key][backPriorKey] = "Not okay (Lower Limit!)"

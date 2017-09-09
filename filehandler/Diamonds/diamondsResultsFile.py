@@ -46,9 +46,9 @@ class Results:
 
         for i in range(0,10):
             try:
-                par_median = self.summary.getData(strSummaryMedian)[i]  # median values
-                par_le = self.summary.getData(strSummaryLowCredLim)[i]  # lower credible limits
-                par_ue = self.summary.getData(strSummaryUpCredLim)[i]  # upper credible limits
+                par_median = self.summary.getRawData(strSummaryMedian)[i]  # median values
+                par_le = self.summary.getRawData(strSummaryLowCredLim)[i]  # lower credible limits
+                par_ue = self.summary.getRawData(strSummaryUpCredLim)[i]  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
             except:
                 par_median = 0  # median values
@@ -181,9 +181,9 @@ class Results:
 
     def calculateDeltaNu(self):
         backgroundModel = self.createBackgroundModel(True)
-        par_median = self.summary.getData(strSummaryMedian)  # median values
-        par_le = self.summary.getData(strSummaryLowCredLim)  # lower credible limits
-        par_ue = self.summary.getData(strSummaryUpCredLim)   # upper credible limits
+        par_median = self.summary.getRawData(strSummaryMedian)  # median values
+        par_le = self.summary.getRawData(strSummaryLowCredLim)  # lower credible limits
+        par_ue = self.summary.getRawData(strSummaryUpCredLim)   # upper credible limits
         backGroundParameters = np.vstack((par_median, par_le, par_ue))
 
         self._deltaNuCalculator = DeltaNuCalculator(self.numax[0], self._sigma[0], self.dataFile.getPSD(),
@@ -191,9 +191,9 @@ class Results:
 
     def createBackgroundModel(self, runGauss):
         freq, psd = self.dataFile.getPSD()
-        par_median = self.summary.getData(strSummaryMedian)  # median values
-        par_le = self.summary.getData(strSummaryLowCredLim)  # lower credible limits
-        par_ue = self.summary.getData(strSummaryUpCredLim) # upper credible limits
+        par_median = self.summary.getRawData(strSummaryMedian)  # median values
+        par_le = self.summary.getRawData(strSummaryLowCredLim)  # lower credible limits
+        par_ue = self.summary.getRawData(strSummaryUpCredLim) # upper credible limits
         if runGauss:
             self._backgroundNoise = (par_median[0], par_median[0] - par_le[0])
             self._firstHarveyAmplitude = (par_median[1], par_median[1] - par_le[1])
@@ -250,7 +250,7 @@ class Results:
             return self.marginalDistributions
         else:
             for i in self.marginalDistributions:
-                if i.getName() == key:
+                if i.name == key:
                     return self.marginalDistributions[i]
 
             self.logger.debug("Found no marginal Distribution for '"+key+"'")

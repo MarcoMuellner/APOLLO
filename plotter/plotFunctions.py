@@ -117,9 +117,7 @@ def plotMarginalDistributions(data):
     marginalDists = data.createMarginalDistribution()
     summary = data.summary
 
-    par_median = summary.getData(strSummaryMedian)  # median values
-    par_le = summary.getData(strSummaryLowCredLim)  # lower credible limits
-    par_ue = summary.getData(strSummaryUpCredLim)  # upper credible limits
+    par_median = summary.getRawData(strSummaryMedian)  # median values
 
     for iii in range(0,len(marginalDists)):
         pl.subplot(2,5,iii+1)
@@ -130,7 +128,7 @@ def plotMarginalDistributions(data):
         pl.plot(par, marg,linewidth=2,c='k')
         pl.fill_between(fill_x,fill_y,0,alpha=0.5,facecolor='green')
         pl.axvline(par_median[iii],c='r')
-        pl.xlabel(marginalDists[iii].getName() + ' (' + marginalDists[iii].getUnit()+')',fontsize=16)
+        pl.xlabel(marginalDists[iii].name + ' (' + marginalDists[iii].unit+')',fontsize=16)
 
 def plotParameterTrend(data,fileName = ""):
     backgroundParameters = data.getBackgroundParameters()
@@ -139,7 +137,7 @@ def plotParameterTrend(data,fileName = ""):
         par = backgroundParameters[iii].getData()
         pl.subplot(2, 5, iii + 1)
         pl.plot(par, linewidth=2, c='k')
-        pl.xlabel(backgroundParameters[iii].getName() + ' (' + backgroundParameters[iii].getUnit()+')' , fontsize=16)
+        pl.xlabel(backgroundParameters[iii].name + ' (' + backgroundParameters[iii].unit+')' , fontsize=16)
 
     if fileName != "":
         saveFigToResults(fileName,fig)
