@@ -7,7 +7,7 @@ from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile impor
 from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
 from filehandler.Diamonds.InternalStructure.backgroundParameterFile import BackgroundParameter
 from filehandler.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
-from filehandler.Diamonds.diamondsPriorsFile import Priors
+from filehandler.Diamonds.diamondsPriorsFile import PriorSetup
 from filehandler.Diamonds.dataFile import DataFile
 from settings.settings import Settings
 from support.strings import *
@@ -25,8 +25,8 @@ class Results:
         self.dataFile = DataFile(kicID)
         self._summary = ParameterSummary(kicID, runID)
         self._evidence = Evidence(kicID, runID)
-        self._prior = Priors(kicID)
-        self.backgroundPriors = Priors(kicID, runID)
+        self._prior = PriorSetup(kicID)
+        self.backgroundPriors = PriorSetup(kicID, runID)
         self.backgroundParameter = []
         self.marginalDistributions = []
         self.names = []

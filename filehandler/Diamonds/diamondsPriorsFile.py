@@ -4,41 +4,59 @@ import glob
 from support.strings import *
 import logging
 
-class Priors:
+class PriorSetup:
+    """
+    This class represents the priors that are used to fit the data with DIAMONDS. You need two kinds of these,
+    one for the fullBackground model, one for the noiseOnly model. These are calculated using the PriorCalculator
+    """
 
     def __init__(self,kicID = None,runID = None):
+        """
+        Constructor for the PriorSetup class.
+        :param kicID: KICID of the star
+        :type kicID: string
+        :param runID: Represents the Run -> i.e. fullBackground or noiseOnly
+        :type runID: string
+        """
+        self.m_kicID = None
+        self.m_runId = None
+
         self.m_priors = {}
         self.logger = logging.getLogger(__name__)
-        self.m_kicID = kicID
-        self.m_runId = runID
+        self.kicID = kicID
+        self.runID = runID
 
-        if(kicID is not None):
+    @property
+    def kicID(self):
+        """
+        Property for the KICID of the star
+        :return: KICID of the star
+        :rtype: string
+        """
+        return self.m_kicID
+
+    @kicID.setter
+    def kicID(self,value):
+        """
+        Property setter for the KICID
+        :param value:
+        :type value:
+        :return:
+        :rtype:
+        """
+        self.m_kicID = value
+        if self.m_kicID is not None and self.m_runId is not None:
             self.__readData()
 
-    def setKICID(self,kicId):
-        '''
-        Sets the KicID and rereads data
-        :param kicId: KicID of the star
-        :return: returns Data. See getData()
-        '''
-        self.m_kicID = kicId
-        self.__readData()
-        return self.getData()
+    @property
+    def runID(self):
+        return self.m_runId
 
-    def setRunID(self,runId):
-        '''
-        Sets the RunID and rereads data
-        :param runId: runId of the Diamonds run (subfolder in results file)!
-        :return: returns Data. See getData()
-        '''
-        self.m_runId = runId
-        self.__readData()
-        return self.getData()
-
-    def setParameters(self,kicId,runId):
-        self.setKICID(kicId)
-        self.setRunID(runId)
-        return self.getData()
+    @runID.setter
+    def runID(self,value):
+        self.m_runId = value
+        if self.m_kicID is not None and self.m_runId is not None:
+            self.__readData()
 
     def getData(self,key=None):
         if any(self.m_priors) is False:
