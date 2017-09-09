@@ -50,12 +50,13 @@ class Results:
                 par_le = self.summary.getRawData(strSummaryLowCredLim)[i]  # lower credible limits
                 par_ue = self.summary.getRawData(strSummaryUpCredLim)[i]  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
-            except:
+            except Exception as e:
                 par_median = 0  # median values
                 par_le = 0  # lower credible limits
                 par_ue = 0  # upper credible limits
                 backGroundParameters = np.vstack((par_median, par_le, par_ue))
-                self.logger.debug("Problem creating median,le,ue values. Creating them with 0")
+                self.logger.error("Problem creating median,le,ue values. Creating them with 0")
+                self.logger.error(e)
             if par_median != 0 or par_le != 0 or par_ue != 0:
                 self.backgroundParameter.append(BackgroundParameter(self.names[i], self.units[i], kicID, runID, i))
                 self.marginalDistributions.append(MarginalDistribution(self.names[i], self.units[i], kicID, runID, i))

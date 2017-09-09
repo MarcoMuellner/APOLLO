@@ -65,7 +65,7 @@ class BackgroundParameter(BaseBackgroundFile):
         Reads the dataset from the parameterfiled created by DIAMONDS.
         """
 
-        file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter_00" + str(
+        file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter00" + str(
             self._id) + ".txt"
         self._parameters = np.loadtxt(file).T
 
