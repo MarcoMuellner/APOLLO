@@ -62,8 +62,8 @@ filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSp
 
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
-AnalyserResults.Instance().setKicID(input)
-AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
+AnalyserResults.Instance().kicID = input
+AnalyserResults.Instance().powerSpectraCalculator = powerCalc
 
 
 
@@ -79,7 +79,7 @@ nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
 photonNoise = powerCalc.photonNoise
 nyquist = nuMaxCalc.nyqFreq
-AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
+AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
 

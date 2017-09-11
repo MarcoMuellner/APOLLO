@@ -11,71 +11,77 @@ import json
 
 @Singleton
 class AnalyserResults:
+    """
+    This class allows for a single place to create a full report on the data gathered during one DIAMONDS run.
+    It gatheres different objects from which it will call the results up and sets it up in a simple json format
+    """
     def __init__(self):
-        self.powerSpectraCalculator = None
-        self.diamondsResults = {}
-        self.diamondsRunner = {}
-        self.nuMaxCalculator = None
-        self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
-        self.kicID = None
-        self.images = {}
         self.logger = logging.getLogger(__name__)
+        self.kicID = None
 
     def addImage(self,name,figure):
-        self.images[name]=figure
+        self._images[name]=figure
         pass
 
-    def setKicID(self,kicID):
-        self.kicID = kicID
+    @property
+    def kicID(self):
+        return self._kicID
+
+    @kicID.setter
+    def kicID(self,value):
+        self._kicID = value
         self.powerSpectraCalculator = None
-        self.diamondsResults = {}
+        self.diamondsRunner = None
         self.nuMaxCalculator = None
-        self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
-        self.diamondsRunner = {}
-        self.images = {}
+        self._diamondsResults = {}
+        self._diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        self._images = {}
+
+    @property
+    def powerSpectraCalculator(self):
+        return self._powerSpectraCalculator
+
+    @powerSpectraCalculator.setter
+    def powerSpectraCalculator(self,value):
+        self._powerSpectraCalculator = value
+
+    @property
+    def nuMaxCalculator(self):
+        return self._nuMaxCalculator
+
+    @nuMaxCalculator.setter
+    def nuMaxCalculator(self,value):
+        self._nuMaxCalculator = value
+
+    @property
+    def diamondsRunner(self):
+        return self._diamondsRunner
+
+    @diamondsRunner.setter
+    def diamondsRunner(self,value):
+        self._diamondsRunner = value
 
 
     def collectDiamondsResult(self):
-        if self.kicID is None:
+        if self._kicID is None:
             self.logger.error("You need to set the KicID before you can access the results!")
             raise ValueError
 
-        self.diamondsResultsPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        if self._diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]
+            self._diamondsResults[strDiamondsModeFull] = Results(kicID=self._kicID, runID=strDiamondsModeFull)
+        else:
+            self._diamondsResults[strDiamondsModeFull] = None
 
-        if self.diamondsModel in [strFitModeFullBackground,strFitModeBayesianComparison]:
-            resultsPath = self.diamondsResultsPath + "KIC" + self.kicID + "/" + strDiamondsModeFull + "/"
+        if self._diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]
+            self._diamondsResults[strDiamondsModeNoise] = Results(kicID=self._kicID, runID=strDiamondsModeNoise)
+        else:
+            self._diamondsResults[strDiamondsModeNoise] = None
 
-            if not os.path.exists(resultsPath):
-                self.logger.error("There are no results yet for mode "+strDiamondsModeFull)
-                self.diamondsResults[strDiamondsModeFull] = None
-                return
-
-            self.diamondsResults[strDiamondsModeFull] = Results(kicID=self.kicID, runID=strDiamondsModeFull)
-
-        if self.diamondsModel in [strFitModeNoiseBackground,strFitModeBayesianComparison]:
-            resultsPath = self.diamondsResultsPath + "KIC" + self.kicID + "/" + strDiamondsModeNoise + "/"
-
-            if not os.path.exists(resultsPath):
-                self.logger.error("There are no results yet for mode "+strDiamondsModeNoise)
-                self.diamondsResults[strDiamondsModeNoise] = None
-                return
-
-            self.diamondsResults[strDiamondsModeNoise] = Results(kicID=self.kicID, runID=strDiamondsModeNoise)
-        return None
-
-    def setNuMaxCalculator(self,calc):
-        self.nuMaxCalculator = calc
-
-    def setPowerSpectraCalculator(self,calc):
-        self.powerSpectraCalculator = calc
-
-    def setDiamondsRunner(self,runner):
-        self.diamondsRunner=runner
 
     def performAnalysis(self):
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
-        analyserResultsPath += "/" + starType + "_" +self.kicID +"/"
+        analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
         imagePath = analyserResultsPath + "images/"
         resultDict = {}
 
@@ -86,22 +92,22 @@ class AnalyserResults:
             os.makedirs(imagePath)
 
         with cd(analyserResultsPath):
-            if self.powerSpectraCalculator is not None:
-                np.savetxt("Lightcurve.txt",self.powerSpectraCalculator.lightCurve,header="Time(days) Flux")
-                np.savetxt("PSD.txt", self.powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
+            if self._powerSpectraCalculator is not None:
+                np.savetxt("Lightcurve.txt", self._powerSpectraCalculator.lightCurve, header="Time(days) Flux")
+                np.savetxt("PSD.txt", self._powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
 
-            if self.nuMaxCalculator is not None:
+            if self._nuMaxCalculator is not None:
                 resultDict["NuMaxCalc"]={}
-                for key,(value,color) in self.nuMaxCalculator.marker.items():
+                for key,(value,color) in self._nuMaxCalculator.marker.items():
                     resultDict["NuMaxCalc"][key]=value
 
-                resultDict["NuMaxCalc"]["Nyquist"] = self.nuMaxCalculator.nyqFreq
+                resultDict["NuMaxCalc"]["Nyquist"] = self._nuMaxCalculator.nyqFreq
 
-            if len(self.diamondsResults.keys()) != 0:
+            if len(self._diamondsResults.keys()) != 0:
                 resultDict["Diamonds_Priors"] = {}
                 resultDict["Diamonds"] = {}
                 resultDict["Analysis"] = {}
-                for key,value in self.diamondsResults.items():
+                for key,value in self._diamondsResults.items():
                     resultDict["Diamonds_Priors"][key] = {}
                     resultDict["Diamonds"][key]={}
                     resultDict["Analysis"][key] = {}
@@ -123,19 +129,19 @@ class AnalyserResults:
                         else:
                             resultDict["Analysis"][key][backPriorKey] = "Okay"
 
-            if len(self.diamondsRunner.status.items()) != 0:
+            if len(self._diamondsRunner.status.items()) != 0:
                 if "Diamonds" not in resultDict.keys():
                     resultDict["Diamonds"] = {}
 
-                for key,value in self.diamondsRunner.status.items():
+                for key,value in self._diamondsRunner.status.items():
                     if key not in resultDict["Diamonds"].keys():
                         resultDict["Diamonds"][key]={}
 
                     resultDict["Diamonds"][key]["Status"] = value
 
-            if len(self.images.keys()) != 0:
+            if len(self._images.keys()) != 0:
                 with cd(imagePath):
-                    for imageName,figure in self.images.items():
+                    for imageName,figure in self._images.items():
                         try:
                             figure.save(imageName)
                         except:
@@ -145,7 +151,7 @@ class AnalyserResults:
                                 self.logger.error("File with name "+imageName+" doesnt seem to be a ggplot or matplotlib type")
                                 raise
 
-            if self.diamondsModel == strFitModeBayesianComparison:
+            if self._diamondsModel == strFitModeBayesianComparison:
                 backgroundEvidence = ufloat_fromstr(resultDict["Diamonds"][strDiamondsModeFull][strEvidenceSkillLog])
                 noiseBackground = ufloat_fromstr(resultDict["Diamonds"][strDiamondsModeNoise][strEvidenceSkillLog])
 

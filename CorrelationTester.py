@@ -15,6 +15,7 @@ starList = []
 
 #RG_ENRICO
 starList.append("004770846_1435") #works
+"""
 starList.append("003744681_983") #works
 starList.append("004448777_771") #works
 starList.append("004659821_1181") #okayish
@@ -36,7 +37,7 @@ starList.append("010777816_1965")
 starList.append("010866415_2167")
 starList.append("011550492_1262")
 starList.append("012008916_19")
-
+"""
 yStarList = []
 yStarList.append("224321303")
 yStarList.append("224399118")
@@ -57,19 +58,19 @@ for i in starList:
 
         filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
         #filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
-        AnalyserResults.Instance().setKicID(i)
+        AnalyserResults.Instance().kicID = i
 
         file = FitsReader(filename)
 
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
         powerCalc.kicID = i
-        AnalyserResults.Instance().setPowerSpectraCalculator(powerCalc)
+        AnalyserResults.Instance().powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
 
         nuMaxCalc = NuMaxCalculator(file.getLightCurve())
-        AnalyserResults.Instance().setNuMaxCalculator(nuMaxCalc)
+        AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
 
         nuMax = nuMaxCalc.computeNuMax()
         marker = nuMaxCalc.marker
@@ -103,7 +104,7 @@ for i in starList:
 
         proc = DiamondsProcess(i)
         #proc.start()
-        AnalyserResults.Instance().setDiamondsRunner(proc)
+        AnalyserResults.Instance().diamondsRunner = proc
 
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
 
