@@ -3,10 +3,9 @@ import logging
 
 import numpy as np
 
+from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
 from settings.settings import Settings
 from support.strings import *
-
-from filehandler.Diamonds.InternalStructure.backgroundAbstractFile import BaseBackgroundFile
 
 
 class Evidence(BaseBackgroundFile):
@@ -68,6 +67,6 @@ class Evidence(BaseBackgroundFile):
             self._evidence[strEvidenceSkillInfLog] = values[2]
         except:
             self.logger.warning("Failed to open File '" + self._dataFolder +
-                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.m_kicID, self.m_runId) + "'")
+                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.kicID, self.runID) + "'")
             self.logger.warning("Setting Data to None")
             self._evidence = {}

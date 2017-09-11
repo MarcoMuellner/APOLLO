@@ -106,7 +106,7 @@ class AnalyserResults:
                     resultDict["Diamonds"][key]={}
                     resultDict["Analysis"][key] = {}
 
-                    for priorKey,priorValue in value.prior.getData().items():
+                    for priorKey,priorValue in value.prior.getData(mode=key).items():
                         resultDict["Diamonds_Priors"][key][priorKey]=priorValue
 
                     resultDict["Diamonds"][key][strEvidenceSkillLog] = \

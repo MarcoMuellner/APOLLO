@@ -3,100 +3,110 @@ import numpy as np
 import glob
 from support.strings import *
 import logging
+from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
 
-class PriorSetup:
+class PriorSetup(BaseBackgroundFile):
     """
-    This class represents the priors that are used to fit the data with DIAMONDS. You need two kinds of these,
-    one for the fullBackground model, one for the noiseOnly model. These are calculated using the PriorCalculator
+    This class represents the priors with which the diamonds run was done. There are multiple ways this class
+    reads the priors. In general, if the runID is None, it will read the fullBackground and noiseOnly priors
+    and are accessible via the getData function using the mode as a parameter. If a runID is provided, it will
+    return the correct priors independently of the mode set.
     """
 
     def __init__(self,kicID = None,runID = None):
         """
-        Constructor for the PriorSetup class.
-        :param kicID: KICID of the star
+        Constructor for the PriorSetup. KicID and runID are set via the BaseBackgroundFile class.
+        :param kicID: KicID of the star. Optional, but should be set here. If not set via property setter
         :type kicID: string
-        :param runID: Represents the Run -> i.e. fullBackground or noiseOnly
+        :param runID: RunID of the star. Optional. If None it will read the ones in the parent directory of the results
         :type runID: string
         """
-        self.m_kicID = None
-        self.m_runId = None
+        BaseBackgroundFile.__init__(self,kicID,runID)
 
-        self.m_priors = {}
+        self._fullPriors = {}
+        self._noisePriors = {}
+        self._parameterNames = [strPriorFlatNoise,
+                                strPriorAmpHarvey1,
+                                strPriorFreqHarvey1,
+                                strPriorAmpHarvey2,
+                                strPriorFreqHarvey2,
+                                strPriorAmpHarvey3,
+                                strPriorFreqHarvey3,
+                                strPriorHeight,
+                                strPriorNuMax,
+                                strPriorSigma]
         self.logger = logging.getLogger(__name__)
-        self.kicID = kicID
-        self.runID = runID
 
-    @property
-    def kicID(self):
+    def getData(self,key=None,mode=strDiamondsModeFull):
         """
-        Property for the KICID of the star
-        :return: KICID of the star
-        :rtype: string
+        Returns the dataset accordingly to the set runID, mode and key. If the runID is None, it will return the
+        map/tuple according to the mode. If it is not none, it will look indepently, even if you provide a wrong mode.
+        :param key: Key within the map. If provided, it will return one tuple. Is part of the parameterNames list
+        :type key:string
+        :param mode: Defines the PriorFile that is returned. One for fullBackground and noiseOnly
+        :type mode: string
+        :return:Dataset
+        :rtype:dict/2-D tuple
         """
-        return self.m_kicID
+        dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
+        if any(dict) is False and (self.runID is None or
+                                    (any(self._fullPriors) is False and any(self._noisePriors) is False)):
+            self._readData()
+            dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
+        elif any(dict) is False and self.runID is not None:
+            if any(self._fullPriors) is True:
+                dict = self._fullPriors
+            elif any(self._noisePriors) is True:
+                dict = self._noisePriors
+            else:
+                self.logger.error("Something went terribly wrong. Neither noisePriors or fullBackground were set"
+                                  "properly")
+                raise ValueError
 
-    @kicID.setter
-    def kicID(self,value):
-        """
-        Property setter for the KICID
-        :param value:
-        :type value:
-        :return:
-        :rtype:
-        """
-        self.m_kicID = value
-        if self.m_kicID is not None and self.m_runId is not None:
-            self.__readData()
 
-    @property
-    def runID(self):
-        return self.m_runId
-
-    @runID.setter
-    def runID(self,value):
-        self.m_runId = value
-        if self.m_kicID is not None and self.m_runId is not None:
-            self.__readData()
-
-    def getData(self,key=None):
-        if any(self.m_priors) is False:
-            self.__readData()
 
         if key is None:
-            return self.m_priors
+            return dict
         else:
             try:
-                return self.m_priors[key]
+                return dict[key]
             except:
                 self.logger.warning("No value for key '"+key+"', returning full dict")
-                return self.m_priors
+                return dict
 
-    def __readData(self):
+    def _readData(self):
+        """
+        Reads the data. If runID is not None, it will read only one file, the one in the result of the mode. If it is
+        None it will read both in the parent directory
+        """
+        values = []
         try:
-            self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
+            self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
                                                                strSectBackgroundResPath).value
-            mpFile = None
-            if self.m_runId is not None:
-                mpFile = glob.glob(self.m_dataFolder + 'KIC{}/{}/background_hyperParametersUniform.txt'
-                                   .format(self.m_kicID, self.m_runId))[0]
+            if self.runID is not None:
+                mpFile = glob.glob(self._dataFolder + 'KIC{}/{}/background_hyperParametersUniform.txt'
+                                   .format(self.kicID, self.runID))[0]
+                values.append(np.loadtxt(mpFile).T)
             else:
-                mpFile = glob.glob(self.m_dataFolder + 'KIC{}/background_hyperParameters.txt'
-                                   .format(self.m_kicID))[0]
-            values = np.loadtxt(mpFile).T
+                mpFile = glob.glob(self._dataFolder + 'KIC{}/background_hyperParameters.txt'
+                                   .format(self.kicID))[0]
+                values.append(np.loadtxt(mpFile).T)
+                mpFile = glob.glob(self._dataFolder + 'KIC{}/background_hyperParameters_noise.txt'
+                                   .format(self.kicID))[0]
+                values.append(np.loadtxt(mpFile).T)
 
-            self.m_priors[strPriorFlatNoise] = (values[0][0], values[1][0])
-            self.m_priors[strPriorAmpHarvey1] = (values[0][1], values[1][1])
-            self.m_priors[strPriorFreqHarvey1] = (values[0][2], values[1][2])
-            self.m_priors[strPriorAmpHarvey2] = (values[0][3], values[1][3])
-            self.m_priors[strPriorFreqHarvey2] = (values[0][4], values[1][4])
-            self.m_priors[strPriorAmpHarvey3] = (values[0][5], values[1][5])
-            self.m_priors[strPriorFreqHarvey3] = (values[0][6], values[1][6])
-            if len(values[0])>7:
-                self.m_priors[strPriorHeight] = (values[0][7], values[1][7])
-                self.m_priors[strPriorNuMax] = (values[0][8], values[1][8])
-                self.m_priors[strPriorSigma] = (values[0][9], values[1][9])
+
+            for priorList in values:
+                it = 0
+                for prior in priorList:
+                    if len(priorList)>7:
+                        self._fullPriors[self._parameterNames[it]] = prior
+                    else:
+                        self._noisePriors[self._parameterNames[it]] = prior
+
         except Exception as e:
-            self.logger.warning("Failed to open Priors '" + self.m_dataFolder)
+            self.logger.warning("Failed to open Priors '" + self._dataFolder)
             self.logger.warning(e)
             self.logger.warning("Setting Data to None")
-            self.m_priors = {}
+            self._fullPriors = {}
+            self._noisePriors = {}

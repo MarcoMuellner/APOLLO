@@ -102,7 +102,7 @@ for i in starList:
         files = FileCreater(i, powerCalc.powerSpectralDensity, nyquist, priors)
 
         proc = DiamondsProcess(i)
-        #proc.start()
+        proc.start()
         AnalyserResults.Instance().setDiamondsRunner(proc)
 
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value

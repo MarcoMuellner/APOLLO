@@ -4,9 +4,9 @@ import logging
 import numpy as np
 from uncertainties import ufloat
 
+from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
 from settings.settings import Settings
 from support.strings import *
-from filehandler.Diamonds.InternalStructure.backgroundAbstractFile import BaseBackgroundFile
 
 
 class ParameterSummary(BaseBackgroundFile):

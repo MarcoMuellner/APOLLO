@@ -3,9 +3,9 @@ import logging
 
 import numpy as np
 
+from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
 from settings.settings import Settings
 from support.strings import *
-from filehandler.Diamonds.InternalStructure.backgroundAbstractFile import BaseBackgroundFile
 
 
 class MarginalDistribution(BaseBackgroundFile):
@@ -30,7 +30,7 @@ class MarginalDistribution(BaseBackgroundFile):
         self._name = name
         self._unit = unit
         if (kickId is not None and runID is not None and id is not None):
-            self.__readData()
+            self._readData()
         return
 
 
@@ -52,7 +52,7 @@ class MarginalDistribution(BaseBackgroundFile):
         """
         self._id = value
         if self.kicID is not None and self.runID is not None and id is not None:
-            self.__readData()
+            self._readData()
 
     @property
     def name(self):
@@ -77,7 +77,7 @@ class MarginalDistribution(BaseBackgroundFile):
         :return: The Dataset. Single numpy array
         """
         if self._data is None:
-            self.__readData()
+            self._readData()
 
         return self._data
 
@@ -121,7 +121,7 @@ class MarginalDistribution(BaseBackgroundFile):
 
         return (par,marg,fill_x,fill_y,par_err)
 
-    def __readData(self):
+    def _readData(self):
         """
         Reads the Data. Should be only used internally
         """
