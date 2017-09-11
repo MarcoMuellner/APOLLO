@@ -73,22 +73,22 @@ for i in kicList:
         result.calculateLuminosity(tempSun)
         result.calculateDistanceModulus(vmag,kicmag,arrTemperatures[4][position[0]],av,nuMaxSun,deltaNuSun,tempSun)
 
-        print('--------------Result KIC' + result._kicID + '------------')
-        print('nuMax = ' + str(result.nuMax) + '(' + str(result._sigma) + ')')
+        print('--------------Result KIC' + result.kicID + '------------')
+        print('nuMax = ' + str(result.nuMax) + '(' + str(result.sigma) + ')')
         print('DeltaNu = ' + str(result.deltaNuCalculator.deltaNu[0]) + '(' + str(
             result.deltaNuCalculator.deltaNu[1]) + ')')
-        print(float(result._kicID))
+        print(float(result.kicID))
         print('----------------------------------------------------------------')
 
 
-        print('--------------Calculations KIC' + result._kicID + '------------')
+        print('--------------Calculations KIC' + result.kicID + '------------')
         print("Temperature is '"+str(Teff))
         print("Temperature of the sun '"+str(tempSun)+"'")
-        print("Radius for KicID '" + str(result._kicID) + "'is '" + str(result.radiusStar[0])
+        print("Radius for KicID '" + str(result.kicID) + "'is '" + str(result.radiusStar[0])
               + "'R_sun(" + str(result.radiusStar[1]) + ")'")
-        print("Luminosity for KicID '" + str(result._kicID) + "'is '" + str(result.luminosity[0])
+        print("Luminosity for KicID '" + str(result.kicID) + "'is '" + str(result.luminosity[0])
               + "'L_sun(" + str(result.luminosity[1]) +")'")
-        print("Bolometric Correlation for star '" + str(result._kicID) + "' is: '" + str(result.bolometricCorrection))
+        print("Bolometric Correlation for star '" + str(result.kicID) + "' is: '" + str(result.bolometricCorrection))
         print("Apparent Magnitude :'"+str(vmag)+"("+str(arrTemperatures[4][position[0]])+")")
         print("Interstellar Extinction: '"+str(arrTemperatures[3][position[0]]))
         print("Distance is :'"+str(result.distanceModulus[0])+"("+str(result.distanceModulus[1])+")'")
@@ -100,14 +100,14 @@ for i in kicList:
         rgbstr = ''
 
         if lowerBound <= result.distanceModulus[0] <= upperBound:
-            print("KIC" + result._kicID + " is MEMBER of the starcluster")
+            print("KIC" + result.kicID + " is MEMBER of the starcluster")
             rgbstr = '75bbfd'
         elif lowerBound <=result.distanceModulus[0]+result.distanceModulus[1]<=upperBound:
-            print("Cant tell if " + result._kicID + " is Member of starcluster")
+            print("Cant tell if " + result.kicID + " is Member of starcluster")
             rgbstr = 'c7fdb5'
 
         else:
-            print("KIC" + result._kicID + " is NO MEMBER of the starcluster")
+            print("KIC" + result.kicID + " is NO MEMBER of the starcluster")
             rgbstr = '840000'
 
         colorList.append(struct.unpack('BBB', bytes.fromhex(rgbstr)))

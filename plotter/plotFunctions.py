@@ -114,14 +114,14 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
 
 def plotMarginalDistributions(data):
     pl.figure(figsize=(23,12))
-    marginalDists = data.createMarginalDistribution()
+    marginalDists = data.getMarginalDistribution()
     summary = data.summary
 
     par_median = summary.getRawData(strSummaryMedian)  # median values
 
     for iii in range(0,len(marginalDists)):
         pl.subplot(2,5,iii+1)
-        par, marg, fill_x, fill_y, par_err = marginalDists[iii].createMarginalDistribution()
+        par, marg, fill_x, fill_y, par_err = marginalDists[iii].getMarginalDistribution()
 
         pl.xlim([par_median[iii]-5*par_err,par_median[iii]+5*par_err])
         pl.ylim([0,max(marg)*1.2])

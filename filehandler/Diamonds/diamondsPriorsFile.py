@@ -48,12 +48,17 @@ class PriorSetup(BaseBackgroundFile):
         :return:Dataset
         :rtype:dict/2-D tuple
         """
+        self.logger.debug("Retrieving data with key "+str(key) + " and mode "+mode)
+
         dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
+        self.logger.debug("Data is ")
+        self.logger.debug(dict)
         if any(dict) is False and (self.runID is None or
                                     (any(self._fullPriors) is False and any(self._noisePriors) is False)):
             self._readData()
             dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
-        elif any(dict) is False and self.runID is not None:
+
+        if any(dict) is False and self.runID is not None:
             if any(self._fullPriors) is True:
                 dict = self._fullPriors
             elif any(self._noisePriors) is True:
@@ -62,8 +67,6 @@ class PriorSetup(BaseBackgroundFile):
                 self.logger.error("Something went terribly wrong. Neither noisePriors or fullBackground were set"
                                   "properly")
                 raise ValueError
-
-
 
         if key is None:
             return dict
@@ -97,12 +100,11 @@ class PriorSetup(BaseBackgroundFile):
 
 
             for priorList in values:
-                it = 0
-                for prior in priorList:
-                    if len(priorList)>7:
-                        self._fullPriors[self._parameterNames[it]] = prior
+                for it,(priorMin,priorMax) in enumerate(zip(priorList[0],priorList[1])):
+                    if len(priorList[0])>7:
+                        self._fullPriors[self._parameterNames[it]] = (priorMin,priorMax)
                     else:
-                        self._noisePriors[self._parameterNames[it]] = prior
+                        self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
 
         except Exception as e:
             self.logger.warning("Failed to open Priors '" + self._dataFolder)

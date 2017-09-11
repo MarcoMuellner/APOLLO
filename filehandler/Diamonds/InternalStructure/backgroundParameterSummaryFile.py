@@ -26,10 +26,14 @@ class ParameterSummary(BaseBackgroundFile):
         """
         BaseBackgroundFile.__init__(self,kicID,runID)
         self._rawValues = {}
+        self._priorValues = {}
         self.logger = logging.getLogger(__name__)
 
         if(kicID is not None and runID is not None):
             self._readData()
+
+    def dataLength(self):
+        return len(self._priorValues)
 
     def getRawData(self,key=None):
         """
@@ -120,7 +124,6 @@ class ParameterSummary(BaseBackgroundFile):
         par_median = self._rawValues[strSummaryMedian]
         par_le = self._rawValues[strSummaryLowCredLim]
 
-        self._priorValues = {}
         self._priorValues[strPriorFlatNoise] = ufloat(par_median[0], abs(par_median[0] - par_le[0]))
         self._priorValues[strPriorAmpHarvey1] = ufloat(par_median[1], abs(par_median[1] - par_le[1]))
         self._priorValues[strPriorFreqHarvey1] = ufloat(par_median[2], abs(par_median[2] - par_le[2]))

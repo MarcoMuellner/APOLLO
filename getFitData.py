@@ -45,20 +45,20 @@ for i in kicList:
         resultList.append(result)
         #plotDeltaNuFit(calc,result.kicID)
 
-        print('--------------Result KIC' + result._kicID + '------------')
-        print('nuMax = ' + str(result.nuMax) + '(' + str(result._sigma) + ')')
+        print('--------------Result KIC' + result.kicID + '------------')
+        print('nuMax = ' + str(result.nuMax) + '(' + str(result.sigma) + ')')
         print('DeltaNu = ' + str(result.deltaNuCalculator.deltaNu[0]) + '(' + str(
             result.deltaNuCalculator.deltaNu[1]) + ')')
-        print(float(result._kicID))
+        print(float(result.kicID))
         print('----------------------------------------------------------------')
 
-        position = np.where(arrTemperatures[0] == float(result._kicID))[0]
+        position = np.where(arrTemperatures[0] == float(result.kicID))[0]
         print(position)
 
         if len(position>0):
             temp = arrTemperatures[1][position[0]]
             tempSun = arrSun[2]
-            print('--------------Calculations KIC' + result._kicID + '------------')
+            print('--------------Calculations KIC' + result.kicID + '------------')
             print("Temperature is '"+str(temp))
             print("Temperature of the sun '"+str(tempSun)+"'")
             R = (arrSun[1] / result.deltaNuCalculator.deltaNu[0]) ** 2 * (result.nuMax[0] / arrSun[0]) * \
@@ -66,8 +66,8 @@ for i in kicList:
 
             L = R**2*(temp/tempSun)**4
 
-            print("Radius for KicID '" + str(result._kicID) + "'is '" + str(R) + "'R_sun")
-            print("Luminosity for KicID '" + str(result._kicID) + "'is '" + str(L) + "'L_sun")
+            print("Radius for KicID '" + str(result.kicID) + "'is '" + str(R) + "'R_sun")
+            print("Luminosity for KicID '" + str(result.kicID) + "'is '" + str(L) + "'L_sun")
             print('----------------------------------------------------------------')
 
 for i in resultList:
