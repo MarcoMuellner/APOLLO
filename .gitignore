@@ -13,3 +13,5 @@ __pycache__/
 debug\.log\.1
 
 results/*
+
+\.cache/v/cache/
