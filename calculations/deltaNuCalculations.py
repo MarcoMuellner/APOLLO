@@ -2,6 +2,7 @@ import numpy as np
 from scipy import optimize
 from scipy.signal import butter, filtfilt
 import logging
+from uncertainties import ufloat
 
 
 class DeltaNuCalculator:
@@ -235,15 +236,15 @@ class DeltaNuCalculator:
         #x0_err = np.sqrt(pow(self._perr[2],2) + pow(self._popt[3],2))
         x0_err = np.sqrt(pow(self._perr[2], 2))
 
-        self._y0 = (self._popt[0],self._perr[0])
-        self._amp = (self._popt[1],self._perr[1])
-        self._cen = (self._popt[2],x0_err)
-        self._wid = (self._popt[3],self._perr[3])
+        self._y0 = ufloat(self._popt[0],self._perr[0])
+        self._amp = ufloat(self._popt[1],self._perr[1])
+        self._cen = ufloat(self._popt[2],x0_err)
+        self._wid = ufloat(self._popt[3],self._perr[3])
 
-        self.logger.debug("y0 = '" + str(self._y0[0]) + " (" + str(self._y0[1]) + ")'")
-        self.logger.debug("amp = '" + str(self._amp[0]) + " (" + str(self._amp[1]) + ")'")
-        self.logger.debug("deltaNu = '" + str(self._cen [0]) + " (" + str(self._cen [1]) + ")'")
-        self.logger.debug("wid = '" + str(self._wid[0]) + " (" + str(self._wid[1]) + ")'")
+        self.logger.debug("y0 = '" + str(self._y0) + "'")
+        self.logger.debug("amp = '" + str(self._amp) + "'")
+        self.logger.debug("deltaNu = '" + str(self._cen) + "'")
+        self.logger.debug("wid = '" + str(self._wid) + "'")
 
         return self._popt
 
