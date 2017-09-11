@@ -60,7 +60,7 @@ class Results:
             if par_median != 0 or par_le != 0 or par_ue != 0:
                 self.backgroundParameter.append(BackgroundParameter(self.names[i], self.units[i], kicID, runID, i))
                 self.marginalDistributions.append(MarginalDistribution(self.names[i], self.units[i], kicID, runID, i))
-                self.marginalDistributions[i].setBackgroundParameters(backGroundParameters)
+                self.marginalDistributions[i].backgroundData = backGroundParameters
                 if self.backgroundParameter[i].getData() is None:
                     self._psdOnlyFlag = True
 
@@ -76,7 +76,7 @@ class Results:
             return self.backgroundParameter
         else:
             for i in self.backgroundParameter:
-                if i.getName == key:
+                if i.name == key:
                     return self.backgroundParameter[i]
 
             self.logger.debug("Found no background parameter for '"+key+"'")
