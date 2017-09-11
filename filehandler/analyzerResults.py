@@ -67,12 +67,12 @@ class AnalyserResults:
             self.logger.error("You need to set the KicID before you can access the results!")
             raise ValueError
 
-        if self._diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]
+        if self._diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]:
             self._diamondsResults[strDiamondsModeFull] = Results(kicID=self._kicID, runID=strDiamondsModeFull)
         else:
             self._diamondsResults[strDiamondsModeFull] = None
 
-        if self._diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]
+        if self._diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]:
             self._diamondsResults[strDiamondsModeNoise] = Results(kicID=self._kicID, runID=strDiamondsModeNoise)
         else:
             self._diamondsResults[strDiamondsModeNoise] = None
