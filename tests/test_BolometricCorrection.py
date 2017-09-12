@@ -1,6 +1,8 @@
 import pytest
 from calculations.bolometricCorrectionCalculations import BCCalculator
 from uncertainties import ufloat
+import os
+import matplotlib as mpl
 
 valueTestCases = {
     200:-1012.3831518705101,
