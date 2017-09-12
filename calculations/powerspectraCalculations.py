@@ -190,7 +190,7 @@ class PowerspectraCalculator:
             self.logger.warning("Powerspectra is None!")
             return self._powerSpectrum
 
-        return np.array((self._powerSpectrum[0][1:], self._powerSpectrum[1][1:]))
+        return self._powerSpectrum
 
     @powerSpectralDensity.setter
     def powerSpectralDensity(self, data):

@@ -133,7 +133,7 @@ class PriorCalculator:
         :return: Min-Max value for nuMax in uHz
         :rtype: tuple, 2 values as float
         """
-        return (0.9 * self._nuMax, 1.2 * self._nuMax)
+        return (0.8 * self._nuMax, 1.2 * self._nuMax)
 
     @property
     def sigmaBoundary(self):
