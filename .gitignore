@@ -15,3 +15,5 @@ debug\.log\.1
 results/*
 
 \.cache/v/cache/
+
+tests/\.cache/v/cache/
