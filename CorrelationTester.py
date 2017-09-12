@@ -77,7 +77,7 @@ for i in starList:
         photonNoise = powerCalc.photonNoise
         nyquist = nuMaxCalc.nyqFreq
 
-        priorCalculator = PriorCalculator(nuMax,photonNoise)
+        priorCalculator = PriorCalculator(nuMax,photonNoise,powerCalc)
         plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
 
         priors = []
@@ -103,7 +103,7 @@ for i in starList:
         files = FileCreater(i, powerCalc.powerSpectralDensity, nyquist, priors)
 
         proc = DiamondsProcess(i)
-        #proc.start()
+        proc.start()
         AnalyserResults.Instance().diamondsRunner = proc
 
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value

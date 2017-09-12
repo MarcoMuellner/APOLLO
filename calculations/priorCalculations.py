@@ -1,4 +1,6 @@
 from math import log10
+from calculations.powerspectraCalculations import PowerspectraCalculator
+import numpy as np
 
 class PriorCalculator:
     """
@@ -6,16 +8,19 @@ class PriorCalculator:
     Most of the equations here are taken from the paper by Kallinger(2014), others are determined empirically. All of
     the values are initial guesses. Proper values can be determined by fitting the PSD
     """
-    def __init__(self,nuMax,photonNoise):
+    def __init__(self, nuMax, photonNoise, powerCalc: PowerspectraCalculator):
         """
         Constructor of the priorCalculator. Automatically triggers the computation of the priors by setting the
         nuMax property
+        :param psd: Object of the PSD calculator
+        :type psd: PowerspectraCalculator
         :param nuMax: Represents the frequency of maximum oscillation -> in uHz
         :type nuMax: float
         :param photonNoise: Represents the background Photon noise. Should be computed in
         PowerspectraCalculator -> ppm^2
         :type photonNoise: float
         """
+        self._powerCalc = powerCalc
         self.photonNoise=photonNoise
         self.nuMax = nuMax
 
@@ -46,8 +51,8 @@ class PriorCalculator:
         Calculates the Harvey amplitude. Only one amplitude is computed, and given big enough boundaries so that the
         fit does it properly
         """
-        k = 3335 #Second Harvey Fit done by myself: 2078
-        s = -0.564 #Second Harvey  Fit done by myself: -0,496
+        k = 3383 #Second Harvey Fit done by myself: 2078
+        s = -0.609 #Second Harvey  Fit done by myself: -0,496
 
         #Third Harvey Fit done by myself: 4545
         #Third Harvey Fit done by myself: -0.704
@@ -70,10 +75,9 @@ class PriorCalculator:
         """
         Calculates the amplitude of the oscillation
         """
-        k = 216833
-        s = -1.52
-
-        self._oscillationAmplitude = k * pow(self._nuMax, s)
+        interestingRegion = np.array((self._powerCalc.powerSpectralDensity[0],self._powerCalc.smoothedData))
+        interestingRegion = interestingRegion[1][interestingRegion[0] > self.nuMax]
+        self._oscillationAmplitude = max(interestingRegion)
 
     def _calculateFirstHarveyFrequency(self):
         """
@@ -120,7 +124,7 @@ class PriorCalculator:
         :return: Min-Max value for the harvey amplitudes in ppm^2
         :rtype: tuple, 2 values as float
         """
-        return (0.018 * self._harveyAmplitude, 0.31 * self._harveyAmplitude)
+        return (0.1 * self._harveyAmplitude, 1.75 * self._harveyAmplitude)
 
     @property
     def nuMaxBoundary(self):
@@ -147,7 +151,7 @@ class PriorCalculator:
         :return: Min-Max value for the amplitude of oscillation in ppm^2
         :rtype: tuple, 2 values as float
         """
-        return (0.007 * self._oscillationAmplitude, 0.2
+        return (0.25 * self._oscillationAmplitude, 1.5
                 * self._oscillationAmplitude)
 
     @property
