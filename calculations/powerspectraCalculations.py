@@ -63,9 +63,9 @@ class PowerspectraCalculator:
         :return:The PSD computed accordingly to the settings. 1st axis -> frequency in uHz, 2nd axis -> ppm^2
         :rtype:2-D numpy array
         """
-        if len(lightCurve) != 2:
-            self.logger.debug("Lightcurve should be of dimension 2!")
-            raise ValueError
+        if len(lightCurve) != 2 or not isinstance(lightCurve,np.ndarray):
+            self.logger.debug("Lightcurve should be of dimension 2 and ndarray!")
+            raise ValueError("Type is "+str(type(lightCurve)))
 
         if self._powerSpectrumMode == strPowerModeNumpy:
             return self.lightCurveToPowerspectraFFT(lightCurve)
@@ -168,7 +168,7 @@ class PowerspectraCalculator:
         :param data: LightCurve for the class. 1st axis -> temporal axis in days, 2nd axis -> flux
         :type data: 2-D numpy array
         """
-        if data is None or len(data) == 2:
+        if data is None or (len(data) == 2 and isinstance(data,np.ndarray)):
             self._lightCurve = data
             try:
                 if self.powerSpectralDensity is None:
@@ -176,8 +176,8 @@ class PowerspectraCalculator:
             except AttributeError:
                 self.logger.debug("Powerspectrum has not been set yet, skipping")
         else:
-            self.logger.error("Lightcurve should have 2 dimensions (time,flux)")
-            raise ValueError
+            self.logger.error("Lightcurve should have 2 dimensions (time,flux) and should be a numpy array")
+            raise TypeError("Type is "+str(type(data)))
     @property
     def powerSpectralDensity(self):
         """
@@ -198,11 +198,11 @@ class PowerspectraCalculator:
         :param data: PSD for the class. 1st axis -> frequency in uHz, 2nd axis -> ppm^2
         :type data: 2-D numpy array
         """
-        if data is None or len(data) == 2:
+        if data is None or (len(data) == 2 and isinstance(data,np.ndarray)):
             self._powerSpectrum = data
         else:
-            self.logger.error("Powerspectra should have 2 dimensions (frequency,power)")
-            raise ValueError
+            self.logger.error("Powerspectra should have 2 dimensions (frequency,power) and should be a numpy array")
+            raise TypeError("Type is "+str(type(data)))
 
     @property
     def photonNoise(self):

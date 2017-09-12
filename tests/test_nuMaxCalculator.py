@@ -4,6 +4,8 @@ from uncertainties import ufloat
 from calculations.nuMaxCalculations import NuMaxCalculator
 from shutil import copy2
 
+#pytestmark = pytest.mark.skip("NuMax testing is disabled")
+
 typeIterativeFilterFailureTestCases = [
     "string",
     ufloat(20,20),
@@ -61,13 +63,32 @@ def testFailureIterativeFilter(nuMaxObject,value):
 
     with pytest.raises(ValueError):
         nuMaxObject._iterativeFilter(0)
-        
-def testIterativeFilterValues(nuMaxObject):
+
+@pytest.mark.parametrize("input,output",[
+                            (15,80.33954376499203),
+                            (15.0,80.33954376499203),
+                            (80.33954376499203,112.37891726222568 )
+                                        ])
+def testIterativeFilterValues(nuMaxObject,input,output):
     """
 
     :type nuMaxObject: NuMaxCalculator
     """
-    assert abs(nuMaxObject._iterativeFilter(15) - 80.33954376499203) < 10**-6
-    assert abs(nuMaxObject._iterativeFilter(15.0) - 80.33954376499203) < 10**-6
-    assert abs(nuMaxObject._iterativeFilter(80.33954376499203) - 112.37891726222568 ) < 10 ** -6
+    assert abs(nuMaxObject._iterativeFilter(input) - output) < 10**-6
+
+@pytest.mark.parametrize("input,output",[
+                             (None,63.253425165010093),
+                             (10,63.253425165010093),
+                             (20,63.253425165010093)
+                         ])
+def testComputeNuMax(nuMaxObject,input,output):
+    """
+
+    :type nuMaxObject: NuMaxCalculator
+    """
+    if input is None:
+        input = nuMaxObject._init_nu_filter
+
+    nuMaxObject._init_nu_filter = input
+    assert (nuMaxObject.computeNuMax() - output) < 1
     
