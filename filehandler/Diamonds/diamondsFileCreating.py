@@ -65,7 +65,7 @@ class FileCreater:
         """
         Writes the nsmc configuring parameters
         """
-        arr = np.array([500,500,1000,1500,50,2.10,0.01,0.01]).transpose()
+        arr = np.array([500,500,50000,1500,50,2.10,0.01,0.1]).transpose()
         filename = "NSMC_configuringParameters.txt"
         self._saveNumpyArray(self.fullResultPath, filename, arr)
         return
