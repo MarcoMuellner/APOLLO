@@ -23,7 +23,7 @@ class BCCalculator:
         elif tEff == 0:
             raise ValueError("Temperature cannot be 0")
         else:
-            raise ValueError("Type of input is wrong! Type is "+str(type(tEff)))
+            raise TypeError("Type of input is wrong! Type is "+str(type(tEff)))
 
         self._setFitParameters()
         self.calculateBC()

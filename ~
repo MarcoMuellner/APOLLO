@@ -1,0 +1,62 @@
+{
+    "Settings":{
+        "Calculation Settings":{
+            "Mode used to calculate Powerspectra (scipy,numpy)":{
+                "GUI Name":"Mode used to calculate Powerspectra (scipy,numpy)",
+                "GUI Type":"textEdit",
+                "Value":"scipy"
+            }
+        },
+        "Data Settings":{
+            "Refine lightcurves algorithm":{
+                "GUI Name":"Results Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"cutting"
+            },
+            "Refinement of Data":{
+                "GUI Name":"Refinement of Data",
+                "GUI Type":"textEdit",
+                "Value":"None"
+            },
+            "Star Type":{
+                "GUI Name":"Star Type",
+                "GUI Type":"textEdit",
+                "Value":"Red Giant"
+            }
+        },
+        "Diamonds Settings":{
+            "Background Data Path":{
+                "GUI Name":"Data Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"/home/mamu/priv/background/data/"
+            },
+            "Background Results Path":{
+                "GUI Name":"Results Path for diamonds",
+                "GUI Type":"textEdit",
+                "Value":"/home/mamu/priv/background/results/"
+            },
+            "Diamonds binary path":{
+                "GUI Name":"Diamonds path to binaries",
+                "GUI Type":"textEdit",
+                "Value":"/home/mamu/priv/background/build/"
+            },
+            "Fitting mode":{
+                "GUI Name":"Fitting mode",
+                "GUI Type":"textEdit",
+                "Value":"Bayesian Evidence mode (both models and comparison)"
+            }
+        },
+        "Misc Settings":{
+            "Analyzer Results Path":{
+                "GUI Name":"Analyzer Results Path",
+                "GUI Type":"textEdit",
+                "Value":"/home/mamu/priv/lightcurve_analyzer/results"
+            },
+            "Developer Mode":{
+                "GUI Name":"Developer Mode",
+                "GUI Type":"textEdit",
+                "Value":"0"
+            }
+        }
+    }
+}

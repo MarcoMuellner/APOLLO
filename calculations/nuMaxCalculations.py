@@ -1,6 +1,7 @@
 #local imports
 
 from sympy.ntheory import factorint
+import numpy as np
 
 # local imports
 from plotter.plotFunctions import *
@@ -27,12 +28,14 @@ class NuMaxCalculator:
     def __init__(self, data):
         """
         The constructor takes the lightcurve of a given star. This lightcurve is then processed
-        through the algorithm
-        :type lightCurve: 2-D numpy array
+        through the algorithm. The flicker amplitude and initial Filter frequency are computed
+        while setting the lightCurve
+        :type lightCurve: ndarray
         :param lightCurve: Data containing the lightCurve. 1st axis -> temporal axis in days,
         2nd Axis -> Flux
         """
         self.logger = logging.getLogger(__name__)
+        self.lastFilter = None
         self.lightCurve = data
 
     def _calculateFlickerAmplitude(self):
@@ -44,8 +47,6 @@ class NuMaxCalculator:
           can be transformed into the initial filter frequency.
 
         This method is only used internally in the class.
-        :rtype: float
-        :return: The flicker amplitude.
         """
         #find the new number of bins after the filter
         self._nyq = 0
@@ -84,7 +85,6 @@ class NuMaxCalculator:
         for k in range(0,n_cols):
             amp_rebin_array = np.zeros(int(self.elements-n_points_left))
             n_points_per_bin_array = np.zeros(int(self.elements-n_points_left))
-            amp_substract_array = np.zeros(int(self.elements-n_points_left))
 
             i = k*index_shift
 
@@ -124,7 +124,7 @@ class NuMaxCalculator:
         for i in range(0,len(amp_substract_array)):
             amp_flic +=(amp_substract_array[i] - amp_mean)**2
         denominator = float(len(amp_substract_array))
-        self.amp_flic = np.sqrt(amp_flic/denominator)
+        self._amp_flic = np.sqrt(amp_flic / denominator)
 
         self.logger.debug("Flicker amplitude is '"+str(amp_flic))
 
@@ -133,10 +133,13 @@ class NuMaxCalculator:
         This function computes the initial filter Frequency using an empirical function. More information in
         Kallinger (2016). Only used internally.
         """
-        self.init_nu_filter = 10**(5.187)/(self.amp_flic**(1.560))
-        self.logger.info("Nu filter is '"+str(self.init_nu_filter))
-        self.marker = {}
-        self.marker["InitialFilter"] = (self.init_nu_filter,'r')
+        if self._amp_flic is None:
+            self.logger.debug("Flicker amplitude is None, calculating it first")
+            self._calculateFlickerAmplitude()
+
+        self._init_nu_filter = 10 ** (5.187) / (self._amp_flic ** (1.560))
+        self.logger.info("Nu filter is '" + str(self._init_nu_filter))
+        self.marker = {"InitialFilter":(self._init_nu_filter, 'r')}
 
     def computeNuMax(self):
         """
@@ -144,8 +147,8 @@ class NuMaxCalculator:
         :return: Float value representing nuMax
         """
         self.lastFilter = 0
-        self.marker["First Filter"] = (self._iterativeFilter(self.init_nu_filter),'g')
-        self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter),'b')
+        self.marker["First Filter"] = (self._iterativeFilter(self._init_nu_filter), 'g')
+        self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter), 'b')
 
         return self.lastFilter
 
@@ -159,6 +162,13 @@ class NuMaxCalculator:
         :param filterFrequency: This frequency is used for filtering the intial signal contained in self._lightcurve
         :return: The smoothed lightcurve. More importantly, it sets self.lastFilter
         """
+        #sanity check
+        if not isinstance(filterFrequency,float) and not isinstance(filterFrequency,int):
+            raise TypeError("Filter frequency has wrong type! Type: "+str(type(filterFrequency)))
+
+        if filterFrequency == 0:
+            raise ValueError("Filter frequency cannot be 0")
+
         self.figAppendix = str("1st_Fit_" if self.lastFilter == 0 else "2nd_Fit_")  # needed for figure saving
         self.logger.debug("Filterfrequency for iterative filter is '"+str(filterFrequency)+"'")
         tau_filter = 1/(filterFrequency)
@@ -180,7 +190,6 @@ class NuMaxCalculator:
         autocor = autocor[0:int(length)]
         autocor = autocor**2
 
-        #guess =tau_filter/8 if (filterFrequency == self.init_nu_filter) else tau_filter/4
         guess = tau_filter/2
 
         try:
@@ -218,9 +227,9 @@ class NuMaxCalculator:
 
         self.compFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
         if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
-            self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6/popt[2])
+            self.lastFilter = self.compFilter if (filterFrequency == self._init_nu_filter) else (10 ** 6 / popt[2])
         elif Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
-            self.lastFilter = self.compFilter if (filterFrequency==self.init_nu_filter) else (10**6*1.5/popt[2]) #This shouldn't be necessary FIXME
+            self.lastFilter = self.compFilter if (filterFrequency == self._init_nu_filter) else (10 ** 6 * 1.5 / popt[2]) #This shouldn't be necessary FIXME
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
@@ -437,11 +446,21 @@ class NuMaxCalculator:
         :rtype: float
         """
         # sanity check
+        # check if type is correct
+        if not isinstance(value,np.ndarray):
+            raise TypeError("LightCurve must be of type ndarray! Type: "+str(type(value)))
+
+        #check if shape is correct
         if value is not None and len(value) != 2:
             self.logger.error("Lightcurve must be of dimension 2")
             self.logger.error("Lightcurve data: "+str(value))
             self.logger.error("Lightcurve dimension: '" + str(len(value)) + "'")
-            raise ValueError
+            raise ValueError("Value of lightcurve is not correct!")
+
+        #check if the lightcurve was provided in days
+        if any(i > 10**7 for i in value[0]):
+            self.logger.error("You need to provide a lightCurve in days, not seconds!")
+            raise ValueError("Temporal axis is in wrong unit")
 
         # normalize lightCurve and switch to seconds
         self._lightCurve = value
