@@ -1,13 +1,13 @@
-import pylab as pl
-import numpy as np
-from ggplot import *
-import pandas as pd
-from fitter.fitFunctions import *
-from filehandler.analyzerResults import AnalyserResults
 import logging
-from support.strings import *
-from settings.settings import Settings
 
+import pandas as pd
+import pylab as pl
+from ggplot import *
+
+from filehandler.analyzerResults import AnalyserResults
+from fitter.fitFunctions import *
+from settings.settings import Settings
+from support.strings import *
 
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
