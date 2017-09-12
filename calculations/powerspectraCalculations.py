@@ -99,9 +99,10 @@ class PowerspectraCalculator:
         :rtype: 2-D numpy array
         """
         fs = 1 / ((lightCurve[0][10] - lightCurve[0][9]) * 24 * 3600) #doesnt matter which timepoint is used.
-        f, psd = signal.periodogram(lightCurve[1], fs,scaling='spectrum')
+        f, psd = signal.periodogram(lightCurve[1], fs,scaling='density')
         f = f*10**6
-        return np.array((f,psd))
+        psd = np.divide(psd[1:],10**6)
+        return np.array((f[1:],psd))
 
     def __butter_lowpass_filtfilt(self,data,order=5):
         """
@@ -115,8 +116,8 @@ class PowerspectraCalculator:
         :return:Returns a smoothed variant of the input dataset
         :rtype:1-D numpy array
         """
-        normal_cutoff = 0.7 / self.nyqFreq #TODO 0.7 is only empirical, maybe change this
-        b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
+        normal_cutoff = 0.5 / self.nyqFreq #TODO 0.7 is only empirical, maybe change this
+        b, a = signal.butter(5, normal_cutoff, btype='low', analog=False)
         return signal.filtfilt(b, a,data)
 
     @property
@@ -141,7 +142,7 @@ class PowerspectraCalculator:
         if self.lightCurve is not None:
             self.logger.debug(
                 "Abtastfrequency is '" + str((self._lightCurve[0][3] - self._lightCurve[0][2]) * 24 * 3600) + "'")
-            self._nyq = 10 ** 6 / (2 * (self._lightCurve[0][200] - self._lightCurve[0][199]))
+            self._nyq = 10 ** 6 / (2 * (self._lightCurve[0][200] - self._lightCurve[0][199])*3600*24)
             self.logger.debug("Nyquist frequency is '" + str(self._nyq) + "'")
         else:
             self.logger.error("LightCurve is None therfore no calculation of nyquist frequency possible")
