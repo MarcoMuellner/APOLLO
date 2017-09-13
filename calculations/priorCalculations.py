@@ -73,7 +73,8 @@ class PriorCalculator:
 
     def _calculateOscillationAmplitude(self):
         """
-        Calculates the amplitude of the oscillation
+        Computes the amplitude of the oscillation by cutting of the signal at nuMax and taking the maximum of the
+        smoothed value of the interestingRegion that is left after the cutoff.
         """
         interestingRegion = np.array((self._powerCalc.powerSpectralDensity[0],self._powerCalc.smoothedData))
         interestingRegion = interestingRegion[1][interestingRegion[0] > self.nuMax]
