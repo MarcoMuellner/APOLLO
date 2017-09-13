@@ -33,7 +33,7 @@
             "Background Results Path":{
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"/home/mamu/priv/background/results/"
+                "Value":"tests/testFiles/diamondsFiles/"
             },
             "Diamonds binary path":{
                 "GUI Name":"Diamonds path to binaries",
@@ -50,7 +50,7 @@
             "Analyzer Results Path":{
                 "GUI Name":"Analyzer Results Path",
                 "GUI Type":"textEdit",
-                "Value":"/home/mamu/priv/lightcurve_analyzer/results"
+                "Value":"results"
             },
             "Developer Mode":{
                 "GUI Name":"Developer Mode",
