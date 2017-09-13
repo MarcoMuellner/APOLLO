@@ -55,7 +55,7 @@ class BackgroundParameter(BaseBackgroundFile):
         :return: The Dataset.
         :type: 1-D numpy array
         '''
-        if self._parameters is None:
+        if self._parameters is None or reReaddata:
             self._readData()
 
         return self._parameters
@@ -67,5 +67,9 @@ class BackgroundParameter(BaseBackgroundFile):
 
         file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter00" + str(
             self._id) + ".txt"
-        self._parameters = np.loadtxt(file).T
+        try:
+            self._parameters = np.loadtxt(file).T
+        except FileNotFoundError:
+            self.logger.warning("No file with name "+file+", setting parameters with name "+self.name+" to None")
+            self._parameters = None
 
