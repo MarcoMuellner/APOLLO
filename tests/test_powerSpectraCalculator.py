@@ -1,8 +1,8 @@
-import pytest
-from calculations.powerspectraCalculations import PowerspectraCalculator
-from uncertainties import ufloat
 import numpy as np
-import pylab as pl
+import pytest
+from uncertainties import ufloat
+
+from calculations.powerspectraCalculations import PowerspectraCalculator
 
 typeFailureTestCases = [0,
                         5.0,
@@ -38,7 +38,7 @@ def testPeriodogrammConversion(bothInitObject):
 
     :type bothInitObject: PowerspectraCalculator
     """
-    psd = np.loadtxt("tests/testFiles/PSD.txt")
+    psd = bothInitObject.powerSpectralDensity
     result = bothInitObject.lightCurveToPowerspectraPeriodogramm(bothInitObject.lightCurve)
     result = np.array((result[0],result[1]))
     assert abs(np.amax(result[1] - psd[1])) < 10 ** -4
