@@ -18,7 +18,7 @@ class FileCreater:
         :param kicID: KICId for the star
         :type kicID: string
         :param powerspectrum: Powerspectraldensity of the star
-        :type powerspectrum: 1-D numpy array
+        :type powerspectrum: 2-D numpy array
         :param nyquistFrequency: Nyquistfrequency of the Lightcurve
         :type nyquistFrequency: float
         :param priors: Priors for the DIAMONDS run. Will create the same priors for fullBackground and
@@ -36,7 +36,7 @@ class FileCreater:
         self._priors = priors
 
         self._createFolder()
-        self._createdata()
+        self._createData()
         self._createPriors()
         self._createNSMC_configuringParameters()
         self._createXmeans_configuringParameters()
@@ -105,7 +105,7 @@ class FileCreater:
         with cd(path):
             np.savetxt(filename,array,fmt='%10.'+comma+'f')
 
-    def _createdata(self):
+    def _createData(self):
         """
         Creates the data file
         """

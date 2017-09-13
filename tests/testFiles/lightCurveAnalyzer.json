@@ -28,7 +28,7 @@
             "Background Data Path":{
                 "GUI Name":"Data Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"/home/mamu/priv/background/data/"
+                "Value":"tests/testFiles/diamondsFiles/"
             },
             "Background Results Path":{
                 "GUI Name":"Results Path for diamonds",

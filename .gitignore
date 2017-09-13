@@ -19,3 +19,5 @@ results/*
 tests/\.cache/v/cache/
 
 ~
+
+tests/testFiles/diamondsFiles/KICtestKIC\.txt

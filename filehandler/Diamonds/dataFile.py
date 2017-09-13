@@ -59,9 +59,8 @@ class DataFile:
         """
         try:
             self._psd = np.loadtxt(self._psdFile).T
-        except Exception as e:
-            self.logger.error("Cannot read PSD file")
-            self.logger.error(e)
-            self._psd = np.zeros(1)
+        except FileNotFoundError:
+            self.logger.error("Cannot read PSD file, setting PSD to none")
+            self._psd = None
 
 
