@@ -15,7 +15,7 @@ from loghandler import loghandler
 
 @Singleton
 class Settings:
-    def __init__(self):
+    def __init__(self,customPath = None):
         self.__logger = logging.getLogger(__name__)
         self.__defSettingMap = obsDict(strPathDefSettings)
         self.__custSettingMap = obsDict(strPathSettings)
@@ -60,6 +60,16 @@ class Settings:
             self.__logger.info("Setting section '"+setting[key][0]+"', option '"+key+"', value '"+setting[key][1]+"'")
             obsSet = obsSetting(self.__custSettingMap,setting[key][0],key)
             obsSet.value = setting[key][1]
+
+    @property
+    def customPath(self):
+        return self._customPath
+
+    @customPath.setter
+    def customPath(self,value):
+        self._customPath = value
+        self.__custSettingMap = obsDict(self._customPath)
+        self.__adjustCustMapWithDefMap()
 
     def getAllSettings(self):
         return self.__custSettingMap.map
