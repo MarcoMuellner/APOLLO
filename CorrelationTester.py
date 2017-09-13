@@ -63,6 +63,8 @@ for i in starList:
             logger.info("Star "+i+" allready done, reading next star")
             continue
 
+
+        #read and convert
         file = FitsReader(filename)
 
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
@@ -71,7 +73,8 @@ for i in starList:
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
-
+        #
+        #compute nuMax
         nuMaxCalc = NuMaxCalculator(file.getLightCurve())
         AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
 
@@ -79,7 +82,8 @@ for i in starList:
         marker = nuMaxCalc.marker
         photonNoise = powerCalc.photonNoise
         nyquist = nuMaxCalc.nyqFreq
-
+        #
+        #compute Priors
         priorCalculator = PriorCalculator(nuMax,photonNoise,powerCalc)
         plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
 
@@ -103,12 +107,15 @@ for i in starList:
             upperBounds[x] = priors[x][1]
 
         priors = np.array((lowerBounds, upperBounds)).transpose()
+
+        #create Files and start process
         files = FileCreater(i, powerCalc.powerSpectralDensity, nyquist, priors)
 
         proc = DiamondsProcess(i)
         proc.start()
         AnalyserResults.Instance().diamondsRunner = proc
-
+        #
+        #Create results
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
 
         if diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]:
@@ -125,6 +132,7 @@ for i in starList:
 
         AnalyserResults.Instance().collectDiamondsResult()
         AnalyserResults.Instance().performAnalysis()
+        #
     except Exception as e:
         logger.error("Failed to run Correlation Test for "+i)
         logger.error(e)
