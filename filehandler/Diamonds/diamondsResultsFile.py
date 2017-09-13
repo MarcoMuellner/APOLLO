@@ -477,7 +477,6 @@ class Results:
 
         ## Global background model
         w = np.zeros_like(freq) + w
-        self.logger.debug("Whitenoise is '" + str(w) + "'")
         if runGauss and self._runID is strDiamondsModeFull:
             retVal =zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
         else:

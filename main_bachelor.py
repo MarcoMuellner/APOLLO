@@ -1,16 +1,18 @@
-import os
+import struct
+from math import log10
+import logging
 
-from loghandler import loghandler
 from filehandler.Diamonds.diamondsResultsFile import Results
+from fitter.fitFunctions import *
+from loghandler import loghandler
 from plotter.plotFunctions import *
 from settings.settings import Settings
-from support.directoryManager import cd
-from math import sqrt,pi,log10
-import struct
-from fitter.fitFunctions import *
-
+from loghandler.loghandler import *
 
 loghandler.setup_logging()
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 kicList =   [
             '002436458',
@@ -42,12 +44,12 @@ colorList = []
 nullList = []
 
 dataFolder = Settings.Instance().getSetting(strDiamondsSettingsstrDiamondsSettings, strSectBackgroundResPath).value
-print(dataFolder)
+logger.debug(dataFolder)
 arrSun = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICSun.txt")
 arrTemperatures = np.loadtxt("/Users/Marco/Google Drive/Astroseismology/Sterndaten/Bachelor_Cluster/KICID_Temperature.txt")
 arrTemperatures = arrTemperatures.transpose()
-print("arrtemp = '"+str(arrTemperatures[0]))
-print(arrSun)
+logger.debug("arrtemp = '"+str(arrTemperatures[0]))
+logger.debug(arrSun)
 lowerBound = 10
 upperBound = 11
 
@@ -73,41 +75,41 @@ for i in kicList:
         result.calculateLuminosity(tempSun)
         result.calculateDistanceModulus(vmag,kicmag,arrTemperatures[4][position[0]],av,nuMaxSun,deltaNuSun,tempSun)
 
-        print('--------------Result KIC' + result.kicID + '------------')
-        print('nuMax = ' + str(result.nuMax) + '(' + str(result.sigma) + ')')
-        print('DeltaNu = ' + str(result.deltaNuCalculator.deltaNu[0]) + '(' + str(
+        logger.debug('--------------Result KIC' + result.kicID + '------------')
+        logger.debug('nuMax = ' + str(result.nuMax) + '(' + str(result.sigma) + ')')
+        logger.debug('DeltaNu = ' + str(result.deltaNuCalculator.deltaNu[0]) + '(' + str(
             result.deltaNuCalculator.deltaNu[1]) + ')')
-        print(float(result.kicID))
-        print('----------------------------------------------------------------')
+        logger.debug(float(result.kicID))
+        logger.debug('----------------------------------------------------------------')
 
 
-        print('--------------Calculations KIC' + result.kicID + '------------')
-        print("Temperature is '"+str(Teff))
-        print("Temperature of the sun '"+str(tempSun)+"'")
-        print("Radius for KicID '" + str(result.kicID) + "'is '" + str(result.radiusStar[0])
+        logger.debug('--------------Calculations KIC' + result.kicID + '------------')
+        logger.debug("Temperature is '"+str(Teff))
+        logger.debug("Temperature of the sun '"+str(tempSun)+"'")
+        logger.debug("Radius for KicID '" + str(result.kicID) + "'is '" + str(result.radiusStar[0])
               + "'R_sun(" + str(result.radiusStar[1]) + ")'")
-        print("Luminosity for KicID '" + str(result.kicID) + "'is '" + str(result.luminosity[0])
+        logger.debug("Luminosity for KicID '" + str(result.kicID) + "'is '" + str(result.luminosity[0])
               + "'L_sun(" + str(result.luminosity[1]) +")'")
-        print("Bolometric Correlation for star '" + str(result.kicID) + "' is: '" + str(result.bolometricCorrection))
-        print("Apparent Magnitude :'"+str(vmag)+"("+str(arrTemperatures[4][position[0]])+")")
-        print("Interstellar Extinction: '"+str(arrTemperatures[3][position[0]]))
-        print("Distance is :'"+str(result.distanceModulus[0])+"("+str(result.distanceModulus[1])+")'")
-        print("KIC Distance is: "+str(result.kicDistanceModulus))
-        print("Robustness is: "+str(result.robustnessValue))
-        print("Robustness sigma is: "+str(result.robustnessSigma))
-        print('----------------------------------------------------------------')
+        logger.debug("Bolometric Correlation for star '" + str(result.kicID) + "' is: '" + str(result.bolometricCorrection))
+        logger.debug("Apparent Magnitude :'"+str(vmag)+"("+str(arrTemperatures[4][position[0]])+")")
+        logger.debug("Interstellar Extinction: '"+str(arrTemperatures[3][position[0]]))
+        logger.debug("Distance is :'"+str(result.distanceModulus[0])+"("+str(result.distanceModulus[1])+")'")
+        logger.debug("KIC Distance is: "+str(result.kicDistanceModulus))
+        logger.debug("Robustness is: "+str(result.robustnessValue))
+        logger.debug("Robustness sigma is: "+str(result.robustnessSigma))
+        logger.debug('----------------------------------------------------------------')
 
         rgbstr = ''
 
         if lowerBound <= result.distanceModulus[0] <= upperBound:
-            print("KIC" + result.kicID + " is MEMBER of the starcluster")
+            logger.debug("KIC" + result.kicID + " is MEMBER of the starcluster")
             rgbstr = '75bbfd'
         elif lowerBound <=result.distanceModulus[0]+result.distanceModulus[1]<=upperBound:
-            print("Cant tell if " + result.kicID + " is Member of starcluster")
+            logger.debug("Cant tell if " + result.kicID + " is Member of starcluster")
             rgbstr = 'c7fdb5'
 
         else:
-            print("KIC" + result.kicID + " is NO MEMBER of the starcluster")
+            logger.debug("KIC" + result.kicID + " is NO MEMBER of the starcluster")
             rgbstr = '840000'
 
         colorList.append(struct.unpack('BBB', bytes.fromhex(rgbstr)))

@@ -69,10 +69,6 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
         annotation = {'color': 'cyan', 'linetype': 'dashed'}
         annotationList['Full Background'] = annotation
 
-    logger.debug(dataList)
-    logger.debug(len(dataList[r'Frequency [$\mu$Hz]']))
-    logger.debug(len(dataList[r'PSD [ppm$^2$/$\mu$Hz]']))
-
     dfData = pd.DataFrame.from_dict(dataList)
 
     p = ggplot(dfData, aes(x=r'Frequency [$\mu$Hz]'))

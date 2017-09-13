@@ -15,7 +15,6 @@ starList = []
 
 #RG_ENRICO
 starList.append("004770846_1435") #works
-"""
 starList.append("003744681_983") #works
 starList.append("004448777_771") #works
 starList.append("004659821_1181") #okayish
@@ -37,7 +36,7 @@ starList.append("010777816_1965")
 starList.append("010866415_2167")
 starList.append("011550492_1262")
 starList.append("012008916_19")
-"""
+
 yStarList = []
 yStarList.append("224321303")
 yStarList.append("224399118")
