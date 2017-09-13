@@ -24,6 +24,7 @@ strSectFittingMode = 'Fitting mode'
 #strMiscSettings
 strSectDevMode = "Developer Mode"
 strSectAnalyzerResults = "Analyzer Results Path"
+strSectForceDiamondsRun = "Force DIAMONDS run"
 #SettingOptions
 strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'
@@ -95,3 +96,14 @@ strDiamondsStatusGood = "Good"
 strDiamondsStatusLikelihood = "Failed/Couldn't find point with better likelihood"
 strDiamondsStatusCovariance = "Failed/Covariance decomposition failed"
 strDiamondsStatusAssertion = "Failed/Assertion failed"
+#ResultsStringsPrefix
+strAnalyzerResTypeYoungStar = "YS"
+strAnalyzerResTypeRedGiant = "RG"
+#ResultsStringsSectNames
+strAnalyzerResSectNuMaxCalc = "NuMaxCalc"
+strAnalyzerResSectDiamondsPriors = "Diamonds_Priors"
+strAnalyzerResSectDiamonds = "Diamonds"
+strAnalyzerResSectAnalysis = "Analysis"
+#ResultStringsValNames
+strAnalyzerResValBayes = "Bayes Factor"
+strAnalyzerResValStrength = "Strength of evidence"

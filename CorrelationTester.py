@@ -59,6 +59,10 @@ for i in starList:
         #filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
         AnalyserResults.Instance().kicID = i
 
+        if not AnalyserResults.Instance().diamondsRunNeeded:
+            logger.info("Star "+i+" allready done, reading next star")
+            continue
+
         file = FitsReader(filename)
 
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
