@@ -2,8 +2,17 @@ import multiprocessing
 import os
 from uncertainties import ufloat
 from uncertainties.core import Variable
+from filehandler.fitsReading import FitsReader
 
 from calculations.powerspectraCalculations import PowerspectraCalculator
+from calculations.nuMaxCalculations import NuMaxCalculator
+from calculations.priorCalculations import PriorCalculator
+from filehandler.analyzerResults import AnalyserResults
+from filehandler.Diamonds.diamondsFileCreating import FileCreater
+from diamonds.diamondsProcesses import DiamondsProcess
+from plotter.plotFunctions import *
+
+import numpy as np
 
 class StandardRunner(multiprocessing.Process):
     """
@@ -54,7 +63,7 @@ class StandardRunner(multiprocessing.Process):
         :type filePath: basestring
         :param filter: List of extensions that should be looked at
         :type filter: list
-        :return: A list of all available files
+        :return: A list of all available files within the path. Filename only
         :rtype: list
         """
         pass
@@ -68,7 +77,17 @@ class StandardRunner(multiprocessing.Process):
         :return: The Powerspectraobject containing the lightcurve and psd
         :rtype: PowerspectraCalculator
         """
-        pass
+        file = FitsReader(filename)
+
+        powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
+        powerCalc.kicID = self.kicID
+
+        AnalyserResults.Instance().powerSpectracalculator = powerCalc
+
+        plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
+        plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
+        return powerCalc
+
 
     def _computeNuMax(self, psdCalc):
         """
@@ -78,21 +97,63 @@ class StandardRunner(multiprocessing.Process):
         :return: Tuple containing nuMax in first spot and the nuMax Calculator in second spot
         :rtype: tuple
         """
-        pass
+        nuMaxCalc = NuMaxCalculator(psdCalc.lightCurve)
+        AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
 
-    def _computePriors(self,nuMax,photonNoise,powerCalc):
+        return (nuMaxCalc.computeNuMax(),nuMaxCalc)
+
+    def _computePriors(self, nuMax, photonNoise, nuMaxCalc):
         """
         This method uses the PriorCalculator to compute the priors which will be used for the DIAMONDS run
         :param nuMax: Frequency of maximum Oscillation
         :type nuMax: float
         :param photonNoise: PhotonNoise as computed by the PowerSpectraCalculator
         :type photonNoise: float
-        :param powerCalc: the PowerSpectra Calculator object used
-        :type powerCalc: PowerspectraCalculator
+        :param nuMaxCalc: the nuMax Calculator object used
+        :type nuMaxCalc: NuMaxCalculator
         :return: A list containing the priors used for the run
         :rtype: list
         """
-        pass
+        priorCalculator = PriorCalculator(nuMax, photonNoise, nuMaxCalc)
+        plotPSD(nuMaxCalc, True, True, visibilityLevel= 1, fileName= "PSD_filterfrequencies.png")
+
+        priors = []
+        priors.append(priorCalculator.photonNoiseBoundary)
+        priors.append(priorCalculator.harveyAmplitudeBoundary)
+        priors.append(priorCalculator.firstHarveyFrequencyBoundary)
+        priors.append(priorCalculator.harveyAmplitudeBoundary)
+        priors.append(priorCalculator.secondHarveyFrequencyBoundary)
+        priors.append(priorCalculator.harveyAmplitudeBoundary)
+        priors.append(priorCalculator.thirdHarveyFrequencyBoundary)
+        priors.append(priorCalculator.oscillationAmplitudeBoundary)
+        priors.append(priorCalculator.nuMaxBoundary)
+        priors.append(priorCalculator.sigmaBoundary)
+
+        lowerBounds = np.zeros(len(priors))
+        upperBounds = np.zeros(len(priors))
+
+        for x in range(0, len(priors)):
+            lowerBounds[x] = priors[x][0]
+            upperBounds[x] = priors[x][1]
+
+        priors = np.array((lowerBounds, upperBounds)).transpose()
+
+        return priors
+
+    def _createFiles(self,powerCalc,priors):
+        """
+        This method creates the necessary files for the DIAMONDS run and
+        afterwards runs it
+        :param powerCalc: The powerspectra calculator
+        :type powerCalc: PowerspectraCalculator
+        :param priors: The priors used for the run
+        :type priors: list
+        """
+        FileCreater(self.kicID, powerCalc.powerSpectralDensity, powerCalc.nyqFreq, priors)
+
+        proc = DiamondsProcess(self.kicID)
+        proc.start()
+        AnalyserResults.Instance().diamondsRunner = proc
 
     def _computeResults(self):
         """
@@ -117,4 +178,12 @@ class StandardRunner(multiprocessing.Process):
     @imageMap.setter
     def imageMap(self,value):
         self._imageMap = value
+
+    @property
+    def kicID(self):
+        return self._kicID
+
+    @kicID.setter
+    def kicID(self,value):
+        self._kicID = value
 
