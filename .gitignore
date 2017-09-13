@@ -17,3 +17,5 @@ results/*
 \.cache/v/cache/
 
 tests/\.cache/v/cache/
+
+~

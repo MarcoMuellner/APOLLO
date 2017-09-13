@@ -490,7 +490,7 @@ class Results:
         Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
         :param key: key for the dict
         :type key: string
-        :rtype:dict/MarginalDistributions
+        :rtype:dict/MarginalDistribution
         """
         if key is None:
             return self._marginalDistributions
