@@ -44,7 +44,7 @@ def fullRunner(request):
             os.remove(resultPath+"KIC123456789/")
         except:
             print("cannot remove data dir")
-            
+
         for i in os.listdir("tests/testFiles/playground/"):
             os.remove(i)
     request.addfinalizer(cleanup)
@@ -121,6 +121,7 @@ def testComputeResults(defaultSetup):
     """
     pass
 
+@pytest.mark.localOnly
 def testFullRun(fullRunner):
     print(os.getcwd())
     fullRunner._internalRun()
