@@ -115,6 +115,7 @@ def testComputeResults(defaultSetup):
     pass
 
 def testFullRun(fullRunner):
+    print(os.getcwd())
     fullRunner._internalRun()
     
 
