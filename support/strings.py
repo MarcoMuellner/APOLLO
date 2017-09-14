@@ -96,6 +96,7 @@ strDiamondsStatusGood = "Good"
 strDiamondsStatusLikelihood = "Failed/Couldn't find point with better likelihood"
 strDiamondsStatusCovariance = "Failed/Covariance decomposition failed"
 strDiamondsStatusAssertion = "Failed/Assertion failed"
+strDiamondsStatusTooManyRuns = "Failed/Too many runs"
 #ResultsStringsPrefix
 strAnalyzerResTypeYoungStar = "YS"
 strAnalyzerResTypeRedGiant = "RG"

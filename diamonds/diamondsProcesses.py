@@ -18,9 +18,9 @@ class DiamondsProcess:
     def __init__(self,kicID):
         """
         The constructor of the Process class. It sets up the binaries that need to be executed, gets various settings
-        and sets the proper KICId
-        :param kicID: The KICId of the star
-        :type kicID: string
+        and sets the proper KicID
+        :param kicID: The KicID of the star
+        :type kicID: basestring
         """
         self._status = {}
         self.logger = logging.getLogger(__name__)
@@ -29,77 +29,94 @@ class DiamondsProcess:
         self.diamondsResultsPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
         self.binaryListToExecute = {}
 
-        if self.diamondsModel in [strFitModeFullBackground,strFitModeBayesianComparison]:
-            self.binaryListToExecute[strDiamondsModeFull]=(strDiamondsExecFull)
+        models = {strFitModeFullBackground:(strDiamondsModeFull,strDiamondsExecFull)
+            ,strFitModeNoiseBackground:(strDiamondsModeNoise,strDiamondsExecNoise)}
 
-        if self.diamondsModel in [strFitModeNoiseBackground,strFitModeBayesianComparison]:
-            self.binaryListToExecute[strDiamondsModeNoise]=(strDiamondsExecNoise)
+        for fitModel,(runID,binary) in models.items():
+            if self.diamondsModel in [fitModel,strFitModeBayesianComparison]:
+                self.binaryListToExecute[runID] = binary
 
         self.kicID = kicID
         return
 
+    def _getFullPath(self,path):
+        """
+        This method will create an absolute path if the path it inputs wasn't that already
+        :param path: The path you want to have the absolute of
+        :type path: basestring
+        :return: Absolute path
+        :rtype: basestring
+        """
+        if path[0] not in ["~", "/", "\\"]:
+            self.logger.debug("Setting binary to full path")
+            self.logger.debug("Prepending"+os.getcwd())
+            path = os.getcwd() + "/" + path
+            self.logger.debug("New path: "+path)
+        else:
+            self.logger.debug("Path is already absolute path")
+
+        return path
+
+
     def start(self):
         """
         Runs the processes setup in the constructor. It also creates the proper directories, for each run it will create
-        one. Also logs the output of diamonds. Will raise a ValueError if DIAMONDS cannot finish the fitting.
+        one. Also logs the output of diamonds. Will raise a ValueError if DIAMONDS cannot finish the fitting (too many
+        runs). It will also set the status flag properly depending on the state
         """
         self.logger.debug("Starting diamonds process(es).")
-        for i in self.binaryListToExecute.keys():
-            resultsPath = self.diamondsResultsPath+"KIC"+self.kicID+"/"+i+"/"
-            self.logger.debug("Mode is : '"+i+"'")
+        for runID,binary in self.binaryListToExecute.items():
+
+            self.logger.debug("RunID is : '"+runID+"'")
             self.logger.debug("Binary path: '"+self.diamondsBinaryPath+"'")
-            self.logger.debug("Binary used: '"+self.binaryListToExecute[i]+"'")
+            self.logger.debug("Binary used: '"+binary+"'")
             self.logger.debug("KicID: '"+self.kicID+"'")
 
-            path = self.diamondsBinaryPath + self.binaryListToExecute[i]
+            path = self._getFullPath(self.diamondsBinaryPath + binary)
 
-            if path[0] not in ["~","/","\\"]:
-                mainPath = os.getcwd()
-                self.logger.debug("Setting binary for full path")
-                self.logger.debug("Prepending "+mainPath)
-                path = mainPath+"/"+path
-                self.logger.debug("New path: "+path)
-
-            cmd = [path,self.kicID,i]
-            self.logger.debug("Full Command: '"+str(cmd)+"'")
-            self.logger.debug("Results directory '"+resultsPath+"'")
-
-
+            resultsPath = self.diamondsResultsPath + "KIC" + self.kicID + "/" + runID + "/"
             if not os.path.exists(resultsPath):
                 self.logger.debug("Directory "+resultsPath+" doesn't exist. Creating...")
                 os.makedirs(resultsPath)
 
+            self.logger.debug("Results directory '" + resultsPath + "'")
+
+            cmd = [path,self.kicID,runID]
+            self.logger.debug("Full Command: '"+str(cmd)+"'")
+
             finished = False
-            errorCount = 0
 
-            mode = strDiamondsModeNoise if i == strDiamondsModeNoise else strDiamondsModeFull
-
-            while finished == False:
-                errorCount +=1
-                self._status[mode] = strDiamondsStatusRunning
+            for errorCount in range(1,3):
+                self._status[runID] = strDiamondsStatusRunning
                 with cd(self.diamondsBinaryPath):
                     p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+
                     while p.poll() is None:
                         line = p.stderr.readline()
                         self.logger.debug(line)
+
                         if strDiamondsErrBetterLikelihood in str(line):
                             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
-                            self._status[mode] = strDiamondsStatusLikelihood
+                            self._status[runID] = strDiamondsStatusLikelihood
+
                         elif strDiamondsErrCovarianceFailed in str(line):
                             self.logger.warning("Diamonds cannot decompose covariance. Repeat!")
-                            self._status[mode] = strDiamondsStatusCovariance
+                            self._status[runID] = strDiamondsStatusCovariance
+
                         elif strDiamondsErrAssertionFailed in str(line):
                             self.logger.warning("Diamonds assertion failed. Repeat!")
-                            self._status[mode] = strDiamondsStatusAssertion
+                            self._status[runID] = strDiamondsStatusAssertion
 
                     self.logger.debug(p.stdout.read())
                     self.logger.debug("Command '"+str(cmd)+"' done")
-                    if self._status[mode] == strDiamondsStatusRunning:
+                    if self._status[runID] == strDiamondsStatusRunning:
                         finished = True
-                        self._status[mode] = strDiamondsStatusGood
-                    elif errorCount >3:
-                        self.logger.error("Diamonds failed to find good values!")
-                        raise ValueError
+                        self._status[runID] = strDiamondsStatusGood
+
+            if not finished:
+                self.logger.error("Diamonds failed to find good values!")
+                self._status = strDiamondsStatusTooManyRuns
+                raise ValueError
 
                 #Some error handling needs to take place here!
         return
