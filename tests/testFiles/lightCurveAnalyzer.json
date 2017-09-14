@@ -28,17 +28,17 @@
             "Background Data Path":{
                 "GUI Name":"Data Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"tests/testFiles/diamondsFiles/"
+                "Value":"tests/testFiles/diamondsFiles/background/data/"
             },
             "Background Results Path":{
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"tests/testFiles/diamondsFiles/"
+                "Value":"tests/testFiles/diamondsFiles/background/results/"
             },
             "Diamonds binary path":{
                 "GUI Name":"Diamonds path to binaries",
                 "GUI Type":"textEdit",
-                "Value":"/home/mamu/priv/background/build/"
+                "Value":"tests/testFiles/diamondsFiles/background/build/"
             },
             "Fitting mode":{
                 "GUI Name":"Fitting mode",
