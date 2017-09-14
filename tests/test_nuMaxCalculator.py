@@ -28,17 +28,17 @@ valueFailureTestCases  = [
 def nuMaxObject():
     copy2("tests/testFiles/lightCurveAnalyzer.json","~")
     lightCurve = np.loadtxt("tests/testFiles/Lightcurve.txt", skiprows=1)
-    return NuMaxCalculator(lightCurve)
+    return NuMaxCalculator("testKIC",lightCurve)
 
 @pytest.mark.parametrize("value",typeFailureTestCases)
 def testFailureTypeNuMaxCalc(value):
     with pytest.raises(TypeError):
-        NuMaxCalculator(value)
+        NuMaxCalculator("testKIC",value)
 
 @pytest.mark.parametrize("value",valueFailureTestCases)
 def testFailureValueNuMaxCalc(value):
     with pytest.raises(ValueError):
-        NuMaxCalculator(value)
+        NuMaxCalculator("testKIC",value)
 
 def testFlickerandInitFilter(nuMaxObject):
     """

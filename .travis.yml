@@ -5,4 +5,4 @@ cache: pip
 install:
   - pip install -r requirements.txt
 script:
-  python -m pytest -m "not localOnly" tests/
+  python -m pytest -s -m "not localOnly" tests/

@@ -104,7 +104,7 @@ def plotPSD(data,runGauss,psdOnly,markerList = None,smooth = True,visibilityLeve
         print(p)
 
     if fileName != "":
-        saveFigToResults(fileName,p)
+        saveFigToResults(data.kicID,fileName,p)
 
     return p
 
@@ -137,7 +137,7 @@ def plotParameterTrend(data,fileName = ""):
         pl.xlabel(backgroundParameters[iii].name + ' (' + backgroundParameters[iii].unit+')' , fontsize=16)
 
     if fileName != "":
-        saveFigToResults(fileName,fig)
+        saveFigToResults(data.kicID,fileName,fig)
     return fig
 
 def plotDeltaNuFit(deltaNuCalculator,kicID,visibilityLevel = 0):
@@ -247,11 +247,11 @@ def plotLightCurve(data,visibilityLevel = 0,fileName = ""):
         print(p)
 
     if fileName != "":
-        saveFigToResults(fileName,p)
+        saveFigToResults(data.kicID,fileName,p)
 
     return p
 
-def plotCustom(dataList,title = "",showLegend=False,fileName=""):
+def plotCustom(kicID,dataList,title = "",showLegend=False,fileName=""):
     fig = pl.figure()
     for label,(marker,x,y) in dataList.items():
         pl.plot(x,y,marker,label=label)
@@ -263,7 +263,7 @@ def plotCustom(dataList,title = "",showLegend=False,fileName=""):
         pl.legend()
 
     if fileName != "":
-        saveFigToResults(fileName,fig)
+        saveFigToResults(kicID,fileName,fig)
     return fig
 
 
@@ -278,5 +278,5 @@ def show(visibilityLevel=0):
     else:
         pl.close()
 
-def saveFigToResults(filename,figure):
-    AnalyserResults.Instance().addImage(filename,figure)
+def saveFigToResults(kicID,filename,figure):
+    AnalyserResults.Instance(kicID).addImage(filename,figure)

@@ -14,17 +14,20 @@ class Singleton:
     '''
     def __init__(self,decorated):
         self.__decorated = decorated
-    def Instance(self):
+    def Instance(self,kicID = ""):
         '''
         Returns the singleton instance. Upon its firsct call, it creates a new
         instance of the decorated class and calls its '__init__' method.
         On all subsequent calls, the already created instance is returned
         '''
+        if not hasattr(self,"_instanceList"):
+            self._instanceList = {}
         try:
-            return self.__instance
-        except AttributeError:
-            self.__instance = self.__decorated()
-            return self.__instance
+            return self._instanceList[kicID]
+        except KeyError:
+            self._instanceList[kicID] = self.__decorated()
+
+            return self._instanceList[kicID]
     def __call__(self):
         raise TypeError("Singletons must be accessed through 'Instance()'.")
     def __instancecheck__(self,inst):

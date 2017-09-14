@@ -91,7 +91,7 @@ powerCalc = PowerspectraCalculator(file.getLightCurve())
 powerCalc.kicID = input
 plotPSD(powerCalc,True,True)
 
-nuMaxCalc = NuMaxCalculator(file.getLightCurve())
+nuMaxCalc = NuMaxCalculator(input,file.getLightCurve())
 
 nuMax = 61
 photonNoise = 0.04

@@ -57,9 +57,9 @@ for i in starList:
 
         filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
         #filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
-        AnalyserResults.Instance().kicID = i
+        AnalyserResults.Instance(i).kicID = i
 
-        if not AnalyserResults.Instance().diamondsRunNeeded:
+        if not AnalyserResults.Instance(i).diamondsRunNeeded:
             logger.info("Star "+i+" allready done, reading next star")
             continue
 
@@ -69,14 +69,14 @@ for i in starList:
 
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
         powerCalc.kicID = i
-        AnalyserResults.Instance().powerSpectracalculator = powerCalc
+        AnalyserResults.Instance(i).powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
         #
         #compute nuMax
-        nuMaxCalc = NuMaxCalculator(file.getLightCurve())
-        AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
+        nuMaxCalc = NuMaxCalculator(i,file.getLightCurve())
+        AnalyserResults.Instance(i).nuMaxCalculator = nuMaxCalc
 
         nuMax = nuMaxCalc.computeNuMax()
         marker = nuMaxCalc.marker
@@ -113,7 +113,7 @@ for i in starList:
 
         proc = DiamondsProcess(i)
         proc.start()
-        AnalyserResults.Instance().diamondsRunner = proc
+        AnalyserResults.Instance(i).diamondsRunner = proc
         #
         #Create results
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
@@ -130,15 +130,15 @@ for i in starList:
             p = plotParameterTrend(result,fileName="Full_Background_Parametertrend.png")
             show(2)
 
-        AnalyserResults.Instance().collectDiamondsResult()
-        AnalyserResults.Instance().performAnalysis()
+        AnalyserResults.Instance(i).collectDiamondsResult()
+        AnalyserResults.Instance(i).performAnalysis()
         #
     except Exception as e:
         logger.error("Failed to run Correlation Test for "+i)
         logger.error(e)
         logger.error(traceback.format_exc())
         try:
-            AnalyserResults.Instance().performAnalysis()
+            AnalyserResults.Instance(i).performAnalysis()
         except Exception as d:
             logger.error("Cannot proceed with analysis!")
             logger.error(d)

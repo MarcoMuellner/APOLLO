@@ -12,8 +12,7 @@ import json
 @Singleton
 class AnalyserResults:
     """
-    This class allows for a single place to create a full report on the data gathered during one DIAMONDS run.
-    It gatheres different objects from which it will call the results up and sets it up in a simple json format
+    This class gathers all results from the DIAMONDS run and the ACF function. After calling the
     """
     def __init__(self):
         self.logger = logging.getLogger(__name__)

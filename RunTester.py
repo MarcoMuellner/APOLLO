@@ -62,24 +62,24 @@ filename = "../Sterndaten/RG_ENRICO/kplr" + input + "_COR_" + ("PSD_" if powerSp
 
 file = FitsReader(filename)
 powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
-AnalyserResults.Instance().kicID = input
-AnalyserResults.Instance().powerSpectraCalculator = powerCalc
+AnalyserResults.Instance(input).kicID = input
+AnalyserResults.Instance(input).powerSpectraCalculator = powerCalc
 
 
 
 powerCalc.kicID = input
 p = plotLightCurve(powerCalc,2)
-saveFigToResults("Lightcurve.png",p)
+saveFigToResults(input,"Lightcurve.png",p)
 p = plotPSD(powerCalc,True,True,visibilityLevel=1)
-saveFigToResults("PSD.png",p)
+saveFigToResults(input,"PSD.png",p)
 
-nuMaxCalc = NuMaxCalculator(file.getLightCurve())
+nuMaxCalc = NuMaxCalculator(input,file.getLightCurve())
 
 nuMax = nuMaxCalc.computeNuMax()
 marker = nuMaxCalc.marker
 photonNoise = powerCalc.photonNoise
 nyquist = nuMaxCalc.nyqFreq
-AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
+AnalyserResults.Instance(input).nuMaxCalculator = nuMaxCalc
 
 priorCalculator = PriorCalculator(nuMax,photonNoise)
 
@@ -151,18 +151,18 @@ diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFitti
 if diamondsModel in [strFitModeNoiseBackground,strFitModeBayesianComparison]:
     result = Results(kicID=input,runID=strDiamondsModeNoise)
     p = plotPSD(result,False,False,visibilityLevel=1)
-    saveFigToResults("PSD_Noise_fit.png",p)
+    saveFigToResults(input,"PSD_Noise_fit.png",p)
     p = plotParameterTrend(result)
-    saveFigToResults("Noise_Parametertrend.png",p)
+    saveFigToResults(input,"Noise_Parametertrend.png",p)
     show(2)
 
 if diamondsModel in [strFitModeFullBackground,strFitModeBayesianComparison]:
     result = Results(kicID=input,runID=strDiamondsModeFull)
     p = plotPSD(result,True,False,visibilityLevel=1)
-    saveFigToResults("PSD_Full_Background_fit.png",p)
+    saveFigToResults(input,"PSD_Full_Background_fit.png",p)
     p = plotParameterTrend(result)
-    saveFigToResults("Full_Background_Parametertrend.png",p)
+    saveFigToResults(input,"Full_Background_Parametertrend.png",p)
     show(2)
 
-AnalyserResults.Instance().collectDiamondsResult()
-AnalyserResults.Instance().performAnalysis()
+AnalyserResults.Instance(input).collectDiamondsResult()
+AnalyserResults.Instance(input).performAnalysis()

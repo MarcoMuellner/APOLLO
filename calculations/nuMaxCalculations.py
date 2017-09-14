@@ -25,7 +25,7 @@ class NuMaxCalculator:
 
     For more information see Kallinger (2016) on the algorithm used here.
     """
-    def __init__(self, data):
+    def __init__(self, kicID,data):
         """
         The constructor takes the lightcurve of a given star. This lightcurve is then processed
         through the algorithm. The flicker amplitude and initial Filter frequency are computed
@@ -37,6 +37,7 @@ class NuMaxCalculator:
         self.logger = logging.getLogger(__name__)
         self.lastFilter = None
         self.lightCurve = data
+        self.kicID = kicID
 
     def _calculateFlickerAmplitude(self):
         """
@@ -202,7 +203,7 @@ class NuMaxCalculator:
             dataList = {'Autocorrelation': ('-',self._lightCurve[0][0:int(length)]/4,autocor), "Initial Guess": (
                 '-', np.linspace(0, 20000, num=50000),
                 self._fit(np.linspace(0, 20000, num=50000), 1, 1 / 20, guess))}
-            plotCustom(dataList,title="Failed fit result",showLegend=True,fileName=self.figAppendix+"Sinc_Fit_error.png")
+            plotCustom(self.kicID,dataList,title="Failed fit result",showLegend=True,fileName=self.figAppendix+"Sinc_Fit_error.png")
             show()
             raise e
         except BaseException as e:
@@ -215,7 +216,7 @@ class NuMaxCalculator:
         dataList['Autocorrelation'] = ('x',self._lightCurve[0][0:int(length)]/4,autocor)
         dataList['Initial Fit'] = ('-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,guess))
         dataList['Corrected Fit'] = ('-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),*popt))
-        plotCustom(dataList,title="Final Fit",showLegend=True,fileName=self.figAppendix+"Final_fit_.png")
+        plotCustom(self.kicID,dataList,title="Final Fit",showLegend=True,fileName=self.figAppendix+"Final_fit_.png")
         show(2)
 
         tau_first_fit = popt[2]/60
@@ -344,7 +345,7 @@ class NuMaxCalculator:
 
         dataList = {'data':('x',x,y),"Initial Guess":(
         '-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess))}
-        plotCustom(dataList,title='Initial Guess Fit',showLegend=True,fileName=self.figAppendix+"InitGuess.png")
+        plotCustom(self.kicID,dataList,title='Initial Guess Fit',showLegend=True,fileName=self.figAppendix+"InitGuess.png")
         show(4)
         popt, pcov = optimize.curve_fit(self._sinc,x,y,p0=arr,maxfev = 5000)
 
@@ -352,7 +353,7 @@ class NuMaxCalculator:
 
         dataList = {'data': ('x', x, y), "Fit": (
         '-', np.linspace(0, 20000, num=50000), self._sinc(np.linspace(0, 20000, num=50000),*popt))}
-        plotCustom(dataList, title='Initial Sinc fit', showLegend=True,fileName=self.figAppendix + "InitSincFit.png")
+        plotCustom(self.kicID,dataList, title='Initial Sinc fit', showLegend=True,fileName=self.figAppendix + "InitSincFit.png")
         show(4)
 
         residuals = y-self._sinc(x,*popt)
@@ -368,7 +369,7 @@ class NuMaxCalculator:
 
         dataList = {"Residual data": ('x', cut, residuals), "Sin Fit": (
             '-', np.linspace(0,20000,num=50000),self._sin(np.linspace(0,20000,num=50000),*popt))}
-        plotCustom(dataList, title='Sin fit', showLegend=True, fileName=self.figAppendix + "SinFit.png")
+        plotCustom(self.kicID,dataList, title='Sin fit', showLegend=True, fileName=self.figAppendix + "SinFit.png")
         show(4)
 
         y =  y[scaled_time_array<=2] - self._sin(cut,*popt)
@@ -377,7 +378,7 @@ class NuMaxCalculator:
 
         dataList = {"data": ('x', cut, y), "Sinc fit": (
             '-', np.linspace(0,20000,num=50000),self._sinc(np.linspace(0,20000,num=50000),*popt))}
-        plotCustom(dataList, title='Second Sinc fit', showLegend=True, fileName=self.figAppendix + "SecondSinc.png")
+        plotCustom(self.kicID,dataList, title='Second Sinc fit', showLegend=True, fileName=self.figAppendix + "SecondSinc.png")
         show(4)
 
         returnList = [popt[0],b,popt[1]]
@@ -470,3 +471,11 @@ class NuMaxCalculator:
         # compute flicker Amplitude and initial filter frequency
         self._calculateFlickerAmplitude()
         self._calculateInitFilterFrequency()
+
+    @property
+    def kicID(self):
+        return self._kicID
+
+    @kicID.setter
+    def kicID(self,value):
+        self._kicID = value

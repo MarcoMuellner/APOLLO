@@ -160,7 +160,7 @@ class StandardRunner(multiprocessing.Process):
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
         powerCalc.kicID = self.kicID
 
-        AnalyserResults.Instance().powerSpectracalculator = powerCalc
+        AnalyserResults.Instance(self.kicID).powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
@@ -175,8 +175,8 @@ class StandardRunner(multiprocessing.Process):
         :return: Tuple containing nuMax in first spot and the nuMax Calculator in second spot
         :rtype: tuple
         """
-        nuMaxCalc = NuMaxCalculator(psdCalc.lightCurve)
-        AnalyserResults.Instance().nuMaxCalculator = nuMaxCalc
+        nuMaxCalc = NuMaxCalculator(self.kicID,psdCalc.lightCurve)
+        AnalyserResults.Instance(self.kicID).nuMaxCalculator = nuMaxCalc
 
         return (nuMaxCalc.computeNuMax(),nuMaxCalc)
 
@@ -229,7 +229,7 @@ class StandardRunner(multiprocessing.Process):
 
         proc = DiamondsProcess(self.kicID)
         proc.start()
-        AnalyserResults.Instance().diamondsRunner = proc
+        AnalyserResults.Instance(self.kicID).diamondsRunner = proc
 
     def _computeResults(self):
         """
@@ -247,8 +247,8 @@ class StandardRunner(multiprocessing.Process):
                 plotParameterTrend(result, fileName="Noise_Parametertrend.png")
                 show(2)
 
-        AnalyserResults.Instance().collectDiamondsResult()
-        AnalyserResults.Instance().performAnalysis()
+        AnalyserResults.Instance(self.kicID).collectDiamondsResult()
+        AnalyserResults.Instance(self.kicID).performAnalysis()
 
     @property
     def result(self):
