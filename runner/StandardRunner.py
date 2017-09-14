@@ -64,7 +64,6 @@ class StandardRunner(multiprocessing.Process):
 
         will run in its own process. So after calling you need to call join() to wait for it to be finished
         """
-
         self.fileName = self._lookForFile(self.kicID,self.filePath)
         self.logger.info("Lightcurve file is "+self.fileName)
 

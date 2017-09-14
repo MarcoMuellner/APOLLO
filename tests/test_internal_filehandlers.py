@@ -9,7 +9,6 @@ import numpy as np
 
 @pytest.fixture()
 def settings():
-    Settings.Instance().customPath = "tests/testFiles/lightCurveAnalyzer.json"
     return Settings.Instance()
 
 

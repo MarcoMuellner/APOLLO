@@ -8,7 +8,6 @@ from support.strings import *
 
 @pytest.fixture()
 def settings(request):
-    Settings.Instance().customPath = "tests/testFiles/lightCurveAnalyzer.json"
     resultPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
     def cleanup():
         print("Performing cleanup")

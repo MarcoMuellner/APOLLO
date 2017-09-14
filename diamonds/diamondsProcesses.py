@@ -51,7 +51,16 @@ class DiamondsProcess:
             self.logger.debug("Binary used: '"+self.binaryListToExecute[i]+"'")
             self.logger.debug("KicID: '"+self.kicID+"'")
 
-            cmd = [(self.diamondsBinaryPath + self.binaryListToExecute[i]),self.kicID,i]
+            path = self.diamondsBinaryPath + self.binaryListToExecute[i]
+
+            if path[0] not in ["~","/","\\"]:
+                mainPath = os.getcwd()
+                self.logger.debug("Setting binary for full path")
+                self.logger.debug("Prepending "+mainPath)
+                path = mainPath+"/"+path
+                self.logger.debug("New path: "+path)
+
+            cmd = [path,self.kicID,i]
             self.logger.debug("Full Command: '"+str(cmd)+"'")
             self.logger.debug("Results directory '"+resultsPath+"'")
 
