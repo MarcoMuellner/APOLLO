@@ -21,3 +21,5 @@ tests/\.cache/v/cache/
 ~
 
 tests/testFiles/diamondsFiles/KICtestKIC\.txt
+
+tests/testFiles/playground/fits_123456789\.fits

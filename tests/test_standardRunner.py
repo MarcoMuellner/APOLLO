@@ -6,12 +6,14 @@ import os
 import shutil
 import numpy as np
 from support.directoryManager import cd
+from settings.settings import Settings
+from support.strings import *
 
 @pytest.fixture(params=[".fits",".txt"],scope="function")
 def defaultSetup(request):
     if "playground" not in os.listdir("tests/testFiles"):
         os.makedirs("tests/testFiles/playground/")
-        
+
     with cd("tests/testFiles/playground"):
         open("testfile_92345443"+request.param,'a').close()
         open("testfile_92345443_PSD"+request.param, 'a').close()
@@ -100,6 +102,7 @@ def testComputeResults(defaultSetup):
 @pytest.mark.localOnly
 def testFullRun():
     shutil.copy2("tests/testFiles/fitsLightcurve.fits","tests/testFiles/playground/fits_123456789.fits")
+    Settings.Instance().customPath = strPathSettings
     runner = StandardRunner("123456789","tests/testFiles/playground/")
     runner.run()
     runner.join()
