@@ -8,7 +8,7 @@ class PriorCalculator:
     Most of the equations here are taken from the paper by Kallinger(2014), others are determined empirically. All of
     the values are initial guesses. Proper values can be determined by fitting the PSD
     """
-    def __init__(self, nuMax, photonNoise, powerCalc: PowerspectraCalculator):
+    def __init__(self, nuMax, powerCalc: PowerspectraCalculator):
         """
         Constructor of the priorCalculator. Automatically triggers the computation of the priors by setting the
         nuMax property
@@ -16,12 +16,9 @@ class PriorCalculator:
         :type psd: PowerspectraCalculator
         :param nuMax: Represents the frequency of maximum oscillation -> in uHz
         :type nuMax: float
-        :param photonNoise: Represents the background Photon noise. Should be computed in
-        PowerspectraCalculator -> ppm^2
-        :type photonNoise: float
         """
         self._powerCalc = powerCalc
-        self.photonNoise=photonNoise
+        self.photonNoise=powerCalc.photonNoise
         self.nuMax = nuMax
 
     def _runComputation(self):

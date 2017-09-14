@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import errno
 from uncertainties import ufloat
 from uncertainties.core import Variable
 from filehandler.fitsReading import FitsReader
@@ -8,9 +9,12 @@ from calculations.powerspectraCalculations import PowerspectraCalculator
 from calculations.nuMaxCalculations import NuMaxCalculator
 from calculations.priorCalculations import PriorCalculator
 from filehandler.analyzerResults import AnalyserResults
+from filehandler.Diamonds.diamondsResultsFile import Results
 from filehandler.Diamonds.diamondsFileCreating import FileCreater
 from diamonds.diamondsProcesses import DiamondsProcess
 from plotter.plotFunctions import *
+from support.directoryManager import cd
+import logging
 
 import numpy as np
 
@@ -37,10 +41,46 @@ class StandardRunner(multiprocessing.Process):
         :param fileName:FileName, optional. Will overwrite the standard behaviour of looking for the file
         :type fileName:basestring
         """
+        self.logger = logging.getLogger(__name__)
         multiprocessing.Process.__init__(self)
+        self.kicID = kicID
+        self.filePath =filePath
+        self.fileName = fileName
 
     def run(self):
-        pass
+        """
+        Runs the Standardrunner. The sequence is:
+
+        - look for file
+        - read file and compute PSD
+        - compute nuMax
+        - compute Priors
+        - write files
+        - run Diamonds
+        - create Results
+
+        will run in its own process. So after calling you need to call join() to wait for it to be finished
+        """
+
+        self.fileName = self._lookForFile(self.kicID,self.filePath)
+        self.logger.info("Lightcurve file is "+self.fileName)
+
+        self._psdCalc = self._readAndConvertLightCurve(self.fileName)
+        self.logger.info("Nyquist frequency according to psdCalc is "+str(self._psdCalc.nyqFreq))
+        self.logger.info("Photon noise according to psdCalc is " + str(self._psdCalc.photonNoise))
+
+        self._nuMaxResult = self._computeNuMax(self._psdCalc)
+        self.logger.info("NuMax is "+str(self._nuMaxResult[0]))
+
+        self._priors = self._computePriors(self._nuMaxResult[0],self._psdCalc)
+        self.logger.info("Priors are:")
+        self.logger.info(self._priors)
+
+        self._createFilesAndRunDiamonds(self._psdCalc, self._priors)
+        self.logger.info("Files created,diamondsRun")
+
+        self._computeResults()
+        self.logger.info("Result created")
 
     def _lookForFile(self,kicID,filePath):
         """
@@ -54,7 +94,30 @@ class StandardRunner(multiprocessing.Process):
         :return:filePath + filename
         :rtype:basestring
         """
-        pass
+        files = self.listAvailableFilesInPath(filePath)
+        for file in files:
+            if str(kicID) in file:
+                try:
+                    lightCurveCandidates.append(file)
+                except UnboundLocalError:
+                    lightCurveCandidates = [file]
+
+        try:
+            if len(lightCurveCandidates) > 1:
+                for candidate in lightCurveCandidates:
+                    if "PSD" in candidate:
+                        lightCurveCandidates.remove(candidate)
+        except UnboundLocalError:
+            self.logger.error("No valid files found!")
+            raise FileNotFoundError("No valid files found")
+
+        if len(lightCurveCandidates) != 1:
+            self.logger.error("Failed to find a lightCurve for KIC "+str(kicID))
+            self.logger.error("Available files: "+str(files))
+            raise FileNotFoundError("Too many files found")
+
+        return filePath+lightCurveCandidates[0]
+
 
     def listAvailableFilesInPath(self,filePath,filter=[".txt",".fits"]):
         """
@@ -66,7 +129,20 @@ class StandardRunner(multiprocessing.Process):
         :return: A list of all available files within the path. Filename only
         :rtype: list
         """
-        pass
+        resultList = []
+        with cd(filePath):
+            for file in os.listdir("."):
+                _,file_extension = os.path.splitext(file)
+                if file_extension in filter:
+                    resultList.append(file)
+
+        if resultList == []:
+            self.logger.error("Failed to find files")
+            self.logger.error("Extension filter: "+str(filter))
+            self.logger.error("Path: "+filePath)
+            raise FileNotFoundError("No files found")
+
+        return resultList
 
     def _readAndConvertLightCurve(self,filename):
         """
@@ -102,20 +178,18 @@ class StandardRunner(multiprocessing.Process):
 
         return (nuMaxCalc.computeNuMax(),nuMaxCalc)
 
-    def _computePriors(self, nuMax, photonNoise, nuMaxCalc):
+    def _computePriors(self, nuMax, powerCalc):
         """
         This method uses the PriorCalculator to compute the priors which will be used for the DIAMONDS run
         :param nuMax: Frequency of maximum Oscillation
         :type nuMax: float
-        :param photonNoise: PhotonNoise as computed by the PowerSpectraCalculator
-        :type photonNoise: float
-        :param nuMaxCalc: the nuMax Calculator object used
-        :type nuMaxCalc: NuMaxCalculator
+        :param powerCalc: the psd Calculator object used
+        :type powerCalc: PowerspectraCalculator
         :return: A list containing the priors used for the run
         :rtype: list
         """
-        priorCalculator = PriorCalculator(nuMax, photonNoise, nuMaxCalc)
-        plotPSD(nuMaxCalc, True, True, visibilityLevel= 1, fileName= "PSD_filterfrequencies.png")
+        priorCalculator = PriorCalculator(nuMax, powerCalc)
+        plotPSD(powerCalc, True, True, visibilityLevel= 1, fileName="PSD_filterfrequencies.png")
 
         priors = []
         priors.append(priorCalculator.photonNoiseBoundary)
@@ -140,7 +214,7 @@ class StandardRunner(multiprocessing.Process):
 
         return priors
 
-    def _createFiles(self,powerCalc,priors):
+    def _createFilesAndRunDiamonds(self, powerCalc, priors):
         """
         This method creates the necessary files for the DIAMONDS run and
         afterwards runs it
@@ -161,7 +235,18 @@ class StandardRunner(multiprocessing.Process):
         :return: The imageMap and resultMap contained in a tuple
         :rtype: tuple
         """
-        pass
+        diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        models = {strFitModeFullBackground:strDiamondsModeFull,strFitModeNoiseBackground:strDiamondsModeNoise}
+
+        for fitMode,binary in models.items():
+            if diamondsModel in [strFitModeBayesianComparison,fitMode]:
+                result = Results(kicID=self.kicID,runID=binary)
+                plotPSD(result, False, False, visibilityLevel=1, fileName="PSD_Noise_fit.png")
+                plotParameterTrend(result, fileName="Noise_Parametertrend.png")
+                show(2)
+
+        AnalyserResults.Instance().collectDiamondsResult()
+        AnalyserResults.Instance().performAnalysis()
 
     @property
     def result(self):
@@ -187,3 +272,18 @@ class StandardRunner(multiprocessing.Process):
     def kicID(self,value):
         self._kicID = value
 
+    @property
+    def fileName(self):
+        return self._fileName
+
+    @fileName.setter
+    def fileName(self,value):
+        self._fileName = value
+
+    @property
+    def filePath(self):
+        return self._filePath
+
+    @filePath.setter
+    def filePath(self,value):
+        self._filePath  = value

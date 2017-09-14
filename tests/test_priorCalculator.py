@@ -26,8 +26,8 @@ def psdCalc():
 @pytest.mark.parametrize("value",typeErrorTestCases)
 def testTypeFailure(psdCalc,value):
     with pytest.raises(TypeError):
-        PriorCalculator(value,value,psdCalc)
+        PriorCalculator(value,psdCalc)
 
 @pytest.mark.parametrize("value",typeWorkingCases)
 def testTypeOk(psdCalc,value):
-    assert PriorCalculator(value,value/10,psdCalc).nuMax == value
+    assert PriorCalculator(value,psdCalc).nuMax == value
