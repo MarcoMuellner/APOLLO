@@ -36,18 +36,18 @@ class BackgroundParameter(BaseBackgroundFile):
 
     @property
     def name(self):
-        """
+        '''
         :return: Name of the parameter
         :rtype:string
-        """
+        '''
         return self._name
 
     @property
     def unit(self):
-        """
+        '''
         :return:Unit of the parameter
         :rtype: string
-        """
+        '''
         return self._unit
 
     def getData(self,reReaddata = False):
@@ -61,9 +61,9 @@ class BackgroundParameter(BaseBackgroundFile):
         return self._parameters
 
     def _readData(self):
-        """
+        '''
         Reads the dataset from the parameterfiled created by DIAMONDS.
-        """
+        '''
 
         file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter00" + str(
             self._id) + ".txt"

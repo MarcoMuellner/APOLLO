@@ -8,20 +8,20 @@ from support.strings import *
 
 
 class DiamondsProcess:
-    """
+    '''
     This class will run DIAMONDS. Dependent on the settings, it will run one or both models (full Background model,
     noise Background model). To be able to run it successfully the prior File has to be set up, as well as the
     results path in background/results/KIC***/. So you need to run all the calculators and filehandlers prior to
     running diamonds. This class also does some rudimentary errorhandling of diamonds. It parses the log provided by
     DIAMONDS to do so.
-    """
+    '''
     def __init__(self,kicID):
-        """
+        '''
         The constructor of the Process class. It sets up the binaries that need to be executed, gets various settings
         and sets the proper KicID
         :param kicID: The KicID of the star
-        :type kicID: basestring
-        """
+        :type kicID: str
+        '''
         self._status = {}
         self.logger = logging.getLogger(__name__)
         self.diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
@@ -40,13 +40,13 @@ class DiamondsProcess:
         return
 
     def _getFullPath(self,path):
-        """
+        '''
         This method will create an absolute path if the path it inputs wasn't that already
         :param path: The path you want to have the absolute of
-        :type path: basestring
+        :type path: str
         :return: Absolute path
-        :rtype: basestring
-        """
+        :rtype: str
+        '''
         if path[0] not in ["~", "/", "\\"]:
             self.logger.debug("Setting binary to full path")
             self.logger.debug("Prepending"+os.getcwd())
@@ -59,11 +59,11 @@ class DiamondsProcess:
 
 
     def start(self):
-        """
+        '''
         Runs the processes setup in the constructor. It also creates the proper directories, for each run it will create
         one. Also logs the output of diamonds. Will raise a ValueError if DIAMONDS cannot finish the fitting (too many
         runs). It will also set the status flag properly depending on the state
-        """
+        '''
         self.logger.debug("Starting diamonds process(es).")
         for runID,binary in self.binaryListToExecute.items():
 
@@ -123,11 +123,11 @@ class DiamondsProcess:
 
     @property
     def status(self):
-        """
+        '''
         Property for the status flag on diamonds. See strings.py for possible values
         :return:Status flag
         :rtype:string
-        """
+        '''
         return self._status
 
 

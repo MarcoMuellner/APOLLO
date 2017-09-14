@@ -10,20 +10,20 @@ from support.strings import *
 
 
 class ParameterSummary(BaseBackgroundFile):
-    """
+    '''
     This class represents the summary file provided by DIAMONDS. From here we can calculate
     the background model, which in turn provides the final values for the fit
-    """
+    '''
 
     def __init__(self,kicID=None,runID=None):
-        """
+        '''
         Constructor for the summary class. KICID and RunID are set within the Baseclass,
         which provides properties for these parameters.
         :param kicID: The KICID for the star
         :type kicID: string
         :param runID: The RunID for the star, can be fullBackground or noiseOnly
         :type runID: string
-        """
+        '''
         BaseBackgroundFile.__init__(self,kicID,runID)
         self._rawValues = {}
         self._priorValues = {}
@@ -36,7 +36,7 @@ class ParameterSummary(BaseBackgroundFile):
         return len(self._priorValues)
 
     def getRawData(self,key=None):
-        """
+        '''
         Gets the raw data from the parameterSummary, i.e. Median, LowCredLim,UpCredLim.
         Calls the internal function _getInternalData, which contains the logic on what to return.
         Can return the full dict or just one element. If no key is provided, it will return
@@ -45,13 +45,13 @@ class ParameterSummary(BaseBackgroundFile):
         :type key: string
         :return: Full dict if key is None(default), one value if key is not None
         :rtype: dict/float
-        """
+        '''
         if any(self._rawValues) is False:
             self._readData()
         return self._getInternalData(self._rawValues,key)
 
     def getData(self,key=None):
-        """
+        '''
         Gets the full BackgroundModel of the ParameterSummary, so all 6/9 values that
         were fitted by DIAMONDS. Calls the internal function _getInternalData, which
         contains the logic on what to return.
@@ -61,13 +61,13 @@ class ParameterSummary(BaseBackgroundFile):
         :type key: string
         :return: Full dict if key is None (default), one value if key is not None
         :rtype: dict/float
-        """
+        '''
         if any(self._priorValues) is False:
             self._readData()
         return self._getInternalData(self._priorValues,key)
 
     def _getInternalData(self,dict,key):
-        """
+        '''
         Internal reader function. Checks if the dict is false, i.e. not existend and reads
         the data if necessary. Checks if the key is in the dictionary and returns the element,
         otherwise returns the full dict
@@ -77,7 +77,7 @@ class ParameterSummary(BaseBackgroundFile):
         :type key: string
         :return: Full dictionary or one value, depending on key is none
         :rtype: dict/float
-        """
+        '''
 
         if key is None:
             return dict
@@ -89,11 +89,11 @@ class ParameterSummary(BaseBackgroundFile):
                 return dict
 
     def _readData(self):
-        """
+        '''
         Internal reader function. Reads the values of the backgroundSummary file and creates
         the background model. If something fails in reading, the raw values and the
         background model will be set empty.
-        """
+        '''
         try:
             self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
                                                                strSectBackgroundResPath).value
@@ -118,9 +118,9 @@ class ParameterSummary(BaseBackgroundFile):
             self._priorValues = {}
 
     def _createBackgroundModel(self):
-        """
+        '''
         Creates the backgroundModel
-        """
+        '''
         par_median = self._rawValues[strSummaryMedian]
         par_le = self._rawValues[strSummaryLowCredLim]
 

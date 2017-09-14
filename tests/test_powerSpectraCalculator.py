@@ -34,10 +34,10 @@ def bothInitObject():
 
 @pytest.mark.skip("Conversion tests disabled")
 def testPeriodogrammConversion(bothInitObject):
-    """
+    '''
 
     :type bothInitObject: PowerspectraCalculator
-    """
+    '''
     psd = bothInitObject.powerSpectralDensity
     result = bothInitObject.lightCurveToPowerspectraPeriodogramm(bothInitObject.lightCurve)
     result = np.array((result[0],result[1]))
@@ -45,10 +45,10 @@ def testPeriodogrammConversion(bothInitObject):
 
 @pytest.mark.skip("Numpy conversion doesn't work at the moment")
 def testNumpyConversion(bothInitObject):
-    """
+    '''
 
     :type bothInitObject: PowerspectraCalculator
-    """
+    '''
     psd = np.loadtxt("tests/testFiles/PSD.txt")
     result = bothInitObject.lightCurveToPowerspectraFFT(bothInitObject.lightCurve)
     result = np.array((result[0], result[1]))
@@ -63,41 +63,41 @@ def testConversion(bothInitObject):
 
 @pytest.mark.skip("Conversion tests disabled")
 def testBehaviourLightCurveOnly(lightCurveInitObject):
-    """
+    '''
 
     :type lightCurveInitObject: PowerspectraCalculator
-    """
+    '''
     psd = np.loadtxt("tests/testFiles/PSD.txt")
     assert abs(np.amax(lightCurveInitObject.powerSpectralDensity[1] - psd[1])) < 10 ** -4
 
 def testPhotonNoise(lightCurveInitObject):
-    """
+    '''
 
     :type lightCurveInitObject: PowerspectraCalculator
-    """
+    '''
     assert abs(lightCurveInitObject.photonNoise -4.174009048728105)<10**-4
 
 def testNyqFreq(lightCurveInitObject):
-    """
+    '''
 
     :type lightCurveInitObject: PowerspectraCalculator
-    """
+    '''
     assert abs(lightCurveInitObject.nyqFreq -283.20699116753133)<10**-4
 
 @pytest.mark.parametrize("kics",[0,"hello",0.0])
 def testKicID(lightCurveInitObject,kics):
-    """
+    '''
 
     :type lightCurveInitObject: PowerspectraCalculator
-    """
+    '''
     lightCurveInitObject.kicID = kics
     assert lightCurveInitObject.kicID == kics
 
 def testSmoothing(lightCurveInitObject):
-    """
+    '''
 
     :type lightCurveInitObject: PowerspectraCalculator
-    """
+    '''
     x = lightCurveInitObject.powerSpectralDensity[0]
     y = lightCurveInitObject.smoothedData
 

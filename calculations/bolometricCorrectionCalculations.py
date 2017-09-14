@@ -5,16 +5,16 @@ import numpy as np
 
 
 class BCCalculator:
-    """
+    '''
     This class computes the bolometric correction, when inputting an effective temperature. This stems from the paper
     by  Flower (1996) and the correction applied by Torres 2010. Meaning here is the (B-V) correction used.
-    """
+    '''
     def __init__(self, tEff):
-        """
+        '''
         Constructor for BCCalculator. Initializes fitparameter and calculates the Bolometric Correction.
         :param tEff: Effective temperature for the star
         :type: float/int
-        """
+        '''
         self.logger = logging.getLogger(__name__)
         if isinstance(tEff,Variable):
             self._logTeff = unp.log10(tEff)
@@ -29,9 +29,9 @@ class BCCalculator:
         self.calculateBC()
 
     def _setFitParameters(self):
-        """
+        '''
         Initializes the fitparameter introduced in Torres (2010).
-        """
+        '''
         self.a = 0
         self.b = 0
         self.c = 0
@@ -59,20 +59,20 @@ class BCCalculator:
             self.f = 0.788731721804990*10**2
 
     def calculateBC(self):
-        """
+        '''
         Computes the BC and returns it. Formula taken from Flower (1996)
         :return: The Bolometric Correction
         :rtype: float
-        """
+        '''
         self._BC = (self.a + self.b * self._logTeff + self.c * self._logTeff ** 2
                     + self.d * self._logTeff ** 3 + self.e * self._logTeff ** 4
                     + self.f * self._logTeff ** 5)
 
     @property
     def BC(self):
-        """
+        '''
         Property for the BC
         :return: Bolometric Correction (B-V)
         :rtype: float
-        """
+        '''
         return self._BC

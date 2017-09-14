@@ -6,9 +6,9 @@ def setup_logging(
     default_path='loghandler/logsettings.json', 
     default_level=logging.INFO,
 ):
-    """Setup logging configuration
+    '''Setup logging configuration
 
-    """
+    '''
     path = default_path
     if os.path.exists(path):
         with open(path, 'rt') as f:

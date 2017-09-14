@@ -19,12 +19,12 @@ import logging
 import numpy as np
 
 class StandardRunner(multiprocessing.Process):
-    """
+    '''
     The Standard Runner class represents a full run for one star. It contains all the results and information about the
     star and includes various subclasses that are accessible within this class, especially in the analyzerResult class.
-    """
+    '''
     def __init__(self,kicID, filePath,fileName = None):
-        """
+        '''
         The constructor of the class. According to the kicID and filePath, the constructor will look within filePath
         for the proper file that represents the kicID.
 
@@ -35,12 +35,12 @@ class StandardRunner(multiprocessing.Process):
         After looking for the file and performing some checks on it, the class will not continue. To start the process
         you need to call the run() method.
         :param kicID:KicID of the star
-        :type kicID:basestring
+        :type kicID:str
         :param filePath:Path where to look for the file
-        :type filePath:basestring
+        :type filePath:str
         :param fileName:FileName, optional. Will overwrite the standard behaviour of looking for the file
-        :type fileName:basestring
-        """
+        :type fileName:str
+        '''
         self.logger = logging.getLogger(__name__)
         multiprocessing.Process.__init__(self,kwargs ={'env' : os.environ.copy()})
         self.kicID = kicID
@@ -51,7 +51,7 @@ class StandardRunner(multiprocessing.Process):
         self._internalRun()
 
     def _internalRun(self):
-        """
+        '''
         Runs the Standardrunner. The sequence is:
 
         - look for file
@@ -63,7 +63,11 @@ class StandardRunner(multiprocessing.Process):
         - create Results
 
         will run in its own process. So after calling you need to call join() to wait for it to be finished
-        """
+        '''
+        if not AnalyserResults.Instance().diamondsRunNeeded:
+            self.logger.info("Star "+self.kicID+" is already done, skipping")
+            return
+
         self.fileName = self._lookForFile(self.kicID,self.filePath)
         self.logger.info("Lightcurve file is "+self.fileName)
 
@@ -85,17 +89,17 @@ class StandardRunner(multiprocessing.Process):
         self.logger.info("Result created")
 
     def _lookForFile(self,kicID,filePath):
-        """
+        '''
         This method looks for a lightCurve file within filePath at files with extensions *.txt and *.fits and containing
         kicID. If there is more than one match, it will look if the filename contains certain Keywords (i.e. if it
         contains PSD it will ignore the file).
         :param kicID: KicID of the star
-        :type kicID:basestring
+        :type kicID:str
         :param filePath:FilePath where to look at
-        :type filePath:basestring
+        :type filePath:str
         :return:filePath + filename
-        :rtype:basestring
-        """
+        :rtype:str
+        '''
         files = self.listAvailableFilesInPath(filePath)
         for file in files:
             if str(kicID) in file:
@@ -122,15 +126,15 @@ class StandardRunner(multiprocessing.Process):
 
 
     def listAvailableFilesInPath(self,filePath,filter=[".txt",".fits"]):
-        """
+        '''
         Using the filter, this class lists all possible files within the filePath
         :param filePath: The path where to look for the file
-        :type filePath: basestring
+        :type filePath: str
         :param filter: List of extensions that should be looked at
         :type filter: list
         :return: A list of all available files within the path. Filename only
         :rtype: list
-        """
+        '''
         resultList = []
         with cd(filePath):
             for file in os.listdir("."):
@@ -147,14 +151,14 @@ class StandardRunner(multiprocessing.Process):
         return resultList
 
     def _readAndConvertLightCurve(self,filename):
-        """
+        '''
         This method will take the fileName, check if it exists and than read it using the FitsReader class. The read
         file will than be pushed into the PowerSpectraCalculator class, where it will be converted into a PSD
         :param filename: Complete filename of the lightCurve
-        :type filename: basestring
+        :type filename: str
         :return: The Powerspectraobject containing the lightcurve and psd
         :rtype: PowerspectraCalculator
-        """
+        '''
         file = FitsReader(filename)
 
         powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
@@ -168,20 +172,20 @@ class StandardRunner(multiprocessing.Process):
 
 
     def _computeNuMax(self, psdCalc):
-        """
+        '''
         This method uses the nuMax Calculator and computes it.
         :param psdCalc: The PSD calculator object from which the lightCurve will be extracted
         :type psdCalc: PowerspectraCalculator
         :return: Tuple containing nuMax in first spot and the nuMax Calculator in second spot
         :rtype: tuple
-        """
+        '''
         nuMaxCalc = NuMaxCalculator(self.kicID,psdCalc.lightCurve)
         AnalyserResults.Instance(self.kicID).nuMaxCalculator = nuMaxCalc
 
         return (nuMaxCalc.computeNuMax(),nuMaxCalc)
 
     def _computePriors(self, nuMax, powerCalc):
-        """
+        '''
         This method uses the PriorCalculator to compute the priors which will be used for the DIAMONDS run
         :param nuMax: Frequency of maximum Oscillation
         :type nuMax: float
@@ -189,7 +193,7 @@ class StandardRunner(multiprocessing.Process):
         :type powerCalc: PowerspectraCalculator
         :return: A list containing the priors used for the run
         :rtype: list
-        """
+        '''
         priorCalculator = PriorCalculator(nuMax, powerCalc)
         plotPSD(powerCalc, True, True, visibilityLevel= 1, fileName="PSD_filterfrequencies.png")
 
@@ -217,14 +221,14 @@ class StandardRunner(multiprocessing.Process):
         return priors
 
     def _createFilesAndRunDiamonds(self, powerCalc, priors):
-        """
+        '''
         This method creates the necessary files for the DIAMONDS run and
         afterwards runs it
         :param powerCalc: The powerspectra calculator
         :type powerCalc: PowerspectraCalculator
         :param priors: The priors used for the run
         :type priors: list
-        """
+        '''
         FileCreater(self.kicID, powerCalc.powerSpectralDensity, powerCalc.nyqFreq, priors)
 
         proc = DiamondsProcess(self.kicID)
@@ -232,11 +236,11 @@ class StandardRunner(multiprocessing.Process):
         AnalyserResults.Instance(self.kicID).diamondsRunner = proc
 
     def _computeResults(self):
-        """
+        '''
         This method finally gatheres all results and computes it using the AnalyzeResult class
         :return: The imageMap and resultMap contained in a tuple
         :rtype: tuple
-        """
+        '''
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
         models = {strFitModeFullBackground:strDiamondsModeFull,strFitModeNoiseBackground:strDiamondsModeNoise}
 

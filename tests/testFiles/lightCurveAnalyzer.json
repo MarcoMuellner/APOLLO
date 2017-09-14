@@ -50,7 +50,7 @@
             "Analyzer Results Path":{
                 "GUI Name":"Analyzer Results Path",
                 "GUI Type":"textEdit",
-                "Value":"results"
+                "Value":"tests/testFiles/results/"
             },
             "Developer Mode":{
                 "GUI Name":"Developer Mode",

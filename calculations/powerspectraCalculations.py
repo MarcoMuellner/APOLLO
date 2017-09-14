@@ -8,7 +8,7 @@ from support.strings import *
 
 
 class PowerspectraCalculator:
-    """
+    '''
     The PowerspectraCalculator represents the basic information about a LightCurve. Provided a lightCurve it will
     calculate its PSD using FFT, its Nyquist frequency, photonNoise and some smoothing of the PSD.
     This class is also used in various other places, like different plotters, which will extract the necessary
@@ -21,11 +21,11 @@ class PowerspectraCalculator:
     will not calculate the lightCurve from it, as we are working with a squared version of the PSD and an inverse
     function is not really feasible.
     - A change of the kicID will not result in a recomputation of the powerSpectralDensity when the lightCurve is set
-    """
+    '''
 
 
     def __init__(self, lightCurve = None, powerSpectralDensity = None, kicID =''):
-        """
+        '''
         The constructor of the lightCurve. All parameters are optional and can be set on a later point in the code, not
         necessarily at runtime. Computes the PSD automatically when only a lightCurve is provided.
         :param lightCurve: Represents the lightCurve. 1st Axis represents temporal axis in days, 2nd axis represents
@@ -36,7 +36,7 @@ class PowerspectraCalculator:
         :type powerSpectralDensity:2-D numpy array
         :param kicID:The name of the input dataset
         :type kicID:string
-        """
+        '''
         self.logger = logging.getLogger(__name__)
         self.photonNoise = None
         self.lightCurve = lightCurve
@@ -55,14 +55,14 @@ class PowerspectraCalculator:
 
 
     def lightCurveToPowerspectra(self,lightCurve):
-        """
+        '''
         Wrapper function that contains the different possibilities to compute the PSD. This can also be used externally,
         no class members are set within this method. It is recommended to use the SciPy method for computing the PSD.
         :param lightCurve: Represents a lightCurve. 1st axis -> temporal axis in days, 2nd axis -> flux
         :type lightCurve:2-D numpy array
         :return:The PSD computed accordingly to the settings. 1st axis -> frequency in uHz, 2nd axis -> ppm^2
         :rtype:2-D numpy array
-        """
+        '''
         if len(lightCurve) != 2 or not isinstance(lightCurve,np.ndarray):
             self.logger.debug("Lightcurve should be of dimension 2 and ndarray!")
             raise ValueError("Type is "+str(type(lightCurve)))
@@ -76,13 +76,13 @@ class PowerspectraCalculator:
             raise KeyError
 
     def lightCurveToPowerspectraFFT(self,lightCurve):
-        """
+        '''
         Numpy method of computing the PSD. Uses a pure fast fourier transformation to compute the signal.
         :param lightCurve: Represents a lightCurve. 1st axis -> temporal axis in days, 2nd axis -> flux
         :type lightCurve: 2-D numpy array
         :return: Returns the PSD using a fft method provided by numpy
         :rtype: 2-D numpy array
-        """
+        '''
         psd = np.fft.fft(lightCurve[1])
         psd = np.square(abs(psd))
 
@@ -91,13 +91,13 @@ class PowerspectraCalculator:
         return np.array((freq,psd))
 
     def lightCurveToPowerspectraPeriodogramm(self,lightCurve):
-        """
+        '''
         Scipy method of computing the PSD. It computes a real PSD directly when provided data in the time domain.
         :param lightCurve: Represents a lightCurve. 1st axis -> temporal axis in days, 2nd axis -> flux
         :type lightCurve: 2-D numpy array
         :return: Returns the PSD using a fft method provided by numpy
         :rtype: 2-D numpy array
-        """
+        '''
         fs = 1 / ((lightCurve[0][10] - lightCurve[0][9]) * 24 * 3600) #doesnt matter which timepoint is used.
         f, psd = signal.periodogram(lightCurve[1], fs,scaling='density')
         f = f*10**6
@@ -105,7 +105,7 @@ class PowerspectraCalculator:
         return np.array((f[1:],psd))
 
     def __butter_lowpass_filtfilt(self,data,order=5):
-        """
+        '''
         Internal method of smoothing a dataset. Uses a butterworth filter to filter out fast variations in the signal
         of the PSD.
         :param data:Dataset that should be filtered. Both time domain, and PSDs can be provided, although the filter is
@@ -115,30 +115,30 @@ class PowerspectraCalculator:
         :type order:int
         :return:Returns a smoothed variant of the input dataset
         :rtype:1-D numpy array
-        """
+        '''
         normal_cutoff = 0.5 / self.nyqFreq #TODO 0.7 is only empirical, maybe change this
         b, a = signal.butter(5, normal_cutoff, btype='low', analog=False)
         return signal.filtfilt(b, a,data)
 
     @property
     def smoothedData(self):
-        """
+        '''
         Property of the smoothed PSD. Will calculate it when used for the first time.
         :return:The smoothed variant of the 2nd axis of the PSD
         :rtype:1-D numpy array
-        """
+        '''
         if self._smoothedData is None:
             self._smoothedData =self.__butter_lowpass_filtfilt(self.powerSpectralDensity[1])
         return self._smoothedData
 
     @property
     def nyqFreq(self):
-        """
+        '''
         The property of the nyquist frequency of the lightCurve when such was provided.
         Will calculate it when used for the first time
         :return: The nyquist frequency
         :rtype: float
-        """
+        '''
         if self.lightCurve is not None:
             self.logger.debug(
                 "Abtastfrequency is '" + str((self._lightCurve[0][3] - self._lightCurve[0][2]) * 24 * 3600) + "'")
@@ -152,11 +152,11 @@ class PowerspectraCalculator:
 
     @property
     def lightCurve(self):
-        """
+        '''
         The property of the lightCurve. This can be none, if none was provided during initialization or by setting it.
         :return: The lightCurve. 1st axis -> temporal axis, 2nd axis -> flux
         :rtype: 2-D numpy array
-        """
+        '''
         if self._lightCurve is None:
             self.logger.warning("Lightcurve is None!")
 
@@ -164,11 +164,11 @@ class PowerspectraCalculator:
 
     @lightCurve.setter
     def lightCurve(self,data):
-        """
+        '''
         Setter property for the lightCurve. Will compute the PSD if it was not set up to this point.
         :param data: LightCurve for the class. 1st axis -> temporal axis in days, 2nd axis -> flux
         :type data: 2-D numpy array
-        """
+        '''
         if data is None or (len(data) == 2 and isinstance(data,np.ndarray)):
             self._lightCurve = data
             try:
@@ -181,11 +181,11 @@ class PowerspectraCalculator:
             raise TypeError("Type is "+str(type(data)))
     @property
     def powerSpectralDensity(self):
-        """
+        '''
         Property for the PSD
         :return: Returns the PSD. 1st axis -> frequency in uHz, 2nd axis -> ppm^2
         :rtype: 2-D numpy array
-        """
+        '''
         if self._powerSpectrum is None:
             self.logger.warning("Powerspectra is None!")
             return self._powerSpectrum
@@ -194,11 +194,11 @@ class PowerspectraCalculator:
 
     @powerSpectralDensity.setter
     def powerSpectralDensity(self, data):
-        """
+        '''
         Setter proprty for the PSD. Will overwrite any computationally determined PSD set to the class up to this point
         :param data: PSD for the class. 1st axis -> frequency in uHz, 2nd axis -> ppm^2
         :type data: 2-D numpy array
-        """
+        '''
         if data is None or (len(data) == 2 and isinstance(data,np.ndarray)):
             self._powerSpectrum = data
         else:
@@ -207,7 +207,7 @@ class PowerspectraCalculator:
 
     @property
     def photonNoise(self):
-        """
+        '''
         Property for the photon noise. Will compute it when used for the first time but only if a PSD is set inside the
         class. This can be achieved using the lightCurve setter function if no PSD was directly set, through
         initialization or by directly setting the PSD.
@@ -216,35 +216,35 @@ class PowerspectraCalculator:
         approximation, to compute it properly you need to fit the PSD.
         :return: The approximation of the photonNoise of the PSD
         :rtype: float
-        """
+        '''
         if self._photonNoise == None and self.powerSpectralDensity is not None:
             self._photonNoise = np.mean(self.powerSpectralDensity[1][int(0.9 * len(self.powerSpectralDensity[1])):len(self.powerSpectralDensity[1]) - 1])
         return self._photonNoise
 
     @photonNoise.setter
     def photonNoise(self,value):
-        """
+        '''
         Setter property for the photon noise. You can set the correct value here after fitting if you so desire.
         :param value: The value on which the photonNoise should be set
         :type value: float
-        """
+        '''
         self._photonNoise = value
         
     @property
     def kicID(self):
-        """
+        '''
         Property of the KICId
         :return: KICId of the star
         :rtype: string
-        """
+        '''
         return self._kicID
 
     @kicID.setter
     def kicID(self,value):
-        """
+        '''
         Setter Property of the KICId
         :param value: KICId of the star
         :type value: string
-        """
+        '''
         self._kicID = value
 

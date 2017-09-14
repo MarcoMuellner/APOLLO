@@ -8,7 +8,7 @@ from plotter.plotFunctions import *
 
 
 class NuMaxCalculator:
-    """
+    '''
     This class autocorrelates the lightcurve, in such a way that it will provide all the necessary
     values to continue computation (i.e. Background noise, Nyquist frequency, nuMax). To compute
     these values, simply provide a 2-D numpy array, where [0] is the x-Axis (i.e. temporal axis)
@@ -24,23 +24,23 @@ class NuMaxCalculator:
     To compute NuMax, it is necessary to call computeNuMax(), which will then give you nuMax.
 
     For more information see Kallinger (2016) on the algorithm used here.
-    """
+    '''
     def __init__(self, kicID,data):
-        """
+        '''
         The constructor takes the lightcurve of a given star. This lightcurve is then processed
         through the algorithm. The flicker amplitude and initial Filter frequency are computed
         while setting the lightCurve
         :type lightCurve: ndarray
         :param lightCurve: Data containing the lightCurve. 1st axis -> temporal axis in days,
         2nd Axis -> Flux
-        """
+        '''
         self.logger = logging.getLogger(__name__)
         self.lastFilter = None
         self.lightCurve = data
         self.kicID = kicID
 
     def _calculateFlickerAmplitude(self):
-        """
+        '''
         This method computes the flicker Amplitude of a given lightcurve. The algorithm works as follows:
         - a "filter time" is chosen. This will serve as the bin size, on which we will compute the flicker
         - the flicker itself is computed by adding up the squared mean deviations from the mean of the lightcurve.
@@ -48,7 +48,7 @@ class NuMaxCalculator:
           can be transformed into the initial filter frequency.
 
         This method is only used internally in the class.
-        """
+        '''
         #find the new number of bins after the filter
         self._nyq = 0
         filterTime = 5
@@ -130,10 +130,10 @@ class NuMaxCalculator:
         self.logger.debug("Flicker amplitude is '"+str(amp_flic))
 
     def _calculateInitFilterFrequency(self):
-        """
+        '''
         This function computes the initial filter Frequency using an empirical function. More information in
         Kallinger (2016). Only used internally.
-        """
+        '''
         if self._amp_flic is None:
             self.logger.debug("Flicker amplitude is None, calculating it first")
             self._calculateFlickerAmplitude()
@@ -143,10 +143,10 @@ class NuMaxCalculator:
         self.marker = {"InitialFilter":(self._init_nu_filter, 'r')}
 
     def computeNuMax(self):
-        """
+        '''
         This method triggers the computation of nuMax and all other necessary values.
         :return: Float value representing nuMax
-        """
+        '''
         self.lastFilter = 0
         self.marker["First Filter"] = (self._iterativeFilter(self._init_nu_filter), 'g')
         self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter), 'b')
@@ -154,7 +154,7 @@ class NuMaxCalculator:
         return self.lastFilter
 
     def _iterativeFilter(self,filterFrequency):
-        """
+        '''
         This method is called within computeNuMax 2 times, and will, using an ACF, compute the
         proper Numax. For this the signal is filtered at the input filterFrequency using a custom
         IDL-like Trismooth method, and then autocorrelated.
@@ -162,7 +162,7 @@ class NuMaxCalculator:
         :type filterFrequency: float
         :param filterFrequency: This frequency is used for filtering the intial signal contained in self._lightcurve
         :return: The smoothed lightcurve. More importantly, it sets self.lastFilter
-        """
+        '''
         #sanity check
         if not isinstance(filterFrequency,float) and not isinstance(filterFrequency,int):
             raise TypeError("Filter frequency has wrong type! Type: "+str(type(filterFrequency)))
@@ -235,7 +235,7 @@ class NuMaxCalculator:
         return self.lastFilter
 
     def _trismooth(self,x,window_width):
-        """
+        '''
         This function is implemented to create a similar function to the Trismooth function of idl
         :rtype: 1-D numpy array
         :type window_width: int
@@ -244,7 +244,7 @@ class NuMaxCalculator:
         :type x: 1-D numpy array
         :param window_width: The bin size which the function will look at
         :return: The smoothed variant of x
-        """
+        '''
         if window_width%2 != 0:
             window_width = window_width+1
 
@@ -283,14 +283,14 @@ class NuMaxCalculator:
         return smoothed
 
     def _calculateAutocorrelation(self,oscillatingData):
-        """
+        '''
         The numpy variant of computing the autocorrelation. See the documentation of the numpy function for more
         information
         :type oscillatingData: 1-D numpy array
         :rtype: 1-D numpy array
         :param oscillatingData:The data that should be correlated (in our case the y function)
         :return: The correlation of oscillatingData
-        """
+        '''
         corrs2 = np.correlate(oscillatingData, oscillatingData, mode='same')
         N = len(corrs2)
         corrs2 = corrs2[N // 2:]
@@ -302,7 +302,7 @@ class NuMaxCalculator:
         return corrs2
 
     def _scipyFit(self,data,tauGuess):
-        """
+        '''
         Single fit variant (fits the total function all at ones to the data)
         :rtype: List containing 3 elements
         :type tauGuess: float
@@ -310,7 +310,7 @@ class NuMaxCalculator:
         :param data:[0] -> temporal axis in seconds, [1] -> normalized flux
         :param tauGuess: The initial Guess for Tau. The rest is fixed
         :return: Values for a,b, tau_acf
-        """
+        '''
         y = data[1]
         x = data[0]
 
@@ -326,7 +326,7 @@ class NuMaxCalculator:
         return popt
 
     def _iterativeFit(self,data,tauGuess):
-        """
+        '''
         The iterative Fit approach. Fitting the sinc first, then the sin, subtracting the sin from the original signal and
         fitting the sinc again. Result is then returned
         :rtype: List containing 3 elements
@@ -335,7 +335,7 @@ class NuMaxCalculator:
         :param data:[0] -> temporal axis in seconds, [1] -> normalized flux
         :param tauGuess: Initial Guess for Tau. The rest is fixed
         :return: Values for a,b, tau_acf
-        """
+        '''
         y = data[1]
         x = data[0]
 
@@ -387,7 +387,7 @@ class NuMaxCalculator:
 
 
     def _sin(self,x,amp,tau):
-        """
+        '''
         Represents the used sin within our Fit
         :type x: 1-D numpy array
         :param amp: Amplitude of sin
@@ -395,18 +395,18 @@ class NuMaxCalculator:
         :type tau: float
         :return: the functional values for the array x
         :rtype: 1-D numpy array
-        """
+        '''
         return amp*np.sin(2*np.pi*4*x/tau)
 
     def _sinc(self,x, a, tau_acf):
-        """
+        '''
         Represents the used sinc within our Fit
         :param x: 1-D numpy array
         :param a: float, amplitude of the sinc
         :param tau_acf: float
         :return: the functional value for the array x
         :rtype: 1-D numpy array
-        """
+        '''
         return a * np.sinc((4* np.pi*x / tau_acf))**2
 
     def _fit(self,x,a,b,tau_acf):
@@ -414,11 +414,11 @@ class NuMaxCalculator:
 
     @property
     def nyqFreq(self):
-        """
+        '''
         Computes the Nyquist frequency for the lightcurve supplied in the constructor.
         :return: Nyquist frequency
         :rtype: float
-        """
+        '''
         if self._lightCurve is not None and self._nyq == 0:
             self.logger.debug("Abtastfrequency is '"+str((self._lightCurve[0][3] - self._lightCurve[0][2])*24*3600)+"'")
             self._nyq = 10**6/(2*(self._lightCurve[0][200] -self._lightCurve[0][199]))
@@ -428,16 +428,16 @@ class NuMaxCalculator:
 
     @property
     def lightCurve(self):
-        """
+        '''
         Property of lightCurve.
         :return: Normalized data of lightCurve. 1st Axis -> temporal axis in seconds. 2nd axis -> normalized flux
         :rtype: 2-D numpy array
-        """
+        '''
         return self._lightCurve
 
     @lightCurve.setter
     def lightCurve(self, value):
-        """
+        '''
         Setter function for lightCurve. Checks the data for sanity, rebases temporal axis (1st axis)
         to seconds and starts computation of initial numax.
         :param value: Represents the lightCurve of a star. 1st axis -> temporal axis in days
@@ -445,7 +445,7 @@ class NuMaxCalculator:
         :type value: 2-D numpy array
         :return: Initial Filter frequency
         :rtype: float
-        """
+        '''
         # sanity check
         # check if type is correct
         if not isinstance(value,np.ndarray):

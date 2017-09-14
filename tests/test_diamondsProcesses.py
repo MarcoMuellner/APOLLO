@@ -9,9 +9,9 @@ def defaultObject():
 
 @pytest.mark.parametrize("paths",[os.getcwd()+"/test/","test/"])
 def testAbsolutePathCreation(defaultObject,paths):
-    """
+    '''
 
     :type defaultObject: DiamondsProcess
-    """
+    '''
     assert defaultObject._getFullPath(paths) == os.getcwd()+"/test/"
 

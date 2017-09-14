@@ -6,12 +6,12 @@ from uncertainties import ufloat
 
 
 class DeltaNuCalculator:
-    """
+    '''
     This class can fit Delta Nu given a fitted PSD. See Kjeldsen and Bedding (1995) for further information on Delta Nu.
-    """
+    '''
 
     def __init__(self, nuMax, sigma, psd, nyq, backGroundParameters, backGroundModel):
-        """
+        '''
         Constructor of the DeltaNuCalculator. Uses the parameters given as an input and performs an initial fit of these
         parameters. As a prequisit, a PSD where fitting was already done has to be provided. You need the full set of
         backgroundParameters as well as the backgroundModel
@@ -28,7 +28,7 @@ class DeltaNuCalculator:
         :type backGroundParameters:3-D numpy array
         :param backGroundModel:The computed background model containing all 9 parameters in the Fit
         :type backGroundModel:9-D numpy array
-        """
+        '''
         self._multiplicator = 2
         self._nuMax = nuMax
         self._sigma = sigma
@@ -41,13 +41,13 @@ class DeltaNuCalculator:
         self.calculateFit()
 
     def calculateFit(self):
-        """
+        '''
         Calculates the fit for the input parameters in the class. It will firstly divide the Data by its background,
         calls _calculateAutocorrelation to get the Autocorrelation of the oscillating area,
         compute an estimation using _estimateDeltaNu() and finally fit the data. This method is called within the
         constructor, so another call is only needed if one parameter
         is changed
-        """
+        '''
         background = np.sum(self._backgroundModel[0:4], axis=0)
 
         # Divide raw Spectrum by background
@@ -78,7 +78,7 @@ class DeltaNuCalculator:
         self._scipyFit(np.array((self._deltaF, self._corrs)), self._deltaNuEst)
 
     def _findGaussBoundaries(self, data = None, cen = None, sigma = None):
-        """
+        '''
         Convinience function. Finds the boundaries of a gaussian within a certain dataset. Both used for the fitting and
         the initial restriction of the data.
         :param data:The dataset where one would find a gauss like peak
@@ -89,7 +89,7 @@ class DeltaNuCalculator:
         :type sigma:float
         :return:Four values representing the minima and maxima and its corresponding indizes in the data
         :rtype:4-D tuple
-        """
+        '''
         minima = 0
         maxima = 0
         deltaMinima = 1000
@@ -120,7 +120,7 @@ class DeltaNuCalculator:
         return self._gaussBoundaries
 
     def _butter_lowpass_filtfilt(self, data, nyq, level, order=5):
-        """
+        '''
         Smoothing function to make the fitting easier. Filters out high frequencies of the signal.
         The the butter function in scipy.signal
         :param data:The autocorrelated dataset from the initial PSD
@@ -133,18 +133,18 @@ class DeltaNuCalculator:
         :type order:int
         :return:The y-axis of the dataset. This data is filtered using the frequencies.
         :rtype:1-D numpy array
-        """
+        '''
         normal_cutoff = level / nyq
         b, a = butter(order, normal_cutoff, btype='low', analog=False)
         y = filtfilt(b, a, data)
         return y
 
     def _calculateAutocorrelation(self):
-        """
+        '''
         Restricts the data to the oscillating part and calculates the autoorrelation
         :return:y-Axis of the Autocorrelated data
         :rtype:1-D numpy array
-        """
+        '''
         psd = self._psd
         backgroundModel = self._backgroundModel
         background = np.sum(backgroundModel[0:4],axis=0)
@@ -163,19 +163,19 @@ class DeltaNuCalculator:
         return self._corrs
 
     def _estimateDeltaNu(self, nuMax = None):
-        """
+        '''
         Gives an estimation of deltaNu using an empirical relation by Stello et al. (2009)
         :param nuMax: The frequency of maximum oscillation in the PSD
         :type nuMax:float
         :return:An estimation of where Delta nu should be.
         :rtype:float
-        """
+        '''
         nuMax = nuMax if nuMax is not None else self._nuMax
         self._deltaNuEst = 0.263 * pow(nuMax, 0.772)
         return self._deltaNuEst
 
     def gaussian(self,x, y0, amp, cen, wid):
-        """
+        '''
         Fitting function used. Fits a Gaussian using the following function:
         .. math::
             y(x)=y_0+\frac{amp}{\sqrt{2\pi wid}}\text{exp}(-\frac{(x-cen)^2}{2*wid^2})
@@ -191,11 +191,11 @@ class DeltaNuCalculator:
         :type wid:float
         :return:y-Array of a gaussian distribution
         :rtype:1-D numpy array
-        """
+        '''
         return y0 + (amp / (np.sqrt(2 * np.pi) * wid)) * np.exp(-(x - cen) ** 2 / (2 * wid ** 2))
 
     def _scipyFit(self, data, deltaNuEst):
-        """
+        '''
         Performs the fit of the gaussian in the autocorrelated dataset
         :param data: The dataset which should be fitted
         :type data: 1-D numpy array
@@ -204,7 +204,7 @@ class DeltaNuCalculator:
         :return:Fitting parameters including errors. First parameter is y0, second amplitude, third center, fourth
         standard deviation
         :rtype:List containing 4 parameters
-        """
+        '''
         y = data[1]
         x = data[0]
         minima, maxima, indexMin, indexMax = self._findGaussBoundaries(self._multiplicator, data, deltaNuEst, 0.2 * deltaNuEst)
@@ -250,26 +250,26 @@ class DeltaNuCalculator:
 
     @property
     def deltaNu(self):
-        """
+        '''
         :return: Computed Delta Nu
         :rtype:float
-        """
+        '''
         return self._cen
 
     @property
     def deltaNuEst(self):
-        """
+        '''
         :return:Computed first approximation of delta Nu
         :rtype:float
-        """
+        '''
         return self._deltaNuEst
 
     @property
     def deltaF(self):
-        """
+        '''
         :return: x-Axis for autocorrelation
         :rtype: 1-D numpy array
-        """
+        '''
         return self._deltaF
 
     @property

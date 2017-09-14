@@ -7,27 +7,54 @@ import logging
 from uncertainties import ufloat,ufloat_fromstr
 import numpy as np
 import json
+from matplotlib.pyplot import Figure
 
 
 @Singleton
 class AnalyserResults:
-    """
-    This class gathers all results from the DIAMONDS run and the ACF function. After calling the
-    """
+    '''
+    This class gathers all results from the DIAMONDS run and the ACF function. After calling the constructor, which is
+    done by calling AnalyserResults.Instance() for the first time, you can easily set the results from everywhere in
+    the code by calling the different methods (see documentation of the methods). This class is only accessible via
+    Singleton pattern.
+
+    To finish of the analysis, you need to call performAnalysis() at the end of your analysis. Be careful, this instance
+    doesn't really die. This should not be a problem though, because the data saved is quite miniscule.
+    '''
     def __init__(self):
+        '''
+        Constructor of AnalyserResults. Only called by Singleton Constructor
+        '''
         self.logger = logging.getLogger(__name__)
         self.kicID = None
 
     def addImage(self,name,figure):
+        '''
+        Adds an image to the results list. Basically only called from saveFigToResults by plotFunctions
+        :param name: Name of the image
+        :type name: str
+        :param figure: Figure object, provided by matplotlib
+        :type figure: Figure
+        '''
         self._images[name]=figure
-        pass
 
     @property
     def kicID(self):
+        '''
+        Property for the KicID
+        :return: The KicID of the star
+        :rtype: str
+        '''
         return self._kicID
 
     @kicID.setter
     def kicID(self,value):
+        '''
+        Setter property for the KicID. Resets all results and calls checkRunNeeded for what results are already
+        available. Use the diamondsRunNeeded flag to check if you need to check if something is not already available.
+        :param value:KicID of the star
+        :type value: str
+        '''
         self._kicID = value
         self.powerSpectraCalculator = None
         self.diamondsRunner = None
@@ -35,12 +62,20 @@ class AnalyserResults:
         self._diamondsResults = {}
         self._diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
         self._images = {}
+
         #try to read old values and set flag accordingly
         if self._kicID is not None:
             self.diamondsRunNeeded = self._checkRunNeeded()
 
-
     def _checkRunNeeded(self):
+        '''
+        Checks if a run is needed and returns a flag, which can be used to determine which things need to be run.
+        For this it looks in the results it created beforehand at some time and checks which results are available.
+
+        For now it only checks if Priors and DIAMONDS results are available and checks if these results are fine.
+        :return: A boolean which describes if the run is needed. True --> run needs to be done.
+        :rtype:bool
+        '''
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,
                                                           strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
@@ -82,7 +117,19 @@ class AnalyserResults:
         return (resultContent or priorContent or resultOkay)
 
 
-    def _checkPriorContent(self,resultDict,sectName,numberOffset=0):
+    def _checkPriorContent(self, resultDict, sectName, numberOffset=0):
+        '''
+        Checks if priors are created for modes
+        :param resultDict: A dictionary containing mode and number of items in dict
+        :type resultDict: dict
+        :param sectName: Section Name for the data --> overreaching category in resultDict (i.e. "Diamonds")
+        :type sectName:str
+        :param numberOffset: Offsetparameter in count. By Default it will use 7 for noise, 10 for full. This parameter
+        can offset both at the same time
+        :type numberOffset:int
+        :return:True if content is valid, False if not
+        :rtype:bool
+        '''
         modes = {strDiamondsModeNoise:7+numberOffset,strDiamondsModeFull:10+numberOffset}
 
         for mode,number in modes.items():
@@ -93,57 +140,55 @@ class AnalyserResults:
 
         return False
 
-
-
-    @property
-    def powerSpectraCalculator(self):
-        return self._powerSpectraCalculator
-
-    @powerSpectraCalculator.setter
-    def powerSpectraCalculator(self,value):
-        self._powerSpectraCalculator = value
-
-    @property
-    def nuMaxCalculator(self):
-        return self._nuMaxCalculator
-
-    @nuMaxCalculator.setter
-    def nuMaxCalculator(self,value):
-        self._nuMaxCalculator = value
-
-    @property
-    def diamondsRunner(self):
-        return self._diamondsRunner
-
-    @diamondsRunner.setter
-    def diamondsRunner(self,value):
-        self._diamondsRunner = value
-
-    @property
-    def diamondsRunNeeded(self):
-        return self._diamondsRunNeeded
-
-    @diamondsRunNeeded.setter
-    def diamondsRunNeeded(self,value):
-        self._diamondsRunNeeded = value
-
     def collectDiamondsResult(self):
+        '''
+        This method gatheres the Results of the DIAMONDS run using the Results class.See the Results class for
+        further information. Checks first if the run was even necessary using the settings
+        '''
         if self._kicID is None:
             self.logger.error("You need to set the KicID before you can access the results!")
             raise ValueError
 
-        if self._diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]:
-            self._diamondsResults[strDiamondsModeFull] = Results(kicID=self._kicID, runID=strDiamondsModeFull)
-        else:
-            self._diamondsResults[strDiamondsModeFull] = None
+        modeDict = {strFitModeFullBackground:strDiamondsModeFull,
+                    strFitModeNoiseBackground:strDiamondsModeNoise}
 
-        if self._diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]:
-            self._diamondsResults[strDiamondsModeNoise] = Results(kicID=self._kicID, runID=strDiamondsModeNoise)
-        else:
-            self._diamondsResults[strDiamondsModeNoise] = None
+        for fitMode,runID in modeDict.items():
+            if self._diamondsModel in [fitMode, strFitModeBayesianComparison]:
+                self._diamondsResults[runID] = Results(kicID=self._kicID, runID=runID)
+            else:
+                self._diamondsResults[runID] = None
 
 
     def performAnalysis(self):
+        '''
+        This method gatheres up all images and results set within the instance. For this it creates a dictionary, with
+        overreaching categories. The dict is than saved as a json file in the results cluster. The structure of the file
+        will look like this:
+
+        -NuMaxCalc
+        -- InitialFilter:
+        -- First Filter:
+        -- Second Filter:
+        -- Nyquist:
+        -Diamonds_Priors:
+        --Mode
+        ---Priors (count depending on mode)
+        -- Second Mode (if one was run)
+        ---Priors second mode
+        -Diamonds
+        --Mode
+        ---Prior values fitted
+        -- Second Mode (if one was run)
+        ---Prior values fitted
+        -Analysis
+        --Mode
+        ---Priors status
+        -- Second Mode (if one was run)
+        ---Priors status
+        --Bayes Factor:
+        --Strength of evidence:
+
+        '''
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
@@ -234,3 +279,35 @@ class AnalyserResults:
             self.logger.debug(resultDict)
             with open("results.json", 'w') as f:
                 json.dump(resultDict, f)
+
+        @property
+        def powerSpectraCalculator(self):
+            return self._powerSpectraCalculator
+
+        @powerSpectraCalculator.setter
+        def powerSpectraCalculator(self, value):
+            self._powerSpectraCalculator = value
+
+        @property
+        def nuMaxCalculator(self):
+            return self._nuMaxCalculator
+
+        @nuMaxCalculator.setter
+        def nuMaxCalculator(self, value):
+            self._nuMaxCalculator = value
+
+        @property
+        def diamondsRunner(self):
+            return self._diamondsRunner
+
+        @diamondsRunner.setter
+        def diamondsRunner(self, value):
+            self._diamondsRunner = value
+
+        @property
+        def diamondsRunNeeded(self):
+            return self._diamondsRunNeeded
+
+        @diamondsRunNeeded.setter
+        def diamondsRunNeeded(self, value):
+            self._diamondsRunNeeded = value

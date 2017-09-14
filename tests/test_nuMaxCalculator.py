@@ -41,10 +41,10 @@ def testFailureValueNuMaxCalc(value):
         NuMaxCalculator("testKIC",value)
 
 def testFlickerandInitFilter(nuMaxObject):
-    """
+    '''
 
     :type nuMaxObject: NuMaxCalculator
-    """
+    '''
     assert abs(nuMaxObject._amp_flic -376.26416450273649) < 10**-6
     assert abs(nuMaxObject._init_nu_filter - 14.764921474649485) < 10 ** -6
     assert len(nuMaxObject.marker) == 1
@@ -52,10 +52,10 @@ def testFlickerandInitFilter(nuMaxObject):
 
 @pytest.mark.parametrize("value",typeIterativeFilterFailureTestCases)
 def testFailureIterativeFilter(nuMaxObject,value):
-    """
+    '''
 
     :type nuMaxObject: NuMaxCalculator
-    """
+    '''
     with pytest.raises(TypeError):
         nuMaxObject._iterativeFilter(value)
 
@@ -68,10 +68,10 @@ def testFailureIterativeFilter(nuMaxObject,value):
                             (80.33954376499203,112.37891726222568 )
                                         ])
 def testIterativeFilterValues(nuMaxObject,input,output):
-    """
+    '''
 
     :type nuMaxObject: NuMaxCalculator
-    """
+    '''
     assert abs(nuMaxObject._iterativeFilter(input) - output) < 10**-6
 
 @pytest.mark.parametrize("input,output",[
@@ -80,10 +80,10 @@ def testIterativeFilterValues(nuMaxObject,input,output):
                              (20,63.253425165010093)
                          ])
 def testComputeNuMax(nuMaxObject,input,output):
-    """
+    '''
 
     :type nuMaxObject: NuMaxCalculator
-    """
+    '''
     if input is None:
         input = nuMaxObject._init_nu_filter
 

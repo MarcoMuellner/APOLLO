@@ -6,21 +6,21 @@ import logging
 from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
 
 class PriorSetup(BaseBackgroundFile):
-    """
+    '''
     This class represents the priors with which the diamonds run was done. There are multiple ways this class
     reads the priors. In general, if the runID is None, it will read the fullBackground and noiseOnly priors
     and are accessible via the getData function using the mode as a parameter. If a runID is provided, it will
     return the correct priors independently of the mode set.
-    """
+    '''
 
     def __init__(self,kicID = None,runID = None):
-        """
+        '''
         Constructor for the PriorSetup. KicID and runID are set via the BaseBackgroundFile class.
         :param kicID: KicID of the star. Optional, but should be set here. If not set via property setter
         :type kicID: string
         :param runID: RunID of the star. Optional. If None it will read the ones in the parent directory of the results
         :type runID: string
-        """
+        '''
         BaseBackgroundFile.__init__(self,kicID,runID)
 
         self._fullPriors = {}
@@ -38,7 +38,7 @@ class PriorSetup(BaseBackgroundFile):
         self.logger = logging.getLogger(__name__)
 
     def getData(self,key=None,mode=strDiamondsModeFull):
-        """
+        '''
         Returns the dataset accordingly to the set runID, mode and key. If the runID is None, it will return the
         map/tuple according to the mode. If it is not none, it will look indepently, even if you provide a wrong mode.
         :param key: Key within the map. If provided, it will return one tuple. Is part of the parameterNames list
@@ -47,7 +47,7 @@ class PriorSetup(BaseBackgroundFile):
         :type mode: string
         :return:Dataset
         :rtype:dict/2-D tuple
-        """
+        '''
         self.logger.debug("Retrieving data with key "+str(key) + " and mode "+mode)
 
         dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
@@ -78,10 +78,10 @@ class PriorSetup(BaseBackgroundFile):
                 return dict
 
     def _readData(self):
-        """
+        '''
         Reads the data. If runID is not None, it will read only one file, the one in the result of the mode. If it is
         None it will read both in the parent directory
-        """
+        '''
         values = []
         try:
             self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings,

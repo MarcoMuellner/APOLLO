@@ -53,10 +53,10 @@ def fullRunner(request):
 
 @pytest.mark.parametrize("value",[92345443,"92345443"])
 def testLookForFile(defaultSetup,value):
-    """
+    '''
 
     :type defaultSetup: StandardRunner
-    """
+    '''
     defaultSetup._lookForFile(value,defaultSetup.filePath)
 
 @pytest.mark.parametrize("value",[9254342345443,"9234543443","923435444"])
@@ -65,10 +65,10 @@ def testFileNotFound(defaultSetup,value):
         defaultSetup._lookForFile(value,defaultSetup.filePath)
 
 def testListAvailableFiles(defaultSetup):
-    """
+    '''
 
     :type defaultSetup: StandardRunner
-    """
+    '''
     fileList = defaultSetup.listAvailableFilesInPath(defaultSetup.filePath)
     extensionList = []
     for i in fileList:
@@ -78,10 +78,10 @@ def testListAvailableFiles(defaultSetup):
     assert all( i in [".txt",".fits"]  for i in extensionList)
 
 def testReadAndConvertLightCurve(defaultSetup):
-    """
+    '''
 
     :type defaultSetup: StandardRunner
-    """
+    '''
     result = defaultSetup._readAndConvertLightCurve("tests/testFiles/fitsLightcurve.fits")
     assert isinstance(result,PowerspectraCalculator)
     assert result.powerSpectralDensity is not None
@@ -91,10 +91,10 @@ def testReadAndConvertLightCurve(defaultSetup):
     assert abs(result.nyqFreq - 283.20699116753133) < 10**-4
 
 def testComputeNuMax(defaultSetup):
-    """
+    '''
 
     :type defaultSetup: StandardRunner
-    """
+    '''
     lightCurve = np.loadtxt("tests/testFiles/Lightcurve.txt")
     psdCalc = PowerspectraCalculator(lightCurve)
     result = defaultSetup._computeNuMax(psdCalc)
@@ -107,18 +107,18 @@ def testComputeNuMax(defaultSetup):
 
 @pytest.mark.skip("Need to think about how to test this properly!")
 def testComputePriors(defaultSetup):
-    """
+    '''
 
     :type defaultSetup: StandardRunner
-    """
+    '''
     pass
 
 @pytest.mark.skip("Need to think about how to test this properly!")
 def testComputeResults(defaultSetup):
-    """
+    '''
 
     :type defaultSetup: StandardRunner
-    """
+    '''
     pass
 
 @pytest.mark.localOnly

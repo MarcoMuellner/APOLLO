@@ -11,7 +11,7 @@ from support.strings import *
 class MarginalDistribution(BaseBackgroundFile):
 
     def __init__(self,name, unit, kickId=None,runID = 00,id = None):
-        """
+        '''
         Constructs an object containing the content of one backgroundparameter file.
         :param name: The name of the parameter, i.e. H
         :type name:string
@@ -23,7 +23,7 @@ class MarginalDistribution(BaseBackgroundFile):
         :type runID: string
         :param id: Id used between 0 and 9 (last three digits of Filename)
         :type id: int
-        """
+        '''
         BaseBackgroundFile.__init__(self,kickId,runID)
         self.logger = logging.getLogger(__name__)
         self._id = id
@@ -36,46 +36,46 @@ class MarginalDistribution(BaseBackgroundFile):
 
     @property
     def id(self):
-        """
+        '''
         ID of the marginal distribution (between 0 and 9)
         :return: ID
         :rtype: int
-        """
+        '''
         return self._id
 
     @id.setter
     def id(self,value):
-        """
+        '''
         Sets the ID and rereads the data
         :param value: ID
         :type value: int
-        """
+        '''
         self._id = value
         if self.kicID is not None and self.runID is not None and id is not None:
             self._readData()
 
     @property
     def name(self):
-        """
+        '''
         Name of the marginal distribution, set in Constructor
         :return: Name
         :rtype: string
-        """
+        '''
         return self._name
 
     @property
     def unit(self):
-        """
+        '''
         Unit of the marginal distribution, set in Constructor
         :return: Unit
         :rtype: string
-        """
+        '''
         return self._unit
 
     def getData(self):
-        """
+        '''
         :return: The Dataset. Single numpy array
-        """
+        '''
         if self._data is None:
             self._readData()
 
@@ -83,28 +83,28 @@ class MarginalDistribution(BaseBackgroundFile):
 
     @property
     def backgroundData(self):
-        """
+        '''
         BackgroundData for a Dataset, set via setter property
         :return: BackgroundData
         :rtype: 1-D numpy array
-        """
+        '''
         return self._backgroundData
 
     @backgroundData.setter
     def backgroundData(self,value):
-        """
+        '''
         Setter method for the backgroundData
         :param value:BackgroundData for one Dataset
         :type value: 1-D numpy array
-        """
+        '''
         self._backgroundData = value
 
     def createMarginalDistribution(self):
-        """
+        '''
         Calculates necessary values for plotting the Marginal distribution
         :return: Values needed for plotting the Marginal distribution
         :rtype: 5-D tuple
-        """
+        '''
         if self._backgroundData is None:
             self.logger.warning("BackgroundData is not set, returning")
             return
@@ -122,9 +122,9 @@ class MarginalDistribution(BaseBackgroundFile):
         return (par,marg,fill_x,fill_y,par_err)
 
     def _readData(self):
-        """
+        '''
         Reads the Data. Should be only used internally
-        """
+        '''
         self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
         try:
             mpFile = glob.glob(self._dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
