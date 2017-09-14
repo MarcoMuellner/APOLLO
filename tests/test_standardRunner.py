@@ -29,6 +29,21 @@ def defaultSetup(request):
         request.addfinalizer(cleanup)
     return StandardRunner("92345443","tests/testFiles/playground/")
 
+
+@pytest.fixture(scope='function')
+def fullRunner(request):
+    shutil.copy2("tests/testFiles/fitsLightcurve.fits", "tests/testFiles/playground/fits_123456789.fits")
+    resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+    dataPath = resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+    def cleanup():
+        os.remove(dataPath + "KIC123456789.txt")
+        os.remove(resultPath+"KIC123456789/")
+        for i in os.listdir("tests/testFiles/playground/"):
+            os.remove(i)
+    request.addfinalizer(cleanup)
+    return StandardRunner("123456789", "tests/testFiles/playground/")
+
+
 @pytest.mark.parametrize("value",[92345443,"92345443"])
 def testLookForFile(defaultSetup,value):
     """
@@ -100,13 +115,8 @@ def testComputeResults(defaultSetup):
     pass
 
 @pytest.mark.localOnly
-def testFullRun():
-    shutil.copy2("tests/testFiles/fitsLightcurve.fits","tests/testFiles/playground/fits_123456789.fits")
-    Settings.Instance().customPath = strPathSettings
-    runner = StandardRunner("123456789","tests/testFiles/playground/")
-    runner.run()
-    runner.join()
-    os.remove()
+def testFullRun(fullRunner):
+    fullRunner._internalRun()
     
 
 
