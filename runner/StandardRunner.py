@@ -42,12 +42,15 @@ class StandardRunner(multiprocessing.Process):
         :type fileName:basestring
         """
         self.logger = logging.getLogger(__name__)
-        multiprocessing.Process.__init__(self)
+        multiprocessing.Process.__init__(self,kwargs ={'env' : os.environ.copy()})
         self.kicID = kicID
         self.filePath =filePath
         self.fileName = fileName
 
     def run(self):
+        self._internalRun()
+
+    def _internalRun(self):
         """
         Runs the Standardrunner. The sequence is:
 
@@ -113,7 +116,7 @@ class StandardRunner(multiprocessing.Process):
 
         if len(lightCurveCandidates) != 1:
             self.logger.error("Failed to find a lightCurve for KIC "+str(kicID))
-            self.logger.error("Available files: "+str(files))
+            self.logger.error("Available files: "+str(lightCurveCandidates))
             raise FileNotFoundError("Too many files found")
 
         return filePath+lightCurveCandidates[0]
