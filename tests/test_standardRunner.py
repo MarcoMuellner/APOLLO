@@ -114,7 +114,6 @@ def testComputeResults(defaultSetup):
     """
     pass
 
-@pytest.mark.localOnly
 def testFullRun(fullRunner):
     fullRunner._internalRun()
     
