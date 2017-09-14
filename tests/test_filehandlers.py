@@ -1,17 +1,20 @@
-import pytest
-from settings.settings import Settings
-from filehandler.Diamonds.diamondsFileCreating import FileCreater
-import os
 import numpy as np
+import pytest
+
+from filehandler.Diamonds.diamondsFileCreating import FileCreater
+from settings.settings import Settings
+from support.strings import *
+
 
 @pytest.fixture()
 def settings(request):
     Settings.Instance().customPath = "tests/testFiles/lightCurveAnalyzer.json"
+    resultPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
     def cleanup():
         print("Performing cleanup")
-        for i in os.listdir("tests/testFiles/diamondsFiles/KICtestKIC"):
+        for i in os.listdir(resultPath+"KICtestKIC"):
             if "runID" not in i:
-                os.remove("tests/testFiles/diamondsFiles/KICtestKIC/"+i)
+                os.remove(resultPath + "KICtestKIC/"+i)
     request.addfinalizer(cleanup)
     return Settings.Instance()
 
@@ -21,7 +24,8 @@ def testDataFile(settings):
 
 def testFileCreater(settings):
     print(settings.customPath)
+    resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
     psd = np.loadtxt("tests/testFiles/PSD.txt")
-    priors = np.loadtxt("tests/testFiles/diamondsFiles/KICtestKIC/runID/background_hyperParametersUniform.txt",skiprows=4)
+    priors = np.loadtxt(resultPath+"KICtestKIC/runID/background_hyperParametersUniform.txt",skiprows=4)
     FileCreater("testKIC",psd,283.5425,priors)
-    assert len(os.listdir("tests/testFiles/diamondsFiles/KICtestKIC")) == 6
+    assert len(os.listdir(resultPath+"KICtestKIC")) == 6
