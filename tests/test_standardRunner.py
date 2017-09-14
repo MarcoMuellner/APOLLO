@@ -3,11 +3,15 @@ from runner.StandardRunner import StandardRunner
 from calculations.powerspectraCalculations import PowerspectraCalculator
 from calculations.nuMaxCalculations import NuMaxCalculator
 import os
+import shutil
 import numpy as np
 from support.directoryManager import cd
 
 @pytest.fixture(params=[".fits",".txt"],scope="function")
 def defaultSetup(request):
+    if "playground" not in os.listdir("tests/testFiles"):
+        os.makedirs("tests/testFiles/playground/")
+        
     with cd("tests/testFiles/playground"):
         open("testfile_92345443"+request.param,'a').close()
         open("testfile_92345443_PSD"+request.param, 'a').close()
@@ -92,6 +96,14 @@ def testComputeResults(defaultSetup):
     :type defaultSetup: StandardRunner
     """
     pass
+
+@pytest.mark.localOnly
+def testFullRun():
+    shutil.copy2("tests/testFiles/fitsLightcurve.fits","tests/testFiles/playground/fits_123456789.fits")
+    runner = StandardRunner("123456789","tests/testFiles/playground/")
+    runner.run()
+    runner.join()
+    os.remove()
     
 
 
