@@ -36,8 +36,15 @@ def fullRunner(request):
     resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
     dataPath = resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
     def cleanup():
-        os.remove(dataPath + "KIC123456789.txt")
-        os.remove(resultPath+"KIC123456789/")
+        try:
+            os.remove(dataPath + "KIC123456789.txt")
+        except:
+            print("cannot remove datafile")
+        try:
+            os.remove(resultPath+"KIC123456789/")
+        except:
+            print("cannot remove data dir")
+            
         for i in os.listdir("tests/testFiles/playground/"):
             os.remove(i)
     request.addfinalizer(cleanup)
