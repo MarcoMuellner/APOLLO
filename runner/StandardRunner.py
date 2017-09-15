@@ -161,7 +161,7 @@ class StandardRunner(multiprocessing.Process):
         ResultsWriter.Instance(self.kicID).powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
-        plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
+        plotPSD(powerCalc, True,visibilityLevel=2,fileName="PSD.png")
         return powerCalc
 
 
@@ -189,7 +189,7 @@ class StandardRunner(multiprocessing.Process):
         :rtype: list
         '''
         priorCalculator = PriorEvaluator(nuMax, powerCalc)
-        plotPSD(powerCalc, True, True, visibilityLevel= 1, fileName="PSD_filterfrequencies.png")
+        plotPSD(powerCalc, True, visibilityLevel= 1, fileName="PSD_filterfrequencies.png")
 
         priors = []
         priors.append(priorCalculator.photonNoiseBoundary)
@@ -240,8 +240,8 @@ class StandardRunner(multiprocessing.Process):
 
         for fitMode,binary in models.items():
             if diamondsModel in [strFitModeBayesianComparison,fitMode]:
-                result = Results(kicID=self.kicID,runID=binary)
-                plotPSD(result, False, False, visibilityLevel=1, fileName="PSD_Noise_fit.png")
+                result = BackgroundResults(kicID=self.kicID,runID=binary)
+                plotPSD(result, False, visibilityLevel=1, fileName="PSD_Noise_fit.png")
                 plotParameterTrend(result, fileName="Noise_Parametertrend.png")
                 show(2)
 

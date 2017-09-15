@@ -3,7 +3,7 @@ import logging
 from loghandler.loghandler import *
 
 starList = []
-starList.append("004770846_1435") #works
+#starList.append("004770846_1435") #works
 starList.append("003744681_983") #works
 starList.append("004448777_771") #works
 starList.append("004659821_1181") #okayish

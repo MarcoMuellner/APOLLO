@@ -1,7 +1,5 @@
 import traceback
 
-from readerWriter.Diamonds.diamondsResultsFile import Results
-
 from evaluators.nuMaxEvaluator import NuMaxEvaluator
 from evaluators.inputDataEvaluator import InputDataEvaluator
 from evaluators.priorEvaluator import PriorEvaluator
@@ -10,6 +8,7 @@ from background.fileModels.backgroundFileCreator import BackgroundFileCreator
 from readerWriter.inputFileReader import InputFileReader
 from loghandler.loghandler import *
 from plotter.plotFunctions import *
+from background.backgroundResults import BackgroundResults
 
 starList = []
 
@@ -72,7 +71,7 @@ for i in starList:
         ResultsWriter.Instance(i).powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
-        plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
+        plotPSD(powerCalc,True,visibilityLevel=2,fileName="PSD.png")
         #
         #compute nuMax
         nuMaxCalc = NuMaxEvaluator(i, file.lightCurve)
@@ -85,7 +84,7 @@ for i in starList:
         #
         #compute Priors
         priorCalculator = PriorEvaluator(nuMax, photonNoise, powerCalc)
-        plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
+        plotPSD(powerCalc,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
 
         priors = []
         priors.append(priorCalculator.photonNoiseBoundary)
@@ -119,14 +118,14 @@ for i in starList:
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
 
         if diamondsModel in [strFitModeNoiseBackground, strFitModeBayesianComparison]:
-            result = Results(kicID=i, runID=strDiamondsModeNoise)
-            p = plotPSD(result, False, False, visibilityLevel=1,fileName="PSD_Noise_fit.png")
+            result = BackgroundResults(kicID=i, runID=strDiamondsModeNoise)
+            p = plotPSD(result, False, visibilityLevel=1,fileName="PSD_Noise_fit.png")
             p = plotParameterTrend(result,fileName="Noise_Parametertrend.png")
             show(2)
 
         if diamondsModel in [strFitModeFullBackground, strFitModeBayesianComparison]:
-            result = Results(kicID=i, runID=strDiamondsModeFull)
-            p = plotPSD(result, True, False, visibilityLevel=1,fileName="PSD_Full_Background_fit.png")
+            result = BackgroundResults(kicID=i, runID=strDiamondsModeFull)
+            p = plotPSD(result, False, visibilityLevel=1,fileName="PSD_Full_Background_fit.png")
             p = plotParameterTrend(result,fileName="Full_Background_Parametertrend.png")
             show(2)
 
