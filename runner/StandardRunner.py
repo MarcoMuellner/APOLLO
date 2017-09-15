@@ -155,7 +155,7 @@ class StandardRunner(multiprocessing.Process):
         '''
         file = InputFileReader(filename)
 
-        powerCalc = InputDataEvaluator(np.conjugate(file.getLightCurve()))
+        powerCalc = InputDataEvaluator(np.conjugate(file.lightCurve))
         powerCalc.kicID = self.kicID
 
         ResultsWriter.Instance(self.kicID).powerSpectracalculator = powerCalc

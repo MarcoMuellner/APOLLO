@@ -67,7 +67,7 @@ for i in starList:
         #read and convert
         file = InputFileReader(filename)
 
-        powerCalc = InputDataEvaluator(np.conjugate(file.getLightCurve()))
+        powerCalc = InputDataEvaluator(np.conjugate(file.lightCurve))
         powerCalc.kicID = i
         ResultsWriter.Instance(i).powerSpectracalculator = powerCalc
 
@@ -75,7 +75,7 @@ for i in starList:
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
         #
         #compute nuMax
-        nuMaxCalc = NuMaxEvaluator(i, file.getLightCurve())
+        nuMaxCalc = NuMaxEvaluator(i, file.lightCurve)
         ResultsWriter.Instance(i).nuMaxCalculator = nuMaxCalc
 
         nuMax = nuMaxCalc.computeNuMax()
