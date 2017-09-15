@@ -23,12 +23,15 @@ class ResultsWriter:
     To finish of the analysis, you need to call performAnalysis() at the end of your analysis. Be careful, this instance
     doesn't really die. This should not be a problem though, because the data saved is quite miniscule.
     '''
-    def __init__(self):
+    def __init__(self,*args):
         '''
         Constructor of AnalyserResults. Only called by Singleton Constructor
         '''
         self.logger = logging.getLogger(__name__)
-        self.kicID = None
+
+        if len(args) == 1:
+            self.kicID = args[0][0]
+
 
     def addImage(self,name,figure):
         '''

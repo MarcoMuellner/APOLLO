@@ -4,7 +4,7 @@ import pandas as pd
 import pylab as pl
 from ggplot import *
 
-from fitter.fitFunctions import *
+import numpy as np
 from readerWriter.resultsWriter import ResultsWriter
 from res.strings import *
 from settings.settings import Settings

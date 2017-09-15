@@ -1,6 +1,6 @@
 import multiprocessing
 
-from readerWriter.Diamonds.diamondsResultsFile import Results
+from background.backgroundResults import BackgroundResults
 
 from evaluators.nuMaxEvaluator import NuMaxEvaluator
 from evaluators.inputDataEvaluator import InputDataEvaluator
@@ -58,7 +58,7 @@ class StandardRunner(multiprocessing.Process):
 
         will run in its own process. So after calling you need to call join() to wait for it to be finished
         '''
-        if not ResultsWriter.Instance().diamondsRunNeeded:
+        if not ResultsWriter.Instance(self.kicID).diamondsRunNeeded:
             self.logger.info("Star "+self.kicID+" is already done, skipping")
             return
 

@@ -35,7 +35,10 @@ for i in starList:
     logger.info("************************************")
     runner = StandardRunner(i,"../Sterndaten/RG_ENRICO/")
     runner.run()
-    runner.join()
+    try:
+        runner.join()
+    except AssertionError:
+        logger.debug("Runner already finished.")
     logger.info("************************************")
     logger.info("STAR" + i +"FINISHED")
     logger.info("************************************")

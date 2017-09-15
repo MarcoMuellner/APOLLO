@@ -3,14 +3,14 @@ import logging
 from math import sqrt, log10
 
 import numpy as np
-from background.diamondsPriorsFile import PriorSetup
-from readerWriter.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
-from readerWriter.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
-from readerWriter.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
-from readerWriter.Diamonds.dataFile import DataFile
 from uncertainties import ufloat
 
+from background.fileModels.backgroundDataFileModel import BackgroundDataFileModel
+from background.fileModels.backgroundEvidenceFileModel import BackgroundEvidenceFileModel
+from background.fileModels.backgroundMarginalDistrFileModel import BackgroundMarginalDistrFileModel
+from background.fileModels.backgroundParamSummaryModel import BackgroundParamSummaryModel
 from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
+from background.fileModels.backgroundPriorFileModel import BackgroundPriorFileModel
 from evaluators.bcEvaluator import BCEvaluator
 from evaluators.deltaNuEvaluator import DeltaNuEvaluator
 from res.strings import *
@@ -41,11 +41,11 @@ class BackgroundResults:
         self.logger = logging.getLogger(__name__)
         self._kicID = kicID
         self._runID = runID
-        self._dataFile = DataFile(kicID)
-        self._summary = ParameterSummary(kicID, runID)
-        self._evidence = Evidence(kicID, runID)
-        self._prior = PriorSetup(kicID,runID)
-        self._backgroundPriors = PriorSetup(kicID, runID)
+        self._dataFile = BackgroundDataFileModel(kicID)
+        self._summary = BackgroundParamSummaryModel(kicID, runID)
+        self._evidence = BackgroundEvidenceFileModel(kicID, runID)
+        self._prior = BackgroundPriorFileModel(kicID,runID)
+        self._backgroundPriors = BackgroundPriorFileModel(kicID, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
         self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
@@ -80,7 +80,7 @@ class BackgroundResults:
 
         for i in range(0,self.summary.dataLength()):
             self._backgroundParameter.append(BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
-            self._marginalDistributions.append(MarginalDistribution(self._names[i],self._units[i],kicID,runID,i))
+            self._marginalDistributions.append(BackgroundMarginalDistrFileModel(self._names[i],self._units[i],kicID,runID,i))
             self._marginalDistributions[i].backgrounddata = np.vstack((summaryRawData[strSummaryMedian][i],
                                                                       summaryRawData[strSummaryLowCredLim][i],
                                                                       summaryRawData[strSummaryUpCredLim][i]))

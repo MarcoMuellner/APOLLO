@@ -14,7 +14,7 @@ class Singleton:
     '''
     def __init__(self,decorated):
         self.__decorated = decorated
-    def Instance(self,kicID = ""):
+    def Instance(self,*args):
         '''
         Returns the singleton instance. Upon its firsct call, it creates a new
         instance of the decorated class and calls its '__init__' method.
@@ -23,11 +23,11 @@ class Singleton:
         if not hasattr(self,"_instanceList"):
             self._instanceList = {}
         try:
-            return self._instanceList[kicID]
+            return self._instanceList[args]
         except KeyError:
-            self._instanceList[kicID] = self.__decorated()
+            self._instanceList[args] = self.__decorated(args)
 
-            return self._instanceList[kicID]
+            return self._instanceList[args]
     def __call__(self):
         raise TypeError("Singletons must be accessed through 'Instance()'.")
     def __instancecheck__(self,inst):
