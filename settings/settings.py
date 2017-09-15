@@ -19,7 +19,7 @@ class Settings:
     Settings.Instance().setSetting(setting) --> setting is list containing sect,opt and value. If you want to
     change the path you can call the customPath Property
     """
-    def __init__(self):
+    def __init__(self,*args):
         """
         Constructor of the object
         """
