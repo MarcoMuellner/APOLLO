@@ -10,13 +10,25 @@ from support.singleton import Singleton
 
 @Singleton
 class Settings:
-    def __init__(self,customPath = None):
+    """
+    This class represents the possibility to create Settings on a machine. It will automatically reread the file if it
+    changed and write it to the file if a setting in the program changed.
+    To access settings:
+    Settings.Instance().getSetting(strSect,strOpt).value
+    To write settings:
+    Settings.Instance().setSetting(setting) --> setting is list containing sect,opt and value. If you want to
+    change the path you can call the customPath Property
+    """
+    def __init__(self):
+        """
+        Constructor of the object
+        """
         self.__logger = logging.getLogger(__name__)
         self.__defSettingMap = obsDict(strPathDefSettings)
         self.__custSettingMap = obsDict(strPathSettings)
-        self.__adjustCustMapWithDefMap()
+        self._adjustCustMapWithDefMap()
 
-    def __adjustCustMapWithDefMap(self):
+    def _adjustCustMapWithDefMap(self):
         self.__logger.log(9,"Syncing default map with custMap")
         defMap = self.__defSettingMap.map
         custMap = self.__custSettingMap.map
@@ -64,7 +76,7 @@ class Settings:
     def customPath(self,value):
         self._customPath = value
         self.__custSettingMap = obsDict(self._customPath)
-        self.__adjustCustMapWithDefMap()
+        self._adjustCustMapWithDefMap()
 
     def getAllSettings(self):
         return self.__custSettingMap.map
