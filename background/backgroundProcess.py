@@ -27,6 +27,8 @@ class BackgroundProcess:
         self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
         self.diamondsResultsPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
         self.binaryListToExecute = {}
+        self._dummyObject = self._dummyProcessObject()
+        self.testErrorMode = "NoError"
 
         models = {strFitModeFullBackground:(strDiamondsModeFull,strDiamondsExecFull)
             ,strFitModeNoiseBackground:(strDiamondsModeNoise,strDiamondsExecNoise)}
@@ -88,7 +90,7 @@ class BackgroundProcess:
             for errorCount in range(1,3):
                 self._status[runID] = strDiamondsStatusRunning
                 with cd(self.diamondsBinaryPath):
-                    p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    p =self._runBinary(cmd)
 
                     while p.poll() is None:
                         line = p.stderr.readline()
@@ -106,7 +108,7 @@ class BackgroundProcess:
                             self.logger.warning("Diamonds assertion failed. Repeat!")
                             self._status[runID] = strDiamondsStatusAssertion
 
-                    self.logger.debug(p.stdout.read())
+                    self.logger.debug(p.stderr.read())
                     self.logger.debug("Command '"+str(cmd)+"' done")
                     if self._status[runID] == strDiamondsStatusRunning:
                         finished = True
@@ -114,7 +116,6 @@ class BackgroundProcess:
 
             if not finished:
                 self.logger.error("Diamonds failed to find good values!")
-                self._status = strDiamondsStatusTooManyRuns
                 raise ValueError
 
                 #Some error handling needs to take place here!
@@ -128,5 +129,49 @@ class BackgroundProcess:
         :rtype:string
         '''
         return self._status
+
+    def _runBinary(self,cmd):
+        self._dummyObject._dummyPollCounter = 0
+        self._dummyObject.stderr._dummyPollCounter = 0
+        p = self._dummyObject
+
+        if bool(Settings.Instance().getSetting(strMiscSettings,strSectRunBinaries).value) is True:
+            self.logger.debug("Running binaries is true")
+        else:
+            self.logger.debug("Running binaries is false")
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return p
+
+    class _dummyProcessObject:
+        def __init__(self):
+            self._dummyPollCounter = 0
+            self.stderr = self.out()
+            self.stderr.testErrorMode = "NoError"
+
+        def poll(self):
+            if self._dummyPollCounter == 10 or self.stderr.testErrorMode != "NoError":
+                return "Finished"
+            self.stderr._dummyPollCounter = self._dummyPollCounter
+            self._dummyPollCounter +=1
+
+        class out:
+            def __init__(self):
+                self._dummyPollCounter = 0
+                self.testErrorMode = "NoError"
+
+            def readline(self):
+                if self._dummyPollCounter == 5 and self.testErrorMode != "NoError":
+                    return self.testErrorMode
+                return "NoError"
+            def read(self):
+                return("DUMMY OBJECT DONE")
+
+    @property
+    def testErrorMode(self):
+        return self._dummyObject.stderr.testErrorMode
+
+    @testErrorMode.setter
+    def testErrorMode(self,value):
+        self._dummyObject.stderr.testErrorMode = value
 
 

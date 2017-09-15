@@ -44,10 +44,10 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     psd = data.powerSpectralDensity
     backgroundModel = None
     if not psdOnly:
+        backgroundModel = data.createBackgroundModel()
         if len(backgroundModel == 5):
             runGauss = True
             title = "Full Fit Model"
-        backgroundModel = data.createBackgroundModel(runGauss)
     else:
         runGauss = False
         title = "PSD"

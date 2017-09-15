@@ -58,9 +58,14 @@
                 "Value":"0"
             },
             "Force DIAMONDS run":{
-                "GUI Name":"Analyzer Results Path",
+                "GUI Name":"Force DIAMONDS run",
                 "GUI Type":"textEdit",
                 "Value":"False"
+            },
+            "Run Binaries":{
+                "GUI Name":"Run Binaries",
+                "GUI Type":"textEdit",
+                "Value":"True"
             }
         }
     }

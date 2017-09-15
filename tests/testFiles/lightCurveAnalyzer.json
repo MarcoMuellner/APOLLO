@@ -61,6 +61,11 @@
                 "GUI Name":"Analyzer Results Path",
                 "GUI Type":"textEdit",
                 "Value":"False"
+            },
+            "Run Binaries":{
+                "GUI Name":"Run Binaries",
+                "GUI Type":"textEdit",
+                "Value":"False"
             }
         }
     }

@@ -1,0 +1,20 @@
+# List of configuring parameters used for the NSMC.
+# Row #1: Ndimensions
+# Row #2: Initial(Maximum) NlivePoints
+# Row #3: Minimum NlivePoints
+# Row #4: NinitialIterationsWithoutClustering
+# Row #5: NiterationsWithSameClustering
+# Row #6: maxNdrawAttempts
+# Row #7: terminationFactor
+# Row #8: Niterations
+# Row #9: Optimal Niterations
+# Row #10: Final Nclusters
+# Row #11: Final NlivePoints
+# Row #12: Computational Time (seconds)
+10
+500
+500
+1500
+50
+50000
+0.1

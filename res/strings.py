@@ -25,6 +25,7 @@ strSectFittingMode = 'Fitting mode'
 strSectDevMode = "Developer Mode"
 strSectAnalyzerResults = "Analyzer Results Path"
 strSectForceDiamondsRun = "Force DIAMONDS run"
+strSectRunBinaries = "Run Binaries"
 #SettingOptions
 strOptionName       = 'GUI_Name'
 strOptionType       = 'GUI_Type'

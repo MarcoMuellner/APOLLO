@@ -426,7 +426,7 @@ class BackgroundResults:
         '''
         Computes delta nu using the deltaNuCalculator
         '''
-        backgroundModel = self.createBackgroundModel((self._runID is strDiamondsModeFull))
+        backgroundModel = self.createBackgroundModel()
         backGroundData = np.vstack((self.summary.getRawData(strSummaryMedian),
                                     self.summary.getRawData(strSummaryLowCredLim),
                                     self.summary.getRawData(strSummaryUpCredLim)))
@@ -435,17 +435,15 @@ class BackgroundResults:
                                                   self._dataFile.powerSpectralDensity,
                                                   self._nyq, backGroundData, backgroundModel)
 
-    def createBackgroundModel(self, runGauss):
+    def createBackgroundModel(self):
         '''
         Creates a full Background model
-        :param runGauss: Parameter used as an indicator if this is a fullBackground or noiseOnly model
-        :type runGauss: bool
         :return: Background Model
         '''
         freq, psd = self._dataFile.powerSpectralDensity
         par_median = self.summary.getRawData(strSummaryMedian)  # median values
-
-        if runGauss and self._runID is strDiamondsModeFull:
+        runGauss = (self._runID is strDiamondsModeFull)
+        if runGauss:
             self.logger.debug("Height is '" + str(self.oscillationAmplitude) + "'")
             self.logger.debug("Numax is '" + str(self.nuMax) + "'")
             self.logger.debug("Sigma is '" + str(self.sigma) + "'")
@@ -477,7 +475,7 @@ class BackgroundResults:
 
         ## Global background model
         w = np.zeros_like(freq) + w
-        if runGauss and self._runID is strDiamondsModeFull:
+        if runGauss:
             retVal =zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
         else:
             retVal =  zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
