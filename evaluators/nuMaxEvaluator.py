@@ -5,6 +5,7 @@ import numpy as np
 
 # local imports
 from plotter.plotFunctions import *
+from fitter.fitFunctions import *
 
 
 class NuMaxEvaluator:
