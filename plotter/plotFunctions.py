@@ -45,7 +45,7 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     backgroundModel = None
     if not psdOnly:
         backgroundModel = data.createBackgroundModel()
-        if len(backgroundModel == 5):
+        if len(backgroundModel) == 5:
             runGauss = True
             title = "Full Fit Model"
     else:
@@ -161,7 +161,7 @@ def plotMarginalDistributions(data,visibilityLevel=0,fileName=0):
         pl.xlabel(marginalDists[iii].name + ' (' + marginalDists[iii].unit + ')', fontsize=16)
 
 
-def plotParameterTrend(data):
+def plotParameterTrend(data,fileName):
     """
     Plots the parametertrend of the data. Size is automatically determined. Due to the inconsistency and different
     plotting devices, show() needs to be called.

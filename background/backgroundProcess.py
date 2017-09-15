@@ -163,6 +163,7 @@ class BackgroundProcess:
                 if self._dummyPollCounter == 5 and self.testErrorMode != "NoError":
                     return self.testErrorMode
                 return "NoError"
+
             def read(self):
                 return("DUMMY OBJECT DONE")
 

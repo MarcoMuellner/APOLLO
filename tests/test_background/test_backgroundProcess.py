@@ -3,9 +3,10 @@ from background.backgroundProcess import BackgroundProcess
 import os
 from res.strings import *
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
 def defaultObject():
-    return BackgroundProcess("testKIC")
+    object = BackgroundProcess("testKIC")
+    return object
 
 
 @pytest.mark.parametrize("paths",[os.getcwd()+"/test/","test/"])
@@ -26,8 +27,10 @@ def testStart(defaultObject,errorModes):
     :type defaultObject: BackgroundProcess
     """
     defaultObject.testErrorMode = errorModes[0]
+    defaultObject.start()
     try:
-        assert defaultObject.status == errorModes[1]
+        assert defaultObject.status[strDiamondsModeFull] == errorModes[1]
+        assert defaultObject.status[strDiamondsModeNoise] == errorModes[1]
     except ValueError:
         print("No problem")
 

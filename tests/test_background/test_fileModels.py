@@ -16,7 +16,7 @@ def settings(request):
     def cleanup():
         print("Performing cleanup")
         for i in os.listdir(resultPath+"KICtestKIC"):
-            if "runID" not in i and "FullBackground" not in i and "NoiseOnly not in i":
+            if "runID" not in i and "FullBackground" not in i and "NoiseOnly" not in i:
                 os.remove(resultPath + "KICtestKIC/"+i)
     request.addfinalizer(cleanup)
     return Settings.Instance()
@@ -31,7 +31,7 @@ def testFileCreater(settings):
     psd = np.loadtxt("tests/testFiles/PSD.txt")
     priors = np.loadtxt(resultPath+"KICtestKIC/runID/background_hyperParametersUniform.txt",skiprows=4)
     BackgroundFileCreator("testKIC", psd, 283.5425, priors)
-    assert len(os.listdir(resultPath+"KICtestKIC")) == 6
+    assert len(os.listdir(resultPath+"KICtestKIC")) == 8
 
 
 def testEvidenceFile(settings):
