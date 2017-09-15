@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from filehandler.Diamonds.diamondsFileCreating import FileCreater
+from background.fileModels.backgroundFileCreator import BackgroundFileCreator
+from res.strings import *
 from settings.settings import Settings
-from support.strings import *
 
 
 @pytest.fixture()
@@ -17,7 +17,7 @@ def settings(request):
     request.addfinalizer(cleanup)
     return Settings.Instance()
 
-@pytest.mark.skip("Yet to implement for dataFile.py")
+@pytest.mark.skip("Yet to implement for backgroundDataFile.py")
 def testDataFile(settings):
     print(settings.customPath)
 
@@ -26,5 +26,5 @@ def testFileCreater(settings):
     resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
     psd = np.loadtxt("tests/testFiles/PSD.txt")
     priors = np.loadtxt(resultPath+"KICtestKIC/runID/background_hyperParametersUniform.txt",skiprows=4)
-    FileCreater("testKIC",psd,283.5425,priors)
+    BackgroundFileCreator("testKIC", psd, 283.5425, priors)
     assert len(os.listdir(resultPath+"KICtestKIC")) == 6

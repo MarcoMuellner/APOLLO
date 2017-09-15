@@ -1,22 +1,16 @@
 import multiprocessing
-import os
-import errno
-from uncertainties import ufloat
-from uncertainties.core import Variable
-from filehandler.fitsReading import FitsReader
 
-from calculations.powerspectraCalculations import PowerspectraCalculator
-from calculations.nuMaxCalculations import NuMaxCalculator
-from calculations.priorCalculations import PriorCalculator
-from filehandler.analyzerResults import AnalyserResults
-from filehandler.Diamonds.diamondsResultsFile import Results
-from filehandler.Diamonds.diamondsFileCreating import FileCreater
-from diamonds.diamondsProcesses import DiamondsProcess
+from readerWriter.Diamonds.diamondsResultsFile import Results
+
+from evaluators.nuMaxEvaluator import NuMaxEvaluator
+from evaluators.inputDataEvaluator import InputDataEvaluator
+from evaluators.priorEvaluator import PriorEvaluator
+from background.backgroundProcess import BackgroundProcess
+from background.fileModels.backgroundFileCreator import BackgroundFileCreator
+from readerWriter.inputFileReader import InputFileReader
 from plotter.plotFunctions import *
 from support.directoryManager import cd
-import logging
 
-import numpy as np
 
 class StandardRunner(multiprocessing.Process):
     '''
@@ -64,7 +58,7 @@ class StandardRunner(multiprocessing.Process):
 
         will run in its own process. So after calling you need to call join() to wait for it to be finished
         '''
-        if not AnalyserResults.Instance().diamondsRunNeeded:
+        if not ResultsWriter.Instance().diamondsRunNeeded:
             self.logger.info("Star "+self.kicID+" is already done, skipping")
             return
 
@@ -157,14 +151,14 @@ class StandardRunner(multiprocessing.Process):
         :param filename: Complete filename of the lightCurve
         :type filename: str
         :return: The Powerspectraobject containing the lightcurve and psd
-        :rtype: PowerspectraCalculator
+        :rtype: InputDataEvaluator
         '''
-        file = FitsReader(filename)
+        file = InputFileReader(filename)
 
-        powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
+        powerCalc = InputDataEvaluator(np.conjugate(file.getLightCurve()))
         powerCalc.kicID = self.kicID
 
-        AnalyserResults.Instance(self.kicID).powerSpectracalculator = powerCalc
+        ResultsWriter.Instance(self.kicID).powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
@@ -175,12 +169,12 @@ class StandardRunner(multiprocessing.Process):
         '''
         This method uses the nuMax Calculator and computes it.
         :param psdCalc: The PSD calculator object from which the lightCurve will be extracted
-        :type psdCalc: PowerspectraCalculator
+        :type psdCalc: InputDataEvaluator
         :return: Tuple containing nuMax in first spot and the nuMax Calculator in second spot
         :rtype: tuple
         '''
-        nuMaxCalc = NuMaxCalculator(self.kicID,psdCalc.lightCurve)
-        AnalyserResults.Instance(self.kicID).nuMaxCalculator = nuMaxCalc
+        nuMaxCalc = NuMaxEvaluator(self.kicID, psdCalc.lightCurve)
+        ResultsWriter.Instance(self.kicID).nuMaxCalculator = nuMaxCalc
 
         return (nuMaxCalc.computeNuMax(),nuMaxCalc)
 
@@ -190,11 +184,11 @@ class StandardRunner(multiprocessing.Process):
         :param nuMax: Frequency of maximum Oscillation
         :type nuMax: float
         :param powerCalc: the psd Calculator object used
-        :type powerCalc: PowerspectraCalculator
+        :type powerCalc: InputDataEvaluator
         :return: A list containing the priors used for the run
         :rtype: list
         '''
-        priorCalculator = PriorCalculator(nuMax, powerCalc)
+        priorCalculator = PriorEvaluator(nuMax, powerCalc)
         plotPSD(powerCalc, True, True, visibilityLevel= 1, fileName="PSD_filterfrequencies.png")
 
         priors = []
@@ -225,15 +219,15 @@ class StandardRunner(multiprocessing.Process):
         This method creates the necessary files for the DIAMONDS run and
         afterwards runs it
         :param powerCalc: The powerspectra calculator
-        :type powerCalc: PowerspectraCalculator
+        :type powerCalc: InputDataEvaluator
         :param priors: The priors used for the run
         :type priors: list
         '''
-        FileCreater(self.kicID, powerCalc.powerSpectralDensity, powerCalc.nyqFreq, priors)
+        BackgroundFileCreator(self.kicID, powerCalc.powerSpectralDensity, powerCalc.nyqFreq, priors)
 
-        proc = DiamondsProcess(self.kicID)
+        proc = BackgroundProcess(self.kicID)
         proc.start()
-        AnalyserResults.Instance(self.kicID).diamondsRunner = proc
+        ResultsWriter.Instance(self.kicID).diamondsRunner = proc
 
     def _computeResults(self):
         '''
@@ -251,8 +245,8 @@ class StandardRunner(multiprocessing.Process):
                 plotParameterTrend(result, fileName="Noise_Parametertrend.png")
                 show(2)
 
-        AnalyserResults.Instance(self.kicID).collectDiamondsResult()
-        AnalyserResults.Instance(self.kicID).performAnalysis()
+        ResultsWriter.Instance(self.kicID).collectDiamondsResult()
+        ResultsWriter.Instance(self.kicID).performAnalysis()
 
     @property
     def result(self):

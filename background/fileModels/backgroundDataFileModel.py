@@ -1,11 +1,13 @@
-from settings.settings import Settings
 import glob
-import numpy as np
-from support.strings import *
 import logging
 
+import numpy as np
 
-class DataFile:
+from res.strings import *
+from settings.settings import Settings
+
+
+class BackgroundDataFileModel:
     '''
     Represents the data file which diamonds will perform a fit on. This should either be
     already exist within the DIAMONDS file structure (i.e. in background/data/) or should

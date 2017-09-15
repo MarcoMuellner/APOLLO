@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from uncertainties import ufloat
-from calculations.nuMaxCalculations import NuMaxCalculator
+from evaluators.nuMaxEvaluator import NuMaxEvaluator
 from shutil import copy2
 
 typeIterativeFilterFailureTestCases = [
@@ -28,22 +28,22 @@ valueFailureTestCases  = [
 def nuMaxObject():
     copy2("tests/testFiles/lightCurveAnalyzer.json","~")
     lightCurve = np.loadtxt("tests/testFiles/Lightcurve.txt", skiprows=1)
-    return NuMaxCalculator("testKIC",lightCurve)
+    return NuMaxEvaluator("testKIC", lightCurve)
 
 @pytest.mark.parametrize("value",typeFailureTestCases)
 def testFailureTypeNuMaxCalc(value):
     with pytest.raises(TypeError):
-        NuMaxCalculator("testKIC",value)
+        NuMaxEvaluator("testKIC", value)
 
 @pytest.mark.parametrize("value",valueFailureTestCases)
 def testFailureValueNuMaxCalc(value):
     with pytest.raises(ValueError):
-        NuMaxCalculator("testKIC",value)
+        NuMaxEvaluator("testKIC", value)
 
 def testFlickerandInitFilter(nuMaxObject):
     '''
 
-    :type nuMaxObject: NuMaxCalculator
+    :type nuMaxObject: NuMaxEvaluator
     '''
     assert abs(nuMaxObject._amp_flic -376.26416450273649) < 10**-6
     assert abs(nuMaxObject._init_nu_filter - 14.764921474649485) < 10 ** -6
@@ -54,7 +54,7 @@ def testFlickerandInitFilter(nuMaxObject):
 def testFailureIterativeFilter(nuMaxObject,value):
     '''
 
-    :type nuMaxObject: NuMaxCalculator
+    :type nuMaxObject: NuMaxEvaluator
     '''
     with pytest.raises(TypeError):
         nuMaxObject._iterativeFilter(value)
@@ -70,7 +70,7 @@ def testFailureIterativeFilter(nuMaxObject,value):
 def testIterativeFilterValues(nuMaxObject,input,output):
     '''
 
-    :type nuMaxObject: NuMaxCalculator
+    :type nuMaxObject: NuMaxEvaluator
     '''
     assert abs(nuMaxObject._iterativeFilter(input) - output) < 10**-6
 
@@ -82,7 +82,7 @@ def testIterativeFilterValues(nuMaxObject,input,output):
 def testComputeNuMax(nuMaxObject,input,output):
     '''
 
-    :type nuMaxObject: NuMaxCalculator
+    :type nuMaxObject: NuMaxEvaluator
     '''
     if input is None:
         input = nuMaxObject._init_nu_filter

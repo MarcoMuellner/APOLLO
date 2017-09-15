@@ -4,12 +4,12 @@ import logging
 import numpy as np
 from uncertainties import ufloat
 
-from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
+from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from res.strings import *
 from settings.settings import Settings
-from support.strings import *
 
 
-class ParameterSummary(BaseBackgroundFile):
+class BackgroundParamSummaryModel(BackgroundBaseFileModel):
     '''
     This class represents the summary file provided by DIAMONDS. From here we can calculate
     the background model, which in turn provides the final values for the fit
@@ -24,7 +24,7 @@ class ParameterSummary(BaseBackgroundFile):
         :param runID: The RunID for the star, can be fullBackground or noiseOnly
         :type runID: string
         '''
-        BaseBackgroundFile.__init__(self,kicID,runID)
+        BackgroundBaseFileModel.__init__(self, kicID, runID)
         self._rawValues = {}
         self._priorValues = {}
         self.logger = logging.getLogger(__name__)

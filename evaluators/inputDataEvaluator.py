@@ -3,11 +3,11 @@ import logging
 import numpy as np
 from scipy import signal
 
+from res.strings import *
 from settings.settings import Settings
-from support.strings import *
 
 
-class PowerspectraCalculator:
+class InputDataEvaluator:
     '''
     The PowerspectraCalculator represents the basic information about a LightCurve. Provided a lightCurve it will
     calculate its PSD using FFT, its Nyquist frequency, photonNoise and some smoothing of the PSD.

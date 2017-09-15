@@ -1,6 +1,6 @@
 import logging
 
-class BaseBackgroundFile:
+class BackgroundBaseFileModel:
     '''
     Base class for the background filereaders. Creates some properties for the kicIDs, units and provides an interface
     for some methods that have to be implemented

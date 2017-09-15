@@ -1,13 +1,12 @@
 import logging
 import subprocess
 
-from plotter.fileAnimator import FileAnimator
+from res.strings import *
 from settings.settings import Settings
 from support.directoryManager import cd
-from support.strings import *
 
 
-class DiamondsProcess:
+class BackgroundProcess:
     '''
     This class will run DIAMONDS. Dependent on the settings, it will run one or both models (full Background model,
     noise Background model). To be able to run it successfully the prior File has to be set up, as well as the
@@ -61,10 +60,10 @@ class DiamondsProcess:
     def start(self):
         '''
         Runs the processes setup in the constructor. It also creates the proper directories, for each run it will create
-        one. Also logs the output of diamonds. Will raise a ValueError if DIAMONDS cannot finish the fitting (too many
+        one. Also logs the output of background. Will raise a ValueError if DIAMONDS cannot finish the fitting (too many
         runs). It will also set the status flag properly depending on the state
         '''
-        self.logger.debug("Starting diamonds process(es).")
+        self.logger.debug("Starting background process(es).")
         for runID,binary in self.binaryListToExecute.items():
 
             self.logger.debug("RunID is : '"+runID+"'")
@@ -124,7 +123,7 @@ class DiamondsProcess:
     @property
     def status(self):
         '''
-        Property for the status flag on diamonds. See strings.py for possible values
+        Property for the status flag on background. See strings.py for possible values
         :return:Status flag
         :rtype:string
         '''

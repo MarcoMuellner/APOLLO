@@ -7,7 +7,7 @@ import numpy as np
 from plotter.plotFunctions import *
 
 
-class NuMaxCalculator:
+class NuMaxEvaluator:
     '''
     This class autocorrelates the lightcurve, in such a way that it will provide all the necessary
     values to continue computation (i.e. Background noise, Nyquist frequency, nuMax). To compute

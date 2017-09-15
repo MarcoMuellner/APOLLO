@@ -1,14 +1,13 @@
 import logging
 
 import pandas as pd
-import matplotlib as mpl
 import pylab as pl
 from ggplot import *
 
-from filehandler.analyzerResults import AnalyserResults
 from fitter.fitFunctions import *
+from readerWriter.resultsWriter import ResultsWriter
+from res.strings import *
 from settings.settings import Settings
-from support.strings import *
 
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
@@ -279,4 +278,4 @@ def show(visibilityLevel=0):
         pl.close()
 
 def saveFigToResults(kicID,filename,figure):
-    AnalyserResults.Instance(kicID).addImage(filename,figure)
+    ResultsWriter.Instance(kicID).addImage(filename, figure)

@@ -1,15 +1,15 @@
-from filehandler.fitsReading import FitsReader
-from calculations.powerspectraCalculations import PowerspectraCalculator
-from calculations.nuMaxCalculations import NuMaxCalculator
-from calculations.priorCalculations import PriorCalculator
-from filehandler.Diamonds.diamondsResultsFile import Results
-from plotter.plotFunctions import *
-from filehandler.Diamonds.diamondsFileCreating import FileCreater
-from filehandler.analyzerResults import AnalyserResults
-from diamonds.diamondsProcesses import DiamondsProcess
-from loghandler.loghandler import *
-import logging
 import traceback
+
+from readerWriter.Diamonds.diamondsResultsFile import Results
+
+from evaluators.nuMaxEvaluator import NuMaxEvaluator
+from evaluators.inputDataEvaluator import InputDataEvaluator
+from evaluators.priorEvaluator import PriorEvaluator
+from background.backgroundProcess import BackgroundProcess
+from background.fileModels.backgroundFileCreator import BackgroundFileCreator
+from readerWriter.inputFileReader import InputFileReader
+from loghandler.loghandler import *
+from plotter.plotFunctions import *
 
 starList = []
 
@@ -57,26 +57,26 @@ for i in starList:
 
         filename = "../Sterndaten/RG_ENRICO/kplr" + i + "_COR_" + ("PSD_" if powerSpectrum else "") + "filt_inp.fits"
         #filename = "../Sterndaten/k2data/g_like/EPIC_" + i + "_xy_ap1.0_2.0_3.0_4.0_fixbox_detrend.dat.txt"
-        AnalyserResults.Instance(i).kicID = i
+        ResultsWriter.Instance(i).kicID = i
 
-        if not AnalyserResults.Instance(i).diamondsRunNeeded:
+        if not ResultsWriter.Instance(i).diamondsRunNeeded:
             logger.info("Star "+i+" allready done, reading next star")
             continue
 
 
         #read and convert
-        file = FitsReader(filename)
+        file = InputFileReader(filename)
 
-        powerCalc = PowerspectraCalculator(np.conjugate(file.getLightCurve()))
+        powerCalc = InputDataEvaluator(np.conjugate(file.getLightCurve()))
         powerCalc.kicID = i
-        AnalyserResults.Instance(i).powerSpectracalculator = powerCalc
+        ResultsWriter.Instance(i).powerSpectracalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc,True,True,visibilityLevel=2,fileName="PSD.png")
         #
         #compute nuMax
-        nuMaxCalc = NuMaxCalculator(i,file.getLightCurve())
-        AnalyserResults.Instance(i).nuMaxCalculator = nuMaxCalc
+        nuMaxCalc = NuMaxEvaluator(i, file.getLightCurve())
+        ResultsWriter.Instance(i).nuMaxCalculator = nuMaxCalc
 
         nuMax = nuMaxCalc.computeNuMax()
         marker = nuMaxCalc.marker
@@ -84,7 +84,7 @@ for i in starList:
         nyquist = nuMaxCalc.nyqFreq
         #
         #compute Priors
-        priorCalculator = PriorCalculator(nuMax,photonNoise,powerCalc)
+        priorCalculator = PriorEvaluator(nuMax, photonNoise, powerCalc)
         plotPSD(powerCalc,True,True,marker,visibilityLevel=1,fileName="PSD_filterfrequencies.png")
 
         priors = []
@@ -109,11 +109,11 @@ for i in starList:
         priors = np.array((lowerBounds, upperBounds)).transpose()
 
         #create Files and start process
-        files = FileCreater(i, powerCalc.powerSpectralDensity, nyquist, priors)
+        files = BackgroundFileCreator(i, powerCalc.powerSpectralDensity, nyquist, priors)
 
-        proc = DiamondsProcess(i)
+        proc = BackgroundProcess(i)
         proc.start()
-        AnalyserResults.Instance(i).diamondsRunner = proc
+        ResultsWriter.Instance(i).diamondsRunner = proc
         #
         #Create results
         diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
@@ -130,15 +130,15 @@ for i in starList:
             p = plotParameterTrend(result,fileName="Full_Background_Parametertrend.png")
             show(2)
 
-        AnalyserResults.Instance(i).collectDiamondsResult()
-        AnalyserResults.Instance(i).performAnalysis()
+        ResultsWriter.Instance(i).collectDiamondsResult()
+        ResultsWriter.Instance(i).performAnalysis()
         #
     except Exception as e:
         logger.error("Failed to run Correlation Test for "+i)
         logger.error(e)
         logger.error(traceback.format_exc())
         try:
-            AnalyserResults.Instance(i).performAnalysis()
+            ResultsWriter.Instance(i).performAnalysis()
         except Exception as d:
             logger.error("Cannot proceed with analysis!")
             logger.error(d)

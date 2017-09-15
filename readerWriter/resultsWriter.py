@@ -1,17 +1,19 @@
-from support.singleton import Singleton
-from settings.settings import Settings
-from support.strings import *
-from filehandler.Diamonds.diamondsResultsFile import Results
-from support.directoryManager import cd
-import logging
-from uncertainties import ufloat,ufloat_fromstr
-import numpy as np
 import json
+import logging
+
+import numpy as np
 from matplotlib.pyplot import Figure
+from uncertainties import ufloat, ufloat_fromstr
+
+from background.backgroundResults import BackgroundResults
+from res.strings import *
+from settings.settings import Settings
+from support.directoryManager import cd
+from support.singleton import Singleton
 
 
 @Singleton
-class AnalyserResults:
+class ResultsWriter:
     '''
     This class gathers all results from the DIAMONDS run and the ACF function. After calling the constructor, which is
     done by calling AnalyserResults.Instance() for the first time, you can easily set the results from everywhere in
@@ -154,7 +156,7 @@ class AnalyserResults:
 
         for fitMode,runID in modeDict.items():
             if self._diamondsModel in [fitMode, strFitModeBayesianComparison]:
-                self._diamondsResults[runID] = Results(kicID=self._kicID, runID=runID)
+                self._diamondsResults[runID] = BackgroundResults(kicID=self._kicID, runID=runID)
             else:
                 self._diamondsResults[runID] = None
 

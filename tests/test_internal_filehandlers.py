@@ -1,11 +1,13 @@
-import pytest
-from support.strings import *
-from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
-from filehandler.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
-from filehandler.Diamonds.InternalStructure.backgroundParameterFile import BackgroundParameter
-from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
-from settings.settings import Settings
 import numpy as np
+import pytest
+from readerWriter.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
+from readerWriter.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
+from readerWriter.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
+
+from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
+from res.strings import *
+from settings.settings import Settings
+
 
 @pytest.fixture()
 def settings():
@@ -40,10 +42,10 @@ def testCreateMarginalDistributions(settings,id):
 @pytest.mark.parametrize("id",[0,1,2,3,4,5,6,7,8,9])
 def testParameterFile(settings,id):
     print(settings.customPath)
-    p = BackgroundParameter(str(id),str(id),"testKIC","runID",id)
+    p = BackgroundParameterFileModel(str(id), str(id), "testKIC", "runID", id)
     assert isinstance(p.getData(),np.ndarray)
 
-    p = BackgroundParameter(str(id),str(id),"thiswill","fail",id)
+    p = BackgroundParameterFileModel(str(id), str(id), "thiswill", "fail", id)
     assert p.getData() == None
 
 def testParameterSummary(settings):

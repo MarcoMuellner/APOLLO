@@ -1,23 +1,23 @@
 import glob
 import logging
-from math import sqrt, log10, log
+from math import sqrt, log10
 
 import numpy as np
-
-from calculations.bolometricCorrectionCalculations import BCCalculator
-from calculations.deltaNuCalculations import DeltaNuCalculator
-from filehandler.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
-from filehandler.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
-from filehandler.Diamonds.InternalStructure.backgroundParameterFile import BackgroundParameter
-from filehandler.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
-from filehandler.Diamonds.dataFile import DataFile
-from filehandler.Diamonds.diamondsPriorsFile import PriorSetup
-from settings.settings import Settings
-from support.strings import *
+from background.diamondsPriorsFile import PriorSetup
+from readerWriter.Diamonds.InternalStructure.backgroundEvidenceInformationFile import Evidence
+from readerWriter.Diamonds.InternalStructure.backgroundMarginalDistributionFile import MarginalDistribution
+from readerWriter.Diamonds.InternalStructure.backgroundParameterSummaryFile import ParameterSummary
+from readerWriter.Diamonds.dataFile import DataFile
 from uncertainties import ufloat
 
+from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
+from evaluators.bcEvaluator import BCEvaluator
+from evaluators.deltaNuEvaluator import DeltaNuEvaluator
+from res.strings import *
+from settings.settings import Settings
 
-class Results:
+
+class BackgroundResults:
     '''
     The results class is the core of all DIAMONDS files. It provides a common interface to the data fitted by
     DIAMONDS, you should therefore access all Data access through this channel. It also provides some calculation
@@ -79,7 +79,7 @@ class Results:
         summaryRawData = self.summary.getRawData()
 
         for i in range(0,self.summary.dataLength()):
-            self._backgroundParameter.append(BackgroundParameter(self._names[i],self._units[i],kicID,runID,i))
+            self._backgroundParameter.append(BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
             self._marginalDistributions.append(MarginalDistribution(self._names[i],self._units[i],kicID,runID,i))
             self._marginalDistributions[i].backgrounddata = np.vstack((summaryRawData[strSummaryMedian][i],
                                                                       summaryRawData[strSummaryLowCredLim][i],
@@ -89,7 +89,7 @@ class Results:
 
         if tEff is not None:
             self._tEff = ufloat(tEff,200)
-            self._bolometricCorrCalculator = BCCalculator(tEff)
+            self._bolometricCorrCalculator = BCEvaluator(tEff)
             self.bolometricCorrection = self._bolometricCorrCalculator.BC
 
 
@@ -390,7 +390,7 @@ class Results:
         '''
         Returns the deltaNuCalculator
         :return: DeltaNuCalculator
-        :rtype: DeltaNuCalculator
+        :rtype: DeltaNuEvaluator
         '''
         return self._deltaNuCalculator
 
@@ -399,7 +399,7 @@ class Results:
         '''
         Setter for the deltaNuCalculator property
         :param value: Instance of the DeltaNuCalculator
-        :type value: DeltaNuCalculator
+        :type value: DeltaNuEvaluator
         '''
         self._deltaNuCalculator = value
 
@@ -431,9 +431,9 @@ class Results:
                                     self.summary.getRawData(strSummaryLowCredLim),
                                     self.summary.getRawData(strSummaryUpCredLim)))
 
-        self.deltaNuCalculator = DeltaNuCalculator(self.nuMax[0], self.sigma[0],
-                                                    self._dataFile.powerSpectralDensity,
-                                                    self._nyq, backGroundData, backgroundModel)
+        self.deltaNuCalculator = DeltaNuEvaluator(self.nuMax[0], self.sigma[0],
+                                                  self._dataFile.powerSpectralDensity,
+                                                  self._nyq, backGroundData, backgroundModel)
 
     def createBackgroundModel(self, runGauss):
         '''
@@ -556,7 +556,7 @@ class Results:
 
         if self._bolometricCorrCalculator is None:
             self.logger.debug("BC is not yet calculated, need to calculate that first")
-            self._bolometricCorrCalculator = BCCalculator(self._tEff)
+            self._bolometricCorrCalculator = BCEvaluator(self._tEff)
             self.bolometricCorrection = self._bolometricCorrCalculator.BC
 
         self.distanceModulus = (6 * log10(self.nuMax / nuMaxSun) + 15 * log10(self._tEff / tSun) - 12 * log10(self.deltaNuCalculator.deltaNu / deltaNuSun) \

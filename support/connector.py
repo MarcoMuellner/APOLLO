@@ -1,8 +1,11 @@
 #Library Imports
-from PyQt5.QtCore import QObject,pyqtSignal,pyqtSlot
 import logging
-#Application Imports
-from support.strings import *
+
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+
+# Application Imports
+from res.strings import *
+
 
 class Connector(QObject):
 

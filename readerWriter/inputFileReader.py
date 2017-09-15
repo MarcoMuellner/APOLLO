@@ -1,11 +1,13 @@
-from astropy.io import fits
-import numpy as np
-import pylab as pl
-from settings.settings import Settings
-from support.strings import *
 import logging
 
-class FitsReader:
+import numpy as np
+from astropy.io import fits
+
+from res.strings import *
+from settings.settings import Settings
+
+
+class InputFileReader:
     def __init__(self,filename):
         self.logger =logging.getLogger(__name__)
         self.setFitsFile(filename)

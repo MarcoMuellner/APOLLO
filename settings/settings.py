@@ -1,16 +1,11 @@
 #Library Imports
-import os
 import logging
-import json
-from multiprocessing import Lock
-#Application Imports
-from support.strings import *
-from support.singleton import Singleton
-from support.resources import ResourceHandler
+
+# Application Imports
+from res.strings import *
 from support.observers import obsDict
 from support.observers import obsSetting
-from loghandler import loghandler
-
+from support.singleton import Singleton
 
 
 @Singleton

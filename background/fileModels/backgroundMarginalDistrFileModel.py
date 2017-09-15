@@ -3,12 +3,12 @@ import logging
 
 import numpy as np
 
-from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
+from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from res.strings import *
 from settings.settings import Settings
-from support.strings import *
 
 
-class MarginalDistribution(BaseBackgroundFile):
+class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
 
     def __init__(self,name, unit, kickId=None,runID = 00,id = None):
         '''
@@ -24,7 +24,7 @@ class MarginalDistribution(BaseBackgroundFile):
         :param id: Id used between 0 and 9 (last three digits of Filename)
         :type id: int
         '''
-        BaseBackgroundFile.__init__(self,kickId,runID)
+        BackgroundBaseFileModel.__init__(self, kickId, runID)
         self.logger = logging.getLogger(__name__)
         self._id = id
         self._name = name

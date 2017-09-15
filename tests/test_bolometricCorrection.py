@@ -1,5 +1,5 @@
 import pytest
-from calculations.bolometricCorrectionCalculations import BCCalculator
+from evaluators.bcEvaluator import BCEvaluator
 from uncertainties import ufloat
 import os
 import matplotlib as mpl
@@ -19,16 +19,16 @@ typeFailureCases = ["string",
 
 @pytest.fixture(params=valueTestCases.keys())
 def valueCalculator(request):
-    return (BCCalculator(request.param),request.param)
+    return (BCEvaluator(request.param), request.param)
 
 def testValueBCCalc(valueCalculator):
     assert abs(valueCalculator[0].BC - valueTestCases[valueCalculator[1]]) < 10**-6
 
 def testFailureValueBCCalc():
     with pytest.raises(ValueError):
-        BCCalculator(0)
+        BCEvaluator(0)
 
 @pytest.mark.parametrize("value",typeFailureCases)
 def testFailureTypeBCCalc(value):
     with pytest.raises(TypeError):
-        BCCalculator(value)
+        BCEvaluator(value)

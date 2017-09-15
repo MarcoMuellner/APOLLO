@@ -3,12 +3,12 @@ import logging
 
 import numpy as np
 
-from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
+from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from res.strings import *
 from settings.settings import Settings
-from support.strings import *
 
 
-class Evidence(BaseBackgroundFile):
+class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
     '''
     This class represents the evidence file DIAMONDS creates during its run. It has three different values, each value
     is saved inside the _evidence map, which can be accessed using the stringtypes defined in strings.py. See
@@ -22,7 +22,7 @@ class Evidence(BaseBackgroundFile):
         :param runID: the RunID of the run. Can be fullBackground or noiseOnly -> see strings.py
         :type runID: string
         '''
-        BaseBackgroundFile.__init__(self,kicID,runID)
+        BackgroundBaseFileModel.__init__(self, kicID, runID)
         self._evidence = {}
         self.logger = logging.getLogger(__name__)
 

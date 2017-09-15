@@ -1,19 +1,19 @@
 from math import log10
-from calculations.powerspectraCalculations import PowerspectraCalculator
+from evaluators.inputDataEvaluator import InputDataEvaluator
 import numpy as np
 
-class PriorCalculator:
+class PriorEvaluator:
     '''
     The prior calculator class computes initial guesses for the priors, which then can be used as Priors for DIAMONDS.
     Most of the equations here are taken from the paper by Kallinger(2014), others are determined empirically. All of
     the values are initial guesses. Proper values can be determined by fitting the PSD
     '''
-    def __init__(self, nuMax, powerCalc: PowerspectraCalculator):
+    def __init__(self, nuMax, powerCalc: InputDataEvaluator):
         '''
         Constructor of the priorCalculator. Automatically triggers the computation of the priors by setting the
         nuMax property
         :param psd: Object of the PSD calculator
-        :type psd: PowerspectraCalculator
+        :type psd: InputDataEvaluator
         :param nuMax: Represents the frequency of maximum oscillation -> in uHz
         :type nuMax: float
         '''

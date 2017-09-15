@@ -1,6 +1,6 @@
 import pytest
-from calculations.priorCalculations import PriorCalculator
-from calculations.powerspectraCalculations import PowerspectraCalculator
+from evaluators.priorEvaluator import PriorEvaluator
+from evaluators.inputDataEvaluator import InputDataEvaluator
 from uncertainties import ufloat
 import numpy as np
 
@@ -20,14 +20,14 @@ typeWorkingCases = [
 @pytest.fixture()
 def psdCalc():
     lc  = np.loadtxt("tests/testFiles/Lightcurve.txt")
-    return PowerspectraCalculator(lightCurve= lc)
+    return InputDataEvaluator(lightCurve= lc)
 
 
 @pytest.mark.parametrize("value",typeErrorTestCases)
 def testTypeFailure(psdCalc,value):
     with pytest.raises(TypeError):
-        PriorCalculator(value,psdCalc)
+        PriorEvaluator(value, psdCalc)
 
 @pytest.mark.parametrize("value",typeWorkingCases)
 def testTypeOk(psdCalc,value):
-    assert PriorCalculator(value,psdCalc).nuMax == value
+    assert PriorEvaluator(value, psdCalc).nuMax == value

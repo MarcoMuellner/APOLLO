@@ -1,10 +1,11 @@
 #Library Imports
-import os
 import json
-from multiprocessing import Lock
 import logging
-#Application Imports
-from support.strings import *
+from multiprocessing import Lock
+
+# Application Imports
+from res.strings import *
+
 
 class obsDict(object):
     def __init__(self,pathToFile):

@@ -5,7 +5,7 @@ import logging
 from uncertainties import ufloat
 
 
-class DeltaNuCalculator:
+class DeltaNuEvaluator:
     '''
     This class can fit Delta Nu given a fitted PSD. See Kjeldsen and Bedding (1995) for further information on Delta Nu.
     '''

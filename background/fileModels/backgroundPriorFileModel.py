@@ -1,11 +1,14 @@
-from settings.settings import Settings
-import numpy as np
 import glob
-from support.strings import *
 import logging
-from filehandler.Diamonds.backgroundAbstractFile import BaseBackgroundFile
 
-class PriorSetup(BaseBackgroundFile):
+import numpy as np
+
+from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from res.strings import *
+from settings.settings import Settings
+
+
+class BackgroundPriorFileModel(BackgroundBaseFileModel):
     '''
     This class represents the priors with which the diamonds run was done. There are multiple ways this class
     reads the priors. In general, if the runID is None, it will read the fullBackground and noiseOnly priors
@@ -21,7 +24,7 @@ class PriorSetup(BaseBackgroundFile):
         :param runID: RunID of the star. Optional. If None it will read the ones in the parent directory of the results
         :type runID: string
         '''
-        BaseBackgroundFile.__init__(self,kicID,runID)
+        BackgroundBaseFileModel.__init__(self, kicID, runID)
 
         self._fullPriors = {}
         self._noisePriors = {}

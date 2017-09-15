@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 
-class BCCalculator:
+class BCEvaluator:
     '''
     This class computes the bolometric correction, when inputting an effective temperature. This stems from the paper
     by  Flower (1996) and the correction applied by Torres 2010. Meaning here is the (B-V) correction used.

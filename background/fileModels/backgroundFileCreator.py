@@ -1,12 +1,13 @@
-import os
-import numpy as np
-
-from settings.settings import Settings
-from support.strings import *
-from support.directoryManager import cd
 import logging
 
-class FileCreater:
+import numpy as np
+
+from res.strings import *
+from settings.settings import Settings
+from support.directoryManager import cd
+
+
+class BackgroundFileCreator:
     '''
     This class creates the files needed for a DIAMONDS run. It will create the paths, priors, NSMC configuring
     parameters, Nyquist frequency files and XMeans files. By instantiating this class, everything else

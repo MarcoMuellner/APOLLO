@@ -1,13 +1,15 @@
-import pytest
-from runner.StandardRunner import StandardRunner
-from calculations.powerspectraCalculations import PowerspectraCalculator
-from calculations.nuMaxCalculations import NuMaxCalculator
-import os
 import shutil
+
 import numpy as np
-from support.directoryManager import cd
+import pytest
+
+from evaluators.inputDataEvaluator import InputDataEvaluator
+from evaluators.nuMaxEvaluator import NuMaxEvaluator
+from res.strings import *
+from runner.StandardRunner import StandardRunner
 from settings.settings import Settings
-from support.strings import *
+from support.directoryManager import cd
+
 
 @pytest.fixture(params=[".fits",".txt"],scope="function")
 def defaultSetup(request):
@@ -83,7 +85,7 @@ def testReadAndConvertLightCurve(defaultSetup):
     :type defaultSetup: StandardRunner
     '''
     result = defaultSetup._readAndConvertLightCurve("tests/testFiles/fitsLightcurve.fits")
-    assert isinstance(result,PowerspectraCalculator)
+    assert isinstance(result, InputDataEvaluator)
     assert result.powerSpectralDensity is not None
     assert result.lightCurve is not None
     assert result.smoothedData is not None
@@ -96,12 +98,12 @@ def testComputeNuMax(defaultSetup):
     :type defaultSetup: StandardRunner
     '''
     lightCurve = np.loadtxt("tests/testFiles/Lightcurve.txt")
-    psdCalc = PowerspectraCalculator(lightCurve)
+    psdCalc = InputDataEvaluator(lightCurve)
     result = defaultSetup._computeNuMax(psdCalc)
     assert isinstance(result,tuple)
     assert isinstance(result[0],float)
     assert result[0] > 0
-    assert isinstance(result[1],NuMaxCalculator)
+    assert isinstance(result[1], NuMaxEvaluator)
     assert len(result[1].marker) == 3
     assert abs(result[1].nyqFreq - 283.20699116753133) < 10**-4
 
