@@ -6,12 +6,16 @@ from background.fileModels.backgroundFileCreator import BackgroundFileCreator
 from background.fileModels.backgroundMarginalDistrFileModel import BackgroundMarginalDistrFileModel
 from background.fileModels.backgroundParamSummaryModel import BackgroundParamSummaryModel
 from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
+from background.fileModels.backgroundDataFileModel import BackgroundDataFileModel
 from res.strings import *
 from settings.settings import Settings
 
 
 @pytest.fixture()
 def settings(request):
+    """
+    Changes the settings to the testSettings. Also provides some cleaning up of files.
+    """
     resultPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
     def cleanup():
         print("Performing cleanup")
@@ -21,11 +25,21 @@ def settings(request):
     request.addfinalizer(cleanup)
     return Settings.Instance()
 
-@pytest.mark.skip("Yet to implement for backgroundDataFile.py")
 def testDataFile(settings):
+    """
+    This function provides some rudimentary tests to the datafile class. Checks if the PSD was correctly read and
+    if the mean of it is non zero
+    """
     print(settings.customPath)
+    dataFile = BackgroundDataFileModel("testKIC")
+    assert len(dataFile.powerSpectralDensity) == 2
+    assert np.mean(dataFile.powerSpectralDensity) != 0
 
 def testFileCreater(settings):
+    """
+    This function tests the capabilities of the FileCreator. It loads the PSD file and the priors and feeds it
+    into the BackgroundFileCreator. It then checks if all the Files needed for a DIAMONDS run are created.
+    """
     print(settings.customPath)
     resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
     psd = np.loadtxt("tests/testFiles/PSD.txt")
@@ -35,6 +49,10 @@ def testFileCreater(settings):
 
 
 def testEvidenceFile(settings):
+    """
+    This function tests the evidence evidence File. It checks if the evidence file was properly read and if the
+    values are correct (length and type). Also checks an empty run.
+    """
     print(settings.customPath)
     e = BackgroundEvidenceFileModel("testKIC","runID")
     assert len(e.getData()) == 3
@@ -48,19 +66,30 @@ def testEvidenceFile(settings):
 
 @pytest.mark.parametrize("id",[0,1,2,3,4,5,6,7,8,9])
 def testMarginalDistributionFile(settings,id):
+    """
+    This function tests the background maringal distribution files. Checks if the data is of type ndarray for all
+    possible ids.
+    """
     print(settings.customPath)
     e = BackgroundMarginalDistrFileModel(str(id),str(id),"testKIC","runID",id)
     assert isinstance(e.getData(),np.ndarray)
 
-@pytest.mark.skip("This test needs to be yet implementd")
+@pytest.mark.skip("Backrounddata must be created.")
 @pytest.mark.parametrize("id",[0,1,2,3,4,5,6,7,8,9])
 def testCreateMarginalDistributions(settings,id):
+    """
+    This function tests the createMarginalDistribution method. It checks if the length of the values is correct.
+    """
     print(settings.customPath)
     e = BackgroundMarginalDistrFileModel(str(id),str(id),"testKIC","runID",id)
-    assert isinstance(e.createMarginalDistribution(),np.ndarray) #change this
+    margDistr = e.createMarginalDistribution()
+    assert len(margDistr) == 5
 
 @pytest.mark.parametrize("id",[0,1,2,3,4,5,6,7,8,9])
 def testParameterFile(settings,id):
+    """
+    This function tests the BackgroundParameterFileModel. Simply checks if the data is of ndarray
+    """
     print(settings.customPath)
     p = BackgroundParameterFileModel(str(id), str(id), "testKIC", "runID", id)
     assert isinstance(p.getData(),np.ndarray)
@@ -69,6 +98,10 @@ def testParameterFile(settings,id):
     assert p.getData() == None
 
 def testParameterSummary(settings):
+    """
+    This function tests the parameter summary file. It checks if the raw data is correct, and if the values
+    have sanity character
+    """
     print(settings.customPath)
     p = BackgroundParamSummaryModel("testKIC","runID")
     assert p.dataLength() == 10

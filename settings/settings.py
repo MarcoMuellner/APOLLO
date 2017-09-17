@@ -12,12 +12,12 @@ from support.singleton import Singleton
 class Settings:
     """
     This class represents the possibility to create Settings on a machine. It will automatically reread the file if it
-    changed and write it to the file if a setting in the program changed.
+    changed and write it to the file if a setting in the program changed. Assumes the settings file at the head of
+    your user dir.
     To access settings:
     Settings.Instance().getSetting(strSect,strOpt).value
     To write settings:
-    Settings.Instance().setSetting(setting) --> setting is list containing sect,opt and value. If you want to
-    change the path you can call the customPath Property
+    Settings.Instance().setSetting(setting). See method for docu
     """
     def __init__(self,*args):
         """
@@ -29,6 +29,12 @@ class Settings:
         self._adjustCustMapWithDefMap()
 
     def _adjustCustMapWithDefMap(self):
+        """
+        This method reads the current settings file and checks if all the settings from the default one are
+        available. If not it will create them with the default value provided in the default settings.
+        :return:
+        :rtype:
+        """
         self.__logger.log(9,"Syncing default map with custMap")
         defMap = self.__defSettingMap.map
         custMap = self.__custSettingMap.map
@@ -60,9 +66,17 @@ class Settings:
         self.__defSettingMap.map = defMap
 
     def getSetting(self,innerSection,option):
+        """
+        Returns a settings observer dict. To get the value you have to call .value
+        """
         return obsSetting(self.__custSettingMap,innerSection,option)
 
     def setSetting(self,setting):
+        """
+        Sets a setting with setting. This has to be a dictionary, similar to the setting you want to set. Its easiest
+        to get the setting by calling getSetting, which will return the settings observer dict and change the value in
+        there
+        """
         for key in setting:
             self.__logger.info("Setting section '"+setting[key][0]+"', option '"+key+"', value '"+setting[key][1]+"'")
             obsSet = obsSetting(self.__custSettingMap,setting[key][0],key)
@@ -70,14 +84,24 @@ class Settings:
 
     @property
     def customPath(self):
+        """
+        Property of the custom path
+        """
         return self._customPath
 
     @customPath.setter
     def customPath(self,value):
+        """
+        Custom path setter. Sets the path to the settings file by assigning a different path. If the setting
+        doesn't exist there, it will be created. From now on, the Settings class will only use these settings
+        """
         self._customPath = value
         self.__custSettingMap = obsDict(self._customPath)
         self._adjustCustMapWithDefMap()
 
     def getAllSettings(self):
+        """
+        Returns a full obs dict of all settings
+        """
         return self.__custSettingMap.map
 

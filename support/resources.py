@@ -7,6 +7,10 @@ from support.singleton import Singleton
 
 @Singleton
 class ResourceHandler:
+    """
+    Simple Multithreading resource handler. Locks a resource for a different thread if this is applied.
+    Can also be used for managing resources.
+    """
     def __init__(self):
         self.__map = {}
         self.__lock = Lock()

@@ -1,7 +1,16 @@
 import os
 
 class cd:
-    '''Context manager for changing the current working directory'''
+    """
+    Directory changer. can change the directory using the 'with' keyword, and returns to the previous path
+    after leaving intendation. Example:
+
+    with cd("some/path/to/go"): # changing dir
+        foo()
+        ...
+        bar()
+    #back to old dir
+    """
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
 
