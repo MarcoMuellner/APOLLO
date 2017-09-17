@@ -26,7 +26,7 @@ class BackgroundProcess:
         self.diamondsBinaryPath = Settings.Instance().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
         self.diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
         self.diamondsResultsPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
-        self.binaryListToExecute = {}
+        self._binaryDictToExecute = {}
         self._dummyObject = self._dummyProcessObject()
         self.testErrorMode = "NoError"
 
@@ -35,7 +35,7 @@ class BackgroundProcess:
 
         for fitModel,(runID,binary) in models.items():
             if self.diamondsModel in [fitModel,strFitModeBayesianComparison]:
-                self.binaryListToExecute[runID] = binary
+                self._binaryDictToExecute[runID] = (binary, True)
 
         self.kicID = kicID
         return
@@ -66,7 +66,8 @@ class BackgroundProcess:
         runs). It will also set the status flag properly depending on the state
         '''
         self.logger.debug("Starting background process(es).")
-        for runID,binary in self.binaryListToExecute.items():
+
+        for runID,(binary,statusFlag) in self._binaryDictToExecute.items():
 
             self.logger.debug("RunID is : '"+runID+"'")
             self.logger.debug("Binary path: '"+self.diamondsBinaryPath+"'")
@@ -116,10 +117,25 @@ class BackgroundProcess:
 
             if not finished:
                 self.logger.error("Diamonds failed to find good values!")
-                raise ValueError
+                self._binaryDictToExecute[runID] = (binary, False)
 
-                #Some error handling needs to take place here!
-        return
+        self.evaluateRun(self._binaryDictToExecute)
+
+    def evaluateRun(self, binaryDict):
+        '''
+        This method evaluates a run, by checking the status flag for every run. If a statusflag in the dict
+        is False, this method raises a ValueError, else it will return True
+        :param binaryDict: Binary dict, used for the run. {runID,(binary,statusFlag)}
+        :type binaryDict: dict[str,(str,bool)]
+        :return: Returns true if run was ok. Else it will raise a ValueError
+        :rtype: bool
+        '''
+        for runID,(_,statusFlag) in binaryDict:
+            if statusFlag is False:
+                self.logger.error("RunID "+runID+" failed the run!")
+                raise ValueError("RunID "+runID+" failed the run!")
+
+        return True
 
     @property
     def status(self):
@@ -149,10 +165,11 @@ class BackgroundProcess:
             self.stderr.testErrorMode = "NoError"
 
         def poll(self):
-            if self._dummyPollCounter == 10 or self.stderr.testErrorMode != "NoError":
+            if self._dummyPollCounter == 10:
                 return "Finished"
             self.stderr._dummyPollCounter = self._dummyPollCounter
             self._dummyPollCounter +=1
+            return None
 
         class out:
             def __init__(self):

@@ -47,7 +47,10 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
         backgroundModel = data.createBackgroundModel()
         if len(backgroundModel) == 5:
             runGauss = True
-            title = "Full Fit Model"
+            title = "Full fit model"
+        else:
+            runGauss = False
+            title = "Noise only model"
     else:
         runGauss = False
         title = "PSD"

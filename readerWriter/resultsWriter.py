@@ -207,16 +207,16 @@ class ResultsWriter:
             os.makedirs(imagePath)
 
         with cd(analyserResultsPath):
-            if self._powerSpectraCalculator is not None:
-                np.savetxt("Lightcurve.txt", self._powerSpectraCalculator.lightCurve, header="Time(days) Flux")
-                np.savetxt("PSD.txt", self._powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
+            if self.powerSpectraCalculator is not None:
+                np.savetxt("Lightcurve.txt", self.powerSpectraCalculator.lightCurve, header="Time(days) Flux")
+                np.savetxt("PSD.txt", self.powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
 
-            if self._nuMaxCalculator is not None:
+            if self.nuMaxCalculator is not None:
                 resultDict[strAnalyzerResSectNuMaxCalc]={}
-                for key,(value,color) in self._nuMaxCalculator.marker.items():
+                for key,(value,color) in self.nuMaxCalculator.marker.items():
                     resultDict[strAnalyzerResSectNuMaxCalc][key]=value
 
-                resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self._nuMaxCalculator.nyqFreq
+                resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.nuMaxCalculator.nyqFreq
 
             if len(self._diamondsResults.keys()) != 0:
                 resultDict[strAnalyzerResSectDiamondsPriors] = {}
@@ -244,11 +244,11 @@ class ResultsWriter:
                         else:
                             resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
 
-            if len(self._diamondsRunner.status.items()) != 0:
+            if len(self.diamondsRunner.status.items()) != 0:
                 if strAnalyzerResSectDiamonds not in resultDict.keys():
                     resultDict[strAnalyzerResSectDiamonds] = {}
 
-                for key,value in self._diamondsRunner.status.items():
+                for key,value in self.diamondsRunner.status.items():
                     if key not in resultDict[strAnalyzerResSectDiamonds].keys():
                         resultDict[strAnalyzerResSectDiamonds][key]={}
 

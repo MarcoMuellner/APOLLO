@@ -3,7 +3,7 @@ from background.backgroundProcess import BackgroundProcess
 import os
 from res.strings import *
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def defaultObject():
     object = BackgroundProcess("testKIC")
     return object
@@ -17,20 +17,20 @@ def testAbsolutePathCreation(defaultObject,paths):
     '''
     assert defaultObject._getFullPath(paths) == os.getcwd()+"/test/"
 
-@pytest.mark.parametrize("errorModes",[("NoError",strDiamondsStatusGood),
+@pytest.mark.parametrize("errorModes",[#("NoError",strDiamondsStatusGood),
                                         (strDiamondsErrBetterLikelihood,strDiamondsStatusLikelihood),
                                         (strDiamondsErrCovarianceFailed,strDiamondsStatusCovariance),
-                                        (strDiamondsErrCovarianceFailed,strDiamondsStatusAssertion)])
+                                        (strDiamondsErrAssertionFailed,strDiamondsStatusAssertion)])
 def testStart(defaultObject,errorModes):
     """
 
     :type defaultObject: BackgroundProcess
     """
     defaultObject.testErrorMode = errorModes[0]
-    defaultObject.start()
     try:
-        assert defaultObject.status[strDiamondsModeFull] == errorModes[1]
-        assert defaultObject.status[strDiamondsModeNoise] == errorModes[1]
+        defaultObject.start()
     except ValueError:
         print("No problem")
+    assert defaultObject.status[strDiamondsModeFull] == errorModes[1]
+    assert defaultObject.status[strDiamondsModeNoise] == errorModes[1]
 

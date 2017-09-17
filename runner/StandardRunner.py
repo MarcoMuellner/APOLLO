@@ -158,7 +158,7 @@ class StandardRunner(multiprocessing.Process):
         powerCalc = InputDataEvaluator(np.conjugate(file.lightCurve))
         powerCalc.kicID = self.kicID
 
-        ResultsWriter.Instance(self.kicID).powerSpectracalculator = powerCalc
+        ResultsWriter.Instance(self.kicID).powerSpectraCalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc, True,visibilityLevel=2,fileName="PSD.png")

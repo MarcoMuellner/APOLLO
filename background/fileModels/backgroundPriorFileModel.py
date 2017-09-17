@@ -87,19 +87,16 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         '''
         values = []
         try:
-            self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
-                                                               strSectBackgroundResPath).value
+            self._dataFolder = self._getFullPath(Settings.Instance().getSetting(strDiamondsSettings,
+                                                               strSectBackgroundResPath).value)
             if self.runID is not None:
-                mpFile = glob.glob(self._dataFolder + 'KIC{}/{}/background_hyperParametersUniform.txt'
-                                   .format(self.kicID, self.runID))[0]
-                values.append(np.loadtxt(mpFile).T)
+                file = self._dataFolder + "KIC" +  self.kicID + "/" + self.runID + "/background_hyperParametersUniform.txt"
+                values.append(np.loadtxt(file).T)
             else:
-                mpFile = glob.glob(self._dataFolder + 'KIC{}/background_hyperParameters.txt'
-                                   .format(self.kicID))[0]
-                values.append(np.loadtxt(mpFile).T)
-                mpFile = glob.glob(self._dataFolder + 'KIC{}/background_hyperParameters_noise.txt'
-                                   .format(self.kicID))[0]
-                values.append(np.loadtxt(mpFile).T)
+                file = self._dataFolder + "KIC" +  self.kicID + "/background_hyperParameters.txt"
+                values.append(np.loadtxt(file).T)
+                file = self._dataFolder + "KIC" +  self.kicID + "/background_hyperParameters_noise.txt"
+                values.append(np.loadtxt(file).T)
 
 
             for priorList in values:
@@ -115,3 +112,21 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
             self.logger.warning("Setting Data to None")
             self._fullPriors = {}
             self._noisePriors = {}
+
+    def _getFullPath(self,path):
+        '''
+        This method will create an absolute path if the path it inputs wasn't that already
+        :param path: The path you want to have the absolute of
+        :type path: str
+        :return: Absolute path
+        :rtype: str
+        '''
+        if path[0] not in ["~", "/", "\\"]:
+            self.logger.debug("Setting binary to full path")
+            self.logger.debug("Prepending"+os.getcwd())
+            path = os.getcwd() + "/" + path
+            self.logger.debug("New path: "+path)
+        else:
+            self.logger.debug("Path is already absolute path")
+
+        return path
