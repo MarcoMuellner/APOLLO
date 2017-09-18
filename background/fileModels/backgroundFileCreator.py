@@ -102,7 +102,7 @@ class BackgroundFileCreator:
         :param comma: How many decimal numbers will be written
         :type comma: string
         '''
-        self.logger.debug("Saving filename "+filename+" to "+path)
+        self.logger.info("Saving filename "+filename+" to "+path)
         with cd(path):
             np.savetxt(filename,array,fmt='%10.'+comma+'f')
 

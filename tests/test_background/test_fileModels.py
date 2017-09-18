@@ -96,8 +96,10 @@ def testParameterFile(settings,id):
     p = BackgroundParameterFileModel(str(id), str(id), "testKIC", "runID", id)
     assert isinstance(p.getData(),np.ndarray)
 
-    p = BackgroundParameterFileModel(str(id), str(id), "thiswill", "fail", id)
-    assert p.getData() == None
+def testFailParameterFile(settings):
+    print(settings.customPath)
+    with pytest.raises(IOError):
+        BackgroundParameterFileModel(str(id), str(id), "thiswill", "fail", "totally")
 
 def testParameterSummary(settings):
     """
@@ -113,6 +115,7 @@ def testParameterSummary(settings):
     assert p.getData(strPriorFreqHarvey3) > 0
     assert p.getData(strPriorNuMax) > 0
 
-    p = BackgroundParamSummaryModel("thiswill","fail")
-    assert p._rawValues == {}
-    assert p._priorValues == {}
+def testFailParameterSummary(settings):
+    print(settings.customPath)
+    with pytest.raises(IOError):
+        BackgroundParamSummaryModel("thiswill","fail")

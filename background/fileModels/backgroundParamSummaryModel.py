@@ -94,12 +94,13 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         the background model. If something fails in reading, the raw values and the
         background model will be set empty.
         '''
+        dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
+                                                           strSectBackgroundResPath).value
+
+        file = dataFolder+"KIC"+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"
         try:
-            self.m_dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
-                                                               strSectBackgroundResPath).value
-            mpFile = glob.glob(self.m_dataFolder + 'KIC{}/{}/background_parameterSummary.txt'
-                               .format(self.kicID, self.runID))[0]
-            values = np.loadtxt(mpFile).T
+
+            values = np.loadtxt(file).T
             self._rawValues[strSummaryMean] = values[0]
             self._rawValues[strSummaryMedian] = values[1]
             self._rawValues[strSummaryMode] = values[2]
@@ -110,12 +111,9 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
 
             self._createBackgroundModel()
         except Exception as e:
-            self.logger.warning("Failed to open File '" + self.m_dataFolder +
-                    'KIC{}/{}/background_parameterSummary.txt'.format(self.kicID, self.runID) + "'")
-            self.logger.warning(e)
-            self.logger.warning("Setting Data to None")
-            self._rawValues = {}
-            self._priorValues = {}
+            self.logger.error("Failed to open File " + file)
+            self.logger.error(e)
+            raise IOError
 
     def _createBackgroundModel(self):
         '''

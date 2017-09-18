@@ -50,6 +50,21 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         '''
         return self._unit
 
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self,value):
+        if value is None:
+            self._id = ""
+        else:
+            self._id = value
+
+        if self.kicID not in ["", None] and self.runID not in ["", None] and self._id not in ["", None]:
+            self._readData()
+
+
     def getData(self,reReaddata = False):
         '''
         :return: The Dataset.
@@ -69,7 +84,8 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
             self._id) + ".txt"
         try:
             self._parameters = np.loadtxt(file).T
-        except FileNotFoundError:
-            self.logger.warning("No file with name "+file+", setting parameters with name "+self.name+" to None")
-            self._parameters = None
+        except FileNotFoundError as e:
+            self.logger.error("No file with name "+file)
+            self.logger.error(e)
+            raise IOError("No file with name "+file)
 

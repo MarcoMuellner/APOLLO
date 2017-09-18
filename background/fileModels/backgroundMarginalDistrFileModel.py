@@ -50,8 +50,11 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         :param value: ID
         :type value: int
         '''
-        self._id = value
-        if self.kicID is not None and self.runID is not None and id is not None:
+        if value is None:
+            self._id = ""
+        else:
+            self._id = value
+        if self.kicID not in ["",None] and self.runID not in ["",None] and self._id not in ["",None]:
             self._readData()
 
     @property
@@ -106,8 +109,8 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         :rtype: 5-D tuple
         '''
         if self._backgroundData is None:
-            self.logger.warning("BackgroundData is not set, returning")
-            return
+            self.logger.error("BackgroundData is not set, returning")
+            raise ValueError("BackgroundData is not set, returning")
 
         par_median, par_le, par_ue = self._backgroundData
         par, marg = self._data
@@ -125,13 +128,12 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         '''
         Reads the Data. Should be only used internally
         '''
-        self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        file = dataFolder + "KIC" + self.kicID + "/" + self.runID + "/" + "background_marginalDistribution00"+\
+               str(self.id)+".txt"
         try:
-            mpFile = glob.glob(self._dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
-                               .format(self.kicID, self.runID, '00'+str(self._id)))[0]
-            self._data = np.loadtxt(mpFile).T
-        except:
-            self.logger.warning("Failed to open File '"+self._dataFolder+'KIC{}/{}/background_marginalDistribution{}.txt'
-                               .format(self.kicID, self.runID, '00'+str(self._id))+"'")
-            self.logger.warning("Setting Data to None")
-            self._data = None
+            self._data = np.loadtxt(file).T
+        except FileNotFoundError as e:
+            self.logger.error("Failed to open File "+file)
+            self.logger.error(e)
+            raise IOError("Failed to open marginal distr. "+file)

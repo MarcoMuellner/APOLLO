@@ -111,8 +111,8 @@ class BackgroundResults:
                 if i.name == key:
                     return self._backgroundParameter[i]
 
-            self.logger.debug("Found no background parameter for '"+key+"'")
-            self.logger.debug("Returning full list")
+            self.logger.warning("Found no background parameter for '"+key+"'")
+            self.logger.warning("Returning full list")
             return self._backgroundParameter
 
     @property
@@ -497,8 +497,8 @@ class BackgroundResults:
                 if i.name == key:
                     return self._marginalDistributions[i]
 
-            self.logger.debug("Found no marginal Distribution for '"+key+"'")
-            self.logger.debug("Returning full list")
+            self.logger.warning("Found no marginal Distribution for '"+key+"'")
+            self.logger.warning("Returning full list")
             return self._marginalDistributions
 
     def calculateRadius(self, tSun, nuMaxSun, deltaNuSun):
@@ -506,15 +506,15 @@ class BackgroundResults:
         Legacy
         '''
         if self._tEff is None:
-            self.logger.debug("Teff is None, no calculation of BC takes place")
+            self.logger.warning("Teff is None, no calculation of BC takes place")
             return None
 
         if self.nuMax is None:
-            self.logger.debug("NuMax is not calculated, need nuMax to proceed")
+            self.logger.warning("NuMax is not calculated, need nuMax to proceed")
             return None
 
         if self.deltaNuCalculator is None:
-            self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
+            self.logger.info("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
         self.radiusStar = (self.deltaNuCalculator.deltaNu / deltaNuSun) ** -2 * (self.nuMax / nuMaxSun) * \
@@ -526,11 +526,11 @@ class BackgroundResults:
         Legacy
         '''
         if self._tEff is None:
-            self.logger.debug("Teff is None, no calculation of Luminosity takes place")
+            self.logger.warning("Teff is None, no calculation of Luminosity takes place")
             return None
 
         if self.radiusStar is None:
-            self.logger.debug("Radius not yet calculated, need to calculate that first")
+            self.logger.info("Radius not yet calculated, need to calculate that first")
             self.calculateRadius()
 
         self.luminosity = self.radiusStar ** 2 * (self._tEff / tSun) ** 4
@@ -541,19 +541,19 @@ class BackgroundResults:
         '''
         appMag = appMag if appMag != 0 else kicmag
         if self._tEff is None:
-            self.logger.debug("TEff is None, no calculation of distance modulus takes place")
+            self.logger.warning("TEff is None, no calculation of distance modulus takes place")
             return None
 
         if self.deltaNuCalculator is None:
-            self.logger.debug("Delta Nu is not yet calculated, need to calculate that first")
+            self.logger.info("Delta Nu is not yet calculated, need to calculate that first")
             self.calculateDeltaNu()
 
         if self.nuMax is None:
-            self.logger.debug("NuMax is not calculated, need nuMax to proceed")
+            self.logger.warning("NuMax is not calculated, need nuMax to proceed")
             return None
 
         if self._bolometricCorrCalculator is None:
-            self.logger.debug("BC is not yet calculated, need to calculate that first")
+            self.logger.info("BC is not yet calculated, need to calculate that first")
             self._bolometricCorrCalculator = BCEvaluator(self._tEff)
             self.bolometricCorrection = self._bolometricCorrCalculator.BC
 

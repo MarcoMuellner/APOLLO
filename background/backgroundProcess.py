@@ -110,7 +110,7 @@ class BackgroundProcess:
                             self._status[runID] = strDiamondsStatusAssertion
 
                     self.logger.debug(p.stderr.read())
-                    self.logger.debug("Command '"+str(cmd)+"' done")
+                    self.logger.info("Command '"+str(cmd)+"' done")
                     if self._status[runID] == strDiamondsStatusRunning:
                         finished = True
                         self._status[runID] = strDiamondsStatusGood

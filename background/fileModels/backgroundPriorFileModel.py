@@ -85,33 +85,33 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         Reads the data. If runID is not None, it will read only one file, the one in the result of the mode. If it is
         None it will read both in the parent directory
         '''
+        filesToLoad = []
         values = []
+        dataFolder = self._getFullPath(Settings.Instance().getSetting(strDiamondsSettings,
+                                                                            strSectBackgroundResPath).value)
+        basePath = dataFolder + "KIC" + self.kicID + "/"
+        if self.runID is not None:
+            file = basePath + self.runID + "/background_hyperParametersUniform.txt"
+            filesToLoad.append(file)
+        else:
+            file = basePath + "background_hyperParameters.txt"
+            filesToLoad.append(file)
+            file = basePath + "background_hyperParameters_noise.txt"
+            filesToLoad.append(file)
         try:
-            self._dataFolder = self._getFullPath(Settings.Instance().getSetting(strDiamondsSettings,
-                                                               strSectBackgroundResPath).value)
-            if self.runID is not None:
-                file = self._dataFolder + "KIC" +  self.kicID + "/" + self.runID + "/background_hyperParametersUniform.txt"
-                values.append(np.loadtxt(file).T)
-            else:
-                file = self._dataFolder + "KIC" +  self.kicID + "/background_hyperParameters.txt"
-                values.append(np.loadtxt(file).T)
-                file = self._dataFolder + "KIC" +  self.kicID + "/background_hyperParameters_noise.txt"
-                values.append(np.loadtxt(file).T)
+            for files in filesToLoad:
+                values.append(np.loadtxt(files).T)
+        except FileNotFoundError as e:
+            self.logger.error("Failed to open Prior file")
+            self.logger.error(e)
+            raise IOError("Failed to open Prior file")
 
-
-            for priorList in values:
-                for it,(priorMin,priorMax) in enumerate(zip(priorList[0],priorList[1])):
-                    if len(priorList[0])>7:
-                        self._fullPriors[self._parameterNames[it]] = (priorMin,priorMax)
-                    else:
-                        self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
-
-        except Exception as e:
-            self.logger.warning("Failed to open Priors '" + self._dataFolder)
-            self.logger.warning(e)
-            self.logger.warning("Setting Data to None")
-            self._fullPriors = {}
-            self._noisePriors = {}
+        for priorList in values:
+            for it,(priorMin,priorMax) in enumerate(zip(priorList[0],priorList[1])):
+                if len(priorList[0])>7:
+                    self._fullPriors[self._parameterNames[it]] = (priorMin,priorMax)
+                else:
+                    self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
 
     def _getFullPath(self,path):
         '''
