@@ -423,7 +423,7 @@ class NuMaxEvaluator:
         if self._lightCurve is not None and self._nyq == 0:
             self.logger.debug("Abtastfrequency is '"+str((self._lightCurve[0][3] - self._lightCurve[0][2])*24*3600)+"'")
             self._nyq = 10**6/(2*(self._lightCurve[0][200] -self._lightCurve[0][199]))
-            self.logger.debug("Nyquist frequency is '"+str(self._nyq)+"'")
+            self.logger.info("Nyquist frequency is '"+str(self._nyq)+"'")
 
         return self._nyq
 

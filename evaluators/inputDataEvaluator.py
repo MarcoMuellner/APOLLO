@@ -64,7 +64,7 @@ class InputDataEvaluator:
         :rtype:2-D numpy array
         '''
         if len(lightCurve) != 2 or not isinstance(lightCurve,np.ndarray):
-            self.logger.debug("Lightcurve should be of dimension 2 and ndarray!")
+            self.logger.error("Lightcurve should be of dimension 2 and ndarray!")
             raise ValueError("Type is "+str(type(lightCurve)))
 
         if self._powerSpectrumMode == strPowerModeNumpy:
@@ -72,7 +72,7 @@ class InputDataEvaluator:
         elif self._powerSpectrumMode == strPowerModeSciPy:
             return self.lightCurveToPowerspectraPeriodogramm(lightCurve)
         else:
-            self.logger.debug("No available Mode named '"+self._powerSpectrumMode+"'")
+            self.logger.error("No available Mode named '"+self._powerSpectrumMode+"'")
             raise KeyError
 
     def lightCurveToPowerspectraFFT(self,lightCurve):
@@ -143,9 +143,10 @@ class InputDataEvaluator:
             self.logger.debug(
                 "Abtastfrequency is '" + str((self._lightCurve[0][3] - self._lightCurve[0][2]) * 24 * 3600) + "'")
             self._nyq = 10 ** 6 / (2 * (self._lightCurve[0][200] - self._lightCurve[0][199])*3600*24)
-            self.logger.debug("Nyquist frequency is '" + str(self._nyq) + "'")
+            self.logger.info("Nyquist frequency is '" + str(self._nyq) + "'")
         else:
             self.logger.error("LightCurve is None therfore no calculation of nyquist frequency possible")
+            raise ValueError
 
         return self._nyq
 
