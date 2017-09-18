@@ -109,3 +109,5 @@ strAnalyzerResSectAnalysis = "Analysis"
 #ResultStringsValNames
 strAnalyzerResValBayes = "Bayes Factor"
 strAnalyzerResValStrength = "Strength of evidence"
+#strRootPath
+ROOT_PATH = os.getcwd()

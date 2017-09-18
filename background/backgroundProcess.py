@@ -130,7 +130,7 @@ class BackgroundProcess:
         :return: Returns true if run was ok. Else it will raise a ValueError
         :rtype: bool
         '''
-        for runID,(_,statusFlag) in binaryDict:
+        for runID,(_,statusFlag) in binaryDict.items():
             if statusFlag is False:
                 self.logger.error("RunID "+runID+" failed the run!")
                 raise ValueError("RunID "+runID+" failed the run!")

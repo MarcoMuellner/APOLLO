@@ -60,8 +60,10 @@ def testEvidenceFile(settings):
     assert isinstance(e.getData(strEvidenceSkillErrLog), float)
     assert isinstance(e.getData(strEvidenceSkillInfLog), float)
 
-    e = BackgroundEvidenceFileModel("empty","empty")
-    assert len(e.getData()) == 0
+def testEvidenceFileFailue(settings):
+    print(settings.customPath)
+    with pytest.raises(IOError):
+        e = BackgroundEvidenceFileModel("failureKIC", "failureRun")
 
 
 @pytest.mark.parametrize("id",[0,1,2,3,4,5,6,7,8,9])

@@ -122,9 +122,9 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :rtype: str
         '''
         if path[0] not in ["~", "/", "\\"]:
-            self.logger.debug("Setting binary to full path")
-            self.logger.debug("Prepending"+os.getcwd())
-            path = os.getcwd() + "/" + path
+            self.logger.debug("Setting priors to full path")
+            self.logger.debug("Prepending" + ROOT_PATH)
+            path = ROOT_PATH + "/" + path
             self.logger.debug("New path: "+path)
         else:
             self.logger.debug("Path is already absolute path")

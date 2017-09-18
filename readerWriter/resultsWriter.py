@@ -28,6 +28,7 @@ class ResultsWriter:
         Constructor of AnalyserResults. Only called by Singleton Constructor
         '''
         self.logger = logging.getLogger(__name__)
+        self.defaultPath = os.getcwd()
 
         if len(args) == 1:
             self.kicID = args[0][0]
@@ -197,7 +198,7 @@ class ResultsWriter:
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
-        imagePath = analyserResultsPath + "images/"
+        imagePath = ROOT_PATH + analyserResultsPath + "images/"
         resultDict = {}
 
         if not os.path.exists(analyserResultsPath):

@@ -9,6 +9,7 @@ from res.strings import *
 from runner.StandardRunner import StandardRunner
 from settings.settings import Settings
 from support.directoryManager import cd
+from shutil import rmtree
 
 
 @pytest.fixture(params=[".fits",".txt"],scope="function")
@@ -48,7 +49,9 @@ def fullRunner(request):
             print("cannot remove data dir")
 
         for i in os.listdir("tests/testFiles/playground/"):
-            os.remove(i)
+            os.remove("tests/testFiles/playground/" + i)
+
+        rmtree("tests/testFiles/results/")
     request.addfinalizer(cleanup)
     return StandardRunner("123456789", "tests/testFiles/playground/")
 
@@ -123,7 +126,6 @@ def testComputeResults(defaultSetup):
     '''
     pass
 
-@pytest.mark.localOnly
 def testFullRun(fullRunner):
     print(os.getcwd())
     fullRunner._internalRun()
