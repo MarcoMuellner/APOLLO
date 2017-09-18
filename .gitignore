@@ -27,3 +27,5 @@ tests/testFiles/playground/fits_123456789\.fits
 tests/testFiles/diamondsFiles/background/results/KIC123456789/background_hyperParameters\.txt
 
 tests/testFiles/diamondsFiles/background/results/KIC123456789/background_hyperParameters_noise\.txt
+
+kicList\.txt

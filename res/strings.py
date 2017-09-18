@@ -44,7 +44,7 @@ strLightCombining = 'combining'
 strStarTypeYoungStar = 'Young Star'
 strStarTypeRedGiant = 'Red Giant'
 #Fit Mode values
-strFitModeFullBackground = 'Full Background Model'
+strFitModeFullBackground = ' Full Background Model'
 strFitModeNoiseBackground = 'Noise Background Model'
 strFitModeBayesianComparison = 'Bayesian Evidence mode (both models and comparison)'
 #ParameterSummaryStrings

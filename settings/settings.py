@@ -24,8 +24,8 @@ class Settings:
         Constructor of the object
         """
         self.__logger = logging.getLogger(__name__)
-        self.__defSettingMap = obsDict(strPathDefSettings)
-        self.__custSettingMap = obsDict(strPathSettings)
+        self.__defSettingMap = obsDict(strPathDefSettings,True)
+        self.__custSettingMap = obsDict(strPathSettings,True)
         self._adjustCustMapWithDefMap()
 
     def _adjustCustMapWithDefMap(self):

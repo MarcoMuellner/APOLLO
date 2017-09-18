@@ -8,10 +8,11 @@ from res.strings import *
 
 
 class obsDict(object):
-    def __init__(self,pathToFile):
+    def __init__(self,pathToFile,readOnly):
         self.__observers = []
         self.__path = pathToFile
         self.__lock = Lock()
+        self.__readOnly = readOnly
         if self.__checkFile(self.__path):
             with open(pathToFile, 'rt') as f:
                 self.__map = json.load(f)
@@ -29,8 +30,11 @@ class obsDict(object):
     def map(self,value):
  #       self.__lock.acquire()
         self.__map = value
-        with open(self.__path,'w') as outfile:
-            json.dump(self.__map,outfile,sort_keys = True, indent = 4, separators=(',',':'))
+
+
+        if not self.__readOnly:
+            with open(self.__path,'w') as outfile:
+                json.dump(self.__map,outfile,sort_keys = True, indent = 4, separators=(',',':'))
 
         for callback in self.__observers:
             callback(self.__map)
