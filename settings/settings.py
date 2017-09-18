@@ -96,7 +96,7 @@ class Settings:
         doesn't exist there, it will be created. From now on, the Settings class will only use these settings
         """
         self._customPath = value
-        self.__custSettingMap = obsDict(self._customPath)
+        self.__custSettingMap = obsDict(self._customPath,False)
         self._adjustCustMapWithDefMap()
 
     def getAllSettings(self):
