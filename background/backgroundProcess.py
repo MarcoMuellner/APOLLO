@@ -95,7 +95,7 @@ class BackgroundProcess:
 
                     while p.poll() is None:
                         line = p.stderr.readline()
-                        self.logger.debug(line)
+                        self.logger.info(line)
 
                         if strDiamondsErrBetterLikelihood in str(line):
                             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
