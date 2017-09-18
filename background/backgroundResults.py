@@ -97,19 +97,19 @@ class BackgroundResults:
     def getBackgroundParameters(self,key = None):
         '''
         Provides an interface for the single background Parameters (e.g. Noise,HarveyParameters, Powerexcess parameters)
-        fitted by DIAMONDS. Depending on the mode, this will either return a dict of 7-10 items or a single item
+        fitted by DIAMONDS. Depending on the mode, this will either return a list of 7-10 items or a single item
         if key is not None
-        :param key: key for the dictionary. Should be a name of a parameter --> see strings.py. Optional
+        :param key: key for the parameter. Should be a name of a parameter --> see strings.py. Optional
         :type key:string
         :return:Full dict or single parameter depending on key
-        :rtype:Dict/BackgroundParameter
+        :rtype:List/BackgroundParameterFileModel
         '''
         if key is None:
             return self._backgroundParameter
         else:
             for i in self._backgroundParameter:
                 if i.name == key:
-                    return self._backgroundParameter[i]
+                    return i
 
             self.logger.warning("Found no background parameter for '"+key+"'")
             self.logger.warning("Returning full list")
@@ -120,7 +120,7 @@ class BackgroundResults:
         '''
         Property for the prior object.
         :return: Returns the object that accesses the priors used for the DIAMONDS run.
-        :rtype: PriorSetup
+        :rtype: BackgroundPriorFileModel
         '''
         return self._prior
 
@@ -403,7 +403,7 @@ class BackgroundResults:
         '''
         self._deltaNuCalculator = value
 
-    def _getSummaryParameter(self,key):
+    def _getSummaryParameter(self,key=None):
         '''
         Returns the SummaryParameter, i.e. the value computed by DIAMONDS. Can be a single Parameter or a full dict
         if key is None
@@ -412,8 +412,10 @@ class BackgroundResults:
         :return: Single Parameter or full dict
         :rtype: dict/ufloat
         '''
-        if key in self.summary.getData().keys():
+        if key is not None and key in self.summary.getData().keys():
             return self.summary.getData(key)
+        elif key is None:
+            return self.summary.getData()
         else:
             self.logger.error(key + " is not in Summary -> did DIAMONDS run correctly?")
             if key in (strPriorNuMax,strPriorHeight,strPriorSigma):
@@ -486,16 +488,16 @@ class BackgroundResults:
     def getMarginalDistribution(self, key = None):
         '''
         Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
-        :param key: key for the dict
+        :param key: key for the Marginal Distribution
         :type key: string
-        :rtype:dict/MarginalDistribution
+        :rtype:list/MarginalDistribution
         '''
         if key is None:
             return self._marginalDistributions
         else:
             for i in self._marginalDistributions:
                 if i.name == key:
-                    return self._marginalDistributions[i]
+                    return i
 
             self.logger.warning("Found no marginal Distribution for '"+key+"'")
             self.logger.warning("Returning full list")
