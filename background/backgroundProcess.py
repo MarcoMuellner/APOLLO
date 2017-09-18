@@ -151,11 +151,11 @@ class BackgroundProcess:
         self._dummyObject.stderr._dummyPollCounter = 0
         p = self._dummyObject
 
-        if bool(Settings.Instance().getSetting(strMiscSettings,strSectRunBinaries).value) is True:
+        if Settings.Instance().getSetting(strMiscSettings,strSectRunBinaries).value == "True":
             self.logger.debug("Running binaries is true")
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             self.logger.debug("Running binaries is false")
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return p
 
     class _dummyProcessObject:

@@ -85,7 +85,7 @@ class ResultsWriter:
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,
                                                           strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
-        forceDiamondsRun = "True" in Settings.Instance().getSetting(strMiscSettings, strSectForceDiamondsRun).value
+        forceDiamondsRun = ("True" == Settings.Instance().getSetting(strMiscSettings, strSectForceDiamondsRun).value)
 
         analyserResultsPath += "/" + starType + "_" + self._kicID + "/results.json"
 
