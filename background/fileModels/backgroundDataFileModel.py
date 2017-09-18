@@ -6,8 +6,10 @@ import numpy as np
 from res.strings import *
 from settings.settings import Settings
 
+from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 
-class BackgroundDataFileModel:
+
+class BackgroundDataFileModel(BackgroundBaseFileModel):
     '''
     Represents the data file which diamonds will perform a fit on. This should either be
     already exist within the DIAMONDS file structure (i.e. in background/data/) or should
@@ -20,30 +22,10 @@ class BackgroundDataFileModel:
         :param kicID: The KICID of the star
         :type kicID: string
         '''
-        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
         self.logger = logging.getLogger(__name__)
+        BackgroundBaseFileModel.__init__(self,kicID)
 
-        self._psdFile = glob.glob(dataFolder+'KIC{}.txt'.format(kicID))[0]
-        self.kicID = kicID
-
-    @property
-    def kicID(self):
-        '''
-        Property for the KICId
-        :return: The KICId of the star
-        :rtype: string
-        '''
-        return self._kicID
-
-    @kicID.setter
-    def kicID(self,value):
-        '''
-        Setter property of the KICId. ReReads the data if it is not None
-        :param value: the KICID of the star
-        :type value: string
-        '''
-        self._kicID = value
-        if self._kicID is not None:
+        if kicID is not None:
             self._readData()
 
     @property
@@ -59,10 +41,14 @@ class BackgroundDataFileModel:
         '''
         Internal reader function. Reads the file according to the settings
         '''
+        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+        file = dataFolder+"KIC"+self.kicID+".txt"
         try:
-            self._psd = np.loadtxt(self._psdFile).T
-        except FileNotFoundError:
+            self._psd = np.loadtxt(file).T
+        except FileNotFoundError as e:
             self.logger.error("Cannot read PSD file, setting PSD to none")
-            self._psd = None
+            self.logger.error("File is "+file)
+            self.logger.error(e)
+            raise IOError("Cannot read PSD file, setting PSD to none")
 
 

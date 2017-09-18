@@ -22,12 +22,13 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
         :param runID: the RunID of the run. Can be fullBackground or noiseOnly -> see strings.py
         :type runID: string
         '''
-        BackgroundBaseFileModel.__init__(self, kicID, runID)
-        self._evidence = {}
         self.logger = logging.getLogger(__name__)
+        BackgroundBaseFileModel.__init__(self, kicID, runID)
+
+        self._evidence = {}
 
         if(kicID is not None and runID is not None):
-            self.__readData()
+            self._readData()
 
     def getData(self,key=None):
         '''
@@ -38,7 +39,7 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
         :rtype: dict{string:float}/float
         '''
         if any(self._evidence) is False:
-            self.__readData()
+            self._readData()
 
         if key is None:
             return self._evidence
@@ -49,24 +50,23 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
                 self.logger.warning("No value for key '"+key+"', returning full dict")
                 return self._evidence
 
-    def __readData(self):
+    def _readData(self):
         '''
         Reads the data from the background_evidenceInformation file. Uses the settings configured in
         ~/lightcurve_analyzer.json
         :return: Dict containing the values in the evidence file
         :rtype:dict{string:float}
         '''
+        self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
+                                                          strSectBackgroundResPath).value
+        file = self._dataFolder + "KIC" + self.kicID + "/" + self.runID + "/background_evidenceInformation.txt"
         try:
-            self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
-                                                              strSectBackgroundResPath).value
-            mpFile = glob.glob(self._dataFolder + 'KIC{}/{}/background_evidenceInformation.txt'
-                               .format(self.kicID, self.runID))[0]
-            values = np.loadtxt(mpFile).T
+            values = np.loadtxt(file).T
+
             self._evidence[strEvidenceSkillLog] = values[0]
             self._evidence[strEvidenceSkillErrLog] = values[1]
             self._evidence[strEvidenceSkillInfLog] = values[2]
-        except:
-            self.logger.warning("Failed to open File '" + self._dataFolder +
-                    'KIC{}/{}/background_evidenceInformation.txt'.format(self.kicID, self.runID) + "'")
-            self.logger.warning("Setting Data to None")
-            self._evidence = {}
+        except Exception as e:
+            self.logger.error("Failed to open File '" +file)
+            self.logger.error(e)
+            raise IOError
