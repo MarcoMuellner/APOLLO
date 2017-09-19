@@ -1,3 +1,10 @@
+env:
+  global:
+    - CC_TEST_REPORTER_ID=d04be6c25c28be034b72ce37c1564e2c8701d2594a58320af7f8cd1692144424
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 language: python
 python:
   - "3.6"
@@ -6,15 +13,5 @@ install:
   - pip install -r requirements.txt
 script:
   python -m pytest -s tests/
-
-env:
-  global:
-    - CC_TEST_REPORTER_ID=d04be6c25c28be034b72ce37c1564e2c8701d2594a58320af7f8cd1692144424
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-script:
-  - bundle exec rspec
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
