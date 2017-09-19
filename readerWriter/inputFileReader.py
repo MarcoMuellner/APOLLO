@@ -72,7 +72,7 @@ class InputFileReader:
         """
 
         x = x[y > np.mean(y) * 0.9]
-        y = y[1][y > np.mean(y) * 0.9]
+        y = y[y > np.mean(y) * 0.9]
 
         x = x[y < np.mean(y) * 1.1]
         y = y[y < np.mean(y) * 1.1]

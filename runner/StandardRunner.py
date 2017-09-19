@@ -95,6 +95,7 @@ class StandardRunner(multiprocessing.Process):
         :rtype:str
         '''
         files = self.listAvailableFilesInPath(filePath)
+        self.logger.debug("Files available is "+str(files))
         for file in files:
             if str(kicID) in file:
                 try:
@@ -109,12 +110,12 @@ class StandardRunner(multiprocessing.Process):
                         lightCurveCandidates.remove(candidate)
         except UnboundLocalError:
             self.logger.error("No valid files found!")
-            raise FileNotFoundError("No valid files found")
+            raise IOError("No valid files found")
 
         if len(lightCurveCandidates) != 1:
             self.logger.error("Failed to find a lightCurve for KIC "+str(kicID))
             self.logger.error("Available files: "+str(lightCurveCandidates))
-            raise FileNotFoundError("Too many files found")
+            raise IOError("Too many files found")
 
         return filePath+lightCurveCandidates[0]
 
@@ -130,6 +131,7 @@ class StandardRunner(multiprocessing.Process):
         :rtype: list
         '''
         resultList = []
+        self.logger.debug("Filepath where we will search: "+filePath)
         with cd(filePath):
             for file in os.listdir("."):
                 _,file_extension = os.path.splitext(file)
@@ -140,7 +142,7 @@ class StandardRunner(multiprocessing.Process):
             self.logger.error("Failed to find files")
             self.logger.error("Extension filter: "+str(filter))
             self.logger.error("Path: "+filePath)
-            raise FileNotFoundError("No files found")
+            raise IOError("No files found")
 
         return resultList
 

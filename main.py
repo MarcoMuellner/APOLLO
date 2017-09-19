@@ -30,7 +30,7 @@ if not os.path.exists(filePath):
     logger.error("Filepath "+filePath+" does not exist")
     raise IOError("Filepath "+filePath+" does not exist")
 
-filePath = os.path.abspath(filePath)
+filePath = os.path.abspath(filePath) + "/"
 logger.info("Filepath of Kic Files is "+filePath)
 
 kicList = []
@@ -67,6 +67,7 @@ if args.starType == "RG":
     starMode = strStarTypeRedGiant
 elif args.starType == "YS":
     starMode = strStarTypeYoungStar
+    Settings.Instance().getSetting(strDataSettings,strSectDataRefinement).value = strRefineStray
 
 Settings.Instance().getSetting(strDataSettings,strSectStarType).value = starMode
 
@@ -79,7 +80,7 @@ for i in kicList:
     logger.info("************************************")
     logger.info("STARTING STAR " + i)
     logger.info("************************************")
-    runner = StandardRunner(i,"../Sterndaten/RG_ENRICO/")
+    runner = StandardRunner(i,filePath)
     runner.run()
     try:
         runner.join()

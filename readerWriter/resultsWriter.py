@@ -265,7 +265,7 @@ class ResultsWriter:
                                 figure.savefig(imageName)
                             except:
                                 self.logger.error("File with name "+imageName+" doesnt seem to be a ggplot or matplotlib type")
-                                raise
+                                raise IOError
 
             if self._diamondsModel == strFitModeBayesianComparison:
                 backgroundEvidence = ufloat_fromstr(resultDict[strAnalyzerResSectDiamonds][strDiamondsModeFull][strEvidenceSkillLog])

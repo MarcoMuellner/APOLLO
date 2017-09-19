@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 import pylab as pl
-from ggplot import *
+from plotnine import *
 
 import numpy as np
 from readerWriter.resultsWriter import ResultsWriter
@@ -108,7 +108,6 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
                                   linetype=annotationList[i]['linetype'])
             else:
                 p = p + geom_line(aes(y=i))
-
     if markerList is not None:
         try:
             for i in markerList.keys():
@@ -118,12 +117,12 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
                 logger.debug("Max x-value: '" + str(max(psd[0])))
                 idx = (np.abs(psd[0] - markerList[i][0])).argmin()
                 logger.debug("Real plotted value: '" + str(psd[0][idx]) + "'")
-                p = p + geom_vline(x=psd[0][idx], color=markerList[i][1], linetype='dashed')
+                p = p + geom_vline(x=psd[0][idx], color=markerList[i][1])
         except:
             logger.error("MarkerList needs to be a dict with name,(tuple)")
 
-    p = p + scale_x_log() + scale_y_log() + ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2) + ggtitle(title) + ylab(
-        r'PSD [ppm$^2$/$\mu$Hz]') + xlim(min(psd[0]), max(psd[0]))
+    p = p + ggtitle(title) + ylab(r'PSD [ppm$^2$/$\mu$Hz]') + \
+        scale_x_log10(limits=(min(psd[0]), max(psd[0]))) + scale_y_log10(limits=(min(psd[1] * 0.95), max(psd[1]) * 1.2))
 
     if visibilityLevel <= debugLevel:
         print(p)
@@ -300,8 +299,7 @@ def plotLightCurve(data, visibilityLevel=0, fileName=""):
     annotationList[r'Flux'] = annotation
     dfData = pd.DataFrame.from_dict(dataList)
     p = ggplot(dfData, aes(x=r'Observation Time [d]'))
-    p = p + geom_point(aes(y=r'Flux'), color=annotationList[r'Flux']['color'],
-                       linetype=annotationList[r'Flux']['linetype'])
+    p = p + geom_point(aes(y=r'Flux'), color=annotationList[r'Flux']['color'])
     p = p + ylab(r'Flux')
     p = p + xlab(r'Observation Time [d]')
     p = p + ylim(1.1 * min(lightCurve[1]), 1.1 * max(lightCurve[1]))

@@ -62,7 +62,7 @@ def testLookForFile(defaultSetup,value):
 
 @pytest.mark.parametrize("value",[9254342345443,"9234543443","923435444"])
 def testFileNotFound(defaultSetup,value):
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(IOError):
         defaultSetup._lookForFile(value,defaultSetup.filePath)
 
 def testListAvailableFiles(defaultSetup):
