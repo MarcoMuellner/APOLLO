@@ -21,6 +21,8 @@ strSectBackgroundDataPath   = 'Background Data Path'
 strSectBackgroundResPath   = 'Background Results Path'
 strSectDiamondsBinaryPath = 'Diamonds binary path'
 strSectFittingMode = 'Fitting mode'
+strSectPyDIAMONDSRootPath = 'PyDIAMONDS root path'
+strSectDiamondsRunMode = 'Diamonds run mode'
 #strMiscSettings
 strSectDevMode = "Developer Mode"
 strSectAnalyzerResults = "Analyzer Results Path"
@@ -47,6 +49,9 @@ strStarTypeRedGiant = 'Red Giant'
 strFitModeFullBackground = ' Full Background Model'
 strFitModeNoiseBackground = 'Noise Background Model'
 strFitModeBayesianComparison = 'Bayesian Evidence mode (both models and comparison)'
+#strSectDiamondsRunMode
+strPythonMode = 'Python'
+strCppMode = 'C++'
 #ParameterSummaryStrings
 strSummaryMean = "I Moment (Mean)"
 strSummaryMedian = "Median"

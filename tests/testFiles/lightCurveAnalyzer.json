@@ -40,10 +40,20 @@
                 "GUI Type":"textEdit",
                 "Value":"tests/testFiles/diamondsFiles/background/build/"
             },
+            "Diamonds run mode":{
+                "GUI Name":"Diamonds run mode",
+                "GUI Type":"textEdit",
+                "Value":"Python"
+            },
             "Fitting mode":{
                 "GUI Name":"Fitting mode",
                 "GUI Type":"textEdit",
                 "Value":"Bayesian Evidence mode (both models and comparison)"
+            },
+            "PyDIAMONDS root path":{
+                "GUI Name":"PyDIAMONDS data path",
+                "GUI Type":"textEdit",
+                "Value":"tests/testFiles/diamondsFiles/background"
             }
         },
         "Misc Settings":{

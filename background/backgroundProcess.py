@@ -1,5 +1,9 @@
 import logging
 import subprocess
+import io
+from contextlib import redirect_stderr
+from pyDiamondsBackground import Background
+from pyDiamondsBackground.models import WhiteNoiseOnlyModel,WhiteNoiseOscillationModel,BackgroundModel
 
 from res.strings import *
 from settings.settings import Settings
@@ -90,36 +94,97 @@ class BackgroundProcess:
 
             for errorCount in range(1,3):
                 self._status[runID] = strDiamondsStatusRunning
-                with cd(self.diamondsBinaryPath):
-                    p =self._runBinary(cmd)
-
-                    while p.poll() is None:
-                        line = p.stderr.readline()
-                        self.logger.info(line)
-
-                        if strDiamondsErrBetterLikelihood in str(line):
-                            self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
-                            self._status[runID] = strDiamondsStatusLikelihood
-
-                        elif strDiamondsErrCovarianceFailed in str(line):
-                            self.logger.warning("Diamonds cannot decompose covariance. Repeat!")
-                            self._status[runID] = strDiamondsStatusCovariance
-
-                        elif strDiamondsErrAssertionFailed in str(line):
-                            self.logger.warning("Diamonds assertion failed. Repeat!")
-                            self._status[runID] = strDiamondsStatusAssertion
-
-                    self.logger.debug(p.stderr.read())
-                    self.logger.info("Command '"+str(cmd)+"' done")
-                    if self._status[runID] == strDiamondsStatusRunning:
-                        finished = True
-                        self._status[runID] = strDiamondsStatusGood
+                if Settings.Instance().getSetting(strDiamondsSettings,strSectDiamondsRunMode).value == strPythonMode:
+                    if binary == strDiamondsExecNoise:
+                        model = WhiteNoiseOnlyModel
+                    elif binary == strDiamondsExecFull:
+                        model = WhiteNoiseOscillationModel
+                    finished = self._runPyDIAMONDS(runID,model)
+                else:
+                    finished = self._runDiamondsBinaries(runID,cmd)
+                if finished:
+                    break
 
             if not finished:
                 self.logger.error("Diamonds failed to find good values!")
                 self._binaryDictToExecute[runID] = (binary, False)
 
         self.evaluateRun(self._binaryDictToExecute)
+
+    def _checkDiamondsStdOut(self,text):
+        """
+        Checks the stdout of DIAMONDS and returns the status, that DIAMONDS has.
+        :param text: stderr/stdout of diamonds that is analyzed.
+        :type text: str
+        :return: Statusflag
+        :rtype: str
+        """
+        status = strDiamondsStatusRunning
+        if strDiamondsErrBetterLikelihood in str(text):
+            self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
+            status = strDiamondsStatusLikelihood
+
+        elif strDiamondsErrCovarianceFailed in str(text):
+            self.logger.warning("Diamonds cannot decompose covariance. Repeat!")
+            status = strDiamondsStatusCovariance
+
+        elif strDiamondsErrAssertionFailed in str(text):
+            self.logger.warning("Diamonds assertion failed. Repeat!")
+            status = strDiamondsStatusAssertion
+        return status
+
+    def _runPyDIAMONDS(self,runID,model):
+        """
+        This method runs DIAMONDS via the python bindings and PyDIAMONDS-Background. It also checks if DIAMONDS ran
+        correctly. To analyze the result it redericts the whole stdout to a buffer, which than is analyzed
+        :param model: The model used in the run
+        :type model: BackgroundModel
+        :param runID: The runID for the run
+        :type runID: str
+        """
+        finished = False
+        rootPath = Settings.Instance().getSetting(strDiamondsSettings,strSectPyDIAMONDSRootPath).value
+        with io.StringIO() as buf, redirect_stderr(buf):
+            bg = Background(kicID=self.kicID,modelObject=model,rootPath=rootPath)
+            bg.run()
+            bg.writeResults(rootPath,"background_")
+            status = self._checkDiamondsStdOut(buf.getvalue())
+            if  status == strDiamondsStatusRunning:
+                finished = True
+                self._status[runID] = strDiamondsStatusGood
+            else:
+                self._status[runID] = status
+
+        return finished
+
+    def _runDiamondsBinaries(self,runID,cmd):
+        """
+        This method runs Diamonds by running the background binary provided in the settings. It also checks if DIAMONDS
+        ran correctly. This method sets the proper
+        :param runID: runID of the star
+        :type runID: str
+        :param cmd: command to run
+        :type cmd: dict
+        :return: Finished flag, indicating if diamonds ran correctly
+        :rtype: bool
+        """
+        finished = False
+        with cd(self.diamondsBinaryPath):
+            p = self._runBinary(cmd)
+
+            while p.poll() is None:
+                line = p.stderr.readline()
+                self.logger.info(line)
+
+                self._status[runID] = self._checkDiamondsStdOut(line)
+
+            self.logger.debug(p.stderr.read())
+            self.logger.info("Command '" + str(cmd) + "' done")
+            if self._status[runID] == strDiamondsStatusRunning:
+                finished = True
+                self._status[runID] = strDiamondsStatusGood
+
+        return finished
 
     def evaluateRun(self, binaryDict):
         '''

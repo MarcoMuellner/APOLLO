@@ -40,10 +40,20 @@
                 "GUI Type":"textEdit",
                 "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/build/"
             },
+            "PyDIAMONDS root path":{
+                "GUI Name":"PyDIAMONDS data path",
+                "GUI Type":"textEdit",
+                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background"
+            },
             "Fitting mode":{
                 "GUI Name":"Fitting mode",
                 "GUI Type":"textEdit",
                 "Value":"Full Background Model"
+            },
+            "Diamonds run mode":{
+                "GUI Name":"Diamonds run mode",
+                "GUI Type":"textEdit",
+                "Value":"Python"
             }
         },
         "Misc Settings":{
