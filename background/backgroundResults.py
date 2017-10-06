@@ -104,16 +104,38 @@ class BackgroundResults:
         :return:Full dict or single parameter depending on key
         :rtype:List/BackgroundParameterFileModel
         '''
+        return self._getValueFromDict(self._backgroundParameter,key)
+
+    def getMarginalDistribution(self, key=None):
+        '''
+        Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
+        :param key: key for the Marginal Distribution
+        :type key: string
+        :rtype:list/MarginalDistribution
+        '''
+        return self._getValueFromDict(self._marginalDistributions,key)
+
+
+
+    def _getValueFromDict(self,dict,key=None):
+        '''
+        This is a helper method, which returns a single item from a list if the item exists or the whole dict otherwhise
+        :param dict: The list to search in
+        :type dict: list
+        :param key: The key. Optional
+        :type key: str
+        :return: The appropriate Value(s)
+        '''
         if key is None:
-            return self._backgroundParameter
+            return dict
         else:
-            for i in self._backgroundParameter:
+            for i in dict:
                 if i.name == key:
                     return i
 
-            self.logger.warning("Found no background parameter for '" + key + "'")
+            self.logger.warning("Found no object for '" + key + "'")
             self.logger.warning("Returning full list")
-            return self._backgroundParameter
+            return dict
 
     @property
     def prior(self):
@@ -338,21 +360,3 @@ class BackgroundResults:
             retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
 
         return retVal
-
-    def getMarginalDistribution(self, key=None):
-        '''
-        Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
-        :param key: key for the Marginal Distribution
-        :type key: string
-        :rtype:list/MarginalDistribution
-        '''
-        if key is None:
-            return self._marginalDistributions
-        else:
-            for i in self._marginalDistributions:
-                if i.name == key:
-                    return i
-
-            self.logger.warning("Found no marginal Distribution for '" + key + "'")
-            self.logger.warning("Returning full list")
-            return self._marginalDistributions
