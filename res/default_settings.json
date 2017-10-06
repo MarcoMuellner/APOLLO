@@ -28,22 +28,22 @@
             "Background Data Path":{
                 "GUI Name":"Data Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/data/"
+                "Value":"/Users/Marco/Google_Drive/Astroseismology/Software/Background/data/"
             },
             "Background Results Path":{
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/results/solved/"
+                "Value":"/Users/Marco/Google_Drive/Astroseismology/Software/Background/results/solved/"
             },
             "Diamonds binary path":{
                 "GUI Name":"Diamonds path to binaries",
                 "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background/build/"
+                "Value":"/Users/Marco/Google_Drive/Astroseismology/Software/Background/build/"
             },
             "PyDIAMONDS root path":{
                 "GUI Name":"PyDIAMONDS data path",
                 "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/Background"
+                "Value":"/Users/Marco/Google_Drive/Astroseismology/Software/Background"
             },
             "Fitting mode":{
                 "GUI Name":"Fitting mode",
@@ -53,19 +53,19 @@
             "Diamonds run mode":{
                 "GUI Name":"Diamonds run mode",
                 "GUI Type":"textEdit",
-                "Value":"Python"
+                "Value":"C++"
             }
         },
         "Misc Settings":{
             "Analyzer Results Path":{
                 "GUI Name":"Analyzer Results Path",
                 "GUI Type":"textEdit",
-                "Value":"/Users/Marco/Google Drive/Astroseismology/Software/lightcurve_analyzer/results"
+                "Value":"/Users/Marco/Google_Drive/Astroseismology/Software/lightcurve_analyzer/results"
             },
             "Developer Mode":{
                 "GUI Name":"Developer Mode",
                 "GUI Type":"textEdit",
-                "Value":"0"
+                "Value":"3"
             },
             "Force DIAMONDS run":{
                 "GUI Name":"Force DIAMONDS run",

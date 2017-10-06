@@ -43,7 +43,7 @@
             "Diamonds run mode":{
                 "GUI Name":"Diamonds run mode",
                 "GUI Type":"textEdit",
-                "Value":"Python"
+                "Value":"C++"
             },
             "Fitting mode":{
                 "GUI Name":"Fitting mode",

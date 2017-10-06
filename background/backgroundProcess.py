@@ -144,6 +144,7 @@ class BackgroundProcess:
         """
         finished = False
         rootPath = Settings.Instance().getSetting(strDiamondsSettings,strSectPyDIAMONDSRootPath).value
+        self.logger.info("Root path is "+rootPath)
         with io.StringIO() as buf, redirect_stderr(buf):
             bg = Background(kicID=self.kicID,modelObject=model,rootPath=rootPath)
             bg.run()

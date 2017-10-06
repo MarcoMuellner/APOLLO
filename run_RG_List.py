@@ -33,7 +33,7 @@ for i in starList:
     logger.info("************************************")
     logger.info("STARTING STAR " + i)
     logger.info("************************************")
-    runner = StandardRunner(i,"../Sterndaten/RG_ENRICO/")
+    runner = StandardRunner(i,"/Users/Marco/Google_Drive/Astroseismology/Software/Sterndaten/RG_ENRICO/")
     runner.run()
     try:
         runner.join()

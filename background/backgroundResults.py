@@ -1,6 +1,5 @@
 import glob
 import logging
-from math import sqrt, log10
 
 import numpy as np
 from uncertainties import ufloat
@@ -26,7 +25,8 @@ class BackgroundResults:
     This class represents a single Run for a single star. So if you want to access both fullBackground and noiseOnly you
      need to instantiate this class twice with a different runID
     '''
-    def __init__(self, kicID, runID, tEff = None):
+
+    def __init__(self, kicID, runID, tEff=None):
         '''
         The constructor of the class. It sets up all classes that provide an interface to the lower laying files
         from DIAMONDS. It also sets up some other things like names
@@ -44,7 +44,7 @@ class BackgroundResults:
         self._dataFile = BackgroundDataFileModel(kicID)
         self._summary = BackgroundParamSummaryModel(kicID, runID)
         self._evidence = BackgroundEvidenceFileModel(kicID, runID)
-        self._prior = BackgroundPriorFileModel(kicID,runID)
+        self._prior = BackgroundPriorFileModel(kicID, runID)
         self._backgroundPriors = BackgroundPriorFileModel(kicID, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
@@ -74,27 +74,27 @@ class BackgroundResults:
                        strPriorUnitNuMax,
                        strPriorUnitSigma]
 
-        self.psdOnlyFlag = False
+        self._psdOnlyFlag = False
 
         summaryRawData = self.summary.getRawData()
 
-        for i in range(0,self.summary.dataLength()):
-            self._backgroundParameter.append(BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
-            self._marginalDistributions.append(BackgroundMarginalDistrFileModel(self._names[i],self._units[i],kicID,runID,i))
+        for i in range(0, self.summary.dataLength()):
+            self._backgroundParameter.append(
+                BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
+            self._marginalDistributions.append(
+                BackgroundMarginalDistrFileModel(self._names[i], self._units[i], kicID, runID, i))
             self._marginalDistributions[i].backgrounddata = np.vstack((summaryRawData[strSummaryMedian][i],
-                                                                      summaryRawData[strSummaryLowCredLim][i],
-                                                                      summaryRawData[strSummaryUpCredLim][i]))
+                                                                       summaryRawData[strSummaryLowCredLim][i],
+                                                                       summaryRawData[strSummaryUpCredLim][i]))
             if self._backgroundParameter[i].getData() is None:
-                self.psdOnlyFlag = True
+                self._psdOnlyFlag = True
 
         if tEff is not None:
-            self._tEff = ufloat(tEff,200)
+            self._tEff = ufloat(tEff, 200)
             self._bolometricCorrCalculator = BCEvaluator(tEff)
-            self.bolometricCorrection = self._bolometricCorrCalculator.BC
+            self._bolometricCorrection = self._bolometricCorrCalculator.BC
 
-
-
-    def getBackgroundParameters(self,key = None):
+    def getBackgroundParameters(self, key=None):
         '''
         Provides an interface for the single background Parameters (e.g. Noise,HarveyParameters, Powerexcess parameters)
         fitted by DIAMONDS. Depending on the mode, this will either return a list of 7-10 items or a single item
@@ -111,7 +111,7 @@ class BackgroundResults:
                 if i.name == key:
                     return i
 
-            self.logger.warning("Found no background parameter for '"+key+"'")
+            self.logger.warning("Found no background parameter for '" + key + "'")
             self.logger.warning("Returning full list")
             return self._backgroundParameter
 
@@ -258,152 +258,7 @@ class BackgroundResults:
         '''
         return self._getSummaryParameter(strPriorFlatNoise)
 
-    @property
-    def psdOnlyFlag(self):
-        '''
-        Property for the psdOnlyFlag. If BackgroundParameter is not set, this will return true. Otherwise this flag
-        will be False.
-        :return:
-        :rtype:
-        '''
-        return self._psdOnlyFlag
-
-    @psdOnlyFlag.setter
-    def psdOnlyFlag(self,value):
-        '''
-        Setter property for the psdOnlyFlag
-        :param value: Value for the flag
-        :type value: bool
-        '''
-        self._psdOnlyFlag = value
-
-    @property
-    def radiusStar(self):
-        '''
-        Property for the radiusStar. Is calculated using the calculateRadius() method
-        :return:Radius of the star in solar radii
-        :rtype:ufloat
-        '''
-        return self._radiusStar
-
-    @radiusStar.setter
-    def radiusStar(self,value):
-        '''
-        Setter property for the radiusStar.
-        :param value: The value for the radius in solar radii
-        :type value: ufloat
-        '''
-        self._radiusStar = value
-
-    @property
-    def bolometricCorrection(self):
-        '''
-        Bolometric Correction of the star. Computed using the BCCalculator
-        :return: Bolometric Correction ini mag
-        :rtype: float
-        '''
-        return self._bolometricCorrection
-
-    @bolometricCorrection.setter
-    def bolometricCorrection(self,value):
-        '''
-        Setter property for the Bolometric Correction of the star
-        :param value: Bolometric Correction value in mag
-        :type value:float
-        '''
-        self._bolometricCorrection = value
-
-    @property
-    def luminosity(self):
-        '''
-        Property for the luminosity of the star. Calculated using calculateLuminosity()
-        :return:Luminosity of the star in Wattt
-        :rtype:ufloat
-        '''
-        return self._luminosity
-
-    @luminosity.setter
-    def luminosity(self,value):
-        '''
-        Setter Property of the luminosity.
-        :param value:Luminosity in Watt
-        :type value:ufloat
-        '''
-        self._luminosity = value
-
-    @property
-    def distanceModulus(self):
-        '''
-        Property of the distance Modulus for the star. Calculated using the calculateDistanceModulus()
-        :return: Distance Modulus in mag
-        :rtype: ufloat
-        '''
-        return self._distanceModulus
-
-    @distanceModulus.setter
-    def distanceModulus(self,value):
-        '''
-        Property setter of the distance modulus
-        :param value: Distance modulus in mag
-        :type value: ufloat
-        '''
-        self._distanceModulus = value
-
-    @property
-    def kicDistanceModulus(self):
-        '''
-        Property for the KIC Distance modulus in mag. Computed using the KIC teff. Legacy
-        :return: KIC Distance modulus
-        :rtype: ufloat
-        '''
-        return self._kicDistanceModulus
-
-    @kicDistanceModulus.setter
-    def kicDistanceModulus(self,value):
-        '''
-        Property setter for the KIC Distance modulus in mag.
-        :param value: KIC Distance modulus
-        :type value:ufloat
-        '''
-        self._kicDistanceModulus = value
-
-    @property
-    def robustnessValue(self):
-        '''
-        Robustness Value, computes the difference between KIC distance modulus and distance modulus. Legacy
-        :return: Robustness Value in mag
-        :rtype: ufloat
-        '''
-        return abs(self.distanceModulus[0] - self.kicDistanceModulus) * 100 / self.distanceModulus[0]
-
-    @property
-    def robustnessSigma(self):
-        '''
-        Sigma of the robustness value
-        :return: sigma
-        :rtype: ufloat
-        '''
-        return abs(self.distanceModulus[0] - self.kicDistanceModulus) / self.distanceModulus[1]
-
-    @property
-    def deltaNuCalculator(self):
-        '''
-        Returns the deltaNuCalculator
-        :return: DeltaNuCalculator
-        :rtype: DeltaNuEvaluator
-        '''
-        return self._deltaNuCalculator
-
-    @deltaNuCalculator.setter
-    def deltaNuCalculator(self,value):
-        '''
-        Setter for the deltaNuCalculator property
-        :param value: Instance of the DeltaNuCalculator
-        :type value: DeltaNuEvaluator
-        '''
-        self._deltaNuCalculator = value
-
-    def _getSummaryParameter(self,key=None):
+    def _getSummaryParameter(self, key=None):
         '''
         Returns the SummaryParameter, i.e. the value computed by DIAMONDS. Can be a single Parameter or a full dict
         if key is None
@@ -418,8 +273,8 @@ class BackgroundResults:
             return self.summary.getData()
         else:
             self.logger.error(key + " is not in Summary -> did DIAMONDS run correctly?")
-            if key in (strPriorNuMax,strPriorHeight,strPriorSigma):
-                self.logger.error("Check if you used the correct runID. runID is "+self._runID)
+            if key in (strPriorNuMax, strPriorHeight, strPriorSigma):
+                self.logger.error("Check if you used the correct runID. runID is " + self._runID)
             self.logger.error("Content of dict is")
             self.logger.error(self.summary.getData())
             raise ValueError
@@ -433,9 +288,9 @@ class BackgroundResults:
                                     self.summary.getRawData(strSummaryLowCredLim),
                                     self.summary.getRawData(strSummaryUpCredLim)))
 
-        self.deltaNuCalculator = DeltaNuEvaluator(self.nuMax[0], self.sigma[0],
-                                                  self._dataFile.powerSpectralDensity,
-                                                  self._nyq, backGroundData, backgroundModel)
+        self._deltaNuCalculator = DeltaNuEvaluator(self.nuMax[0], self.sigma[0],
+                                                   self._dataFile.powerSpectralDensity,
+                                                   self._nyq, backGroundData, backgroundModel)
 
     def createBackgroundModel(self):
         '''
@@ -454,10 +309,9 @@ class BackgroundResults:
         else:
             g = 0
 
-
         zeta = 2. * np.sqrt(2.) / np.pi  # !DPI is the pigreca value in double precision
         r = (np.sin(np.pi / 2. * freq / self._nyq) / (
-        np.pi / 2. * freq / self._nyq)) ** 2  # ; responsivity (apodization) as a sinc^2
+            np.pi / 2. * freq / self._nyq)) ** 2  # ; responsivity (apodization) as a sinc^2
         w = par_median[0]  # White noise component
 
         ## Long-trend variations
@@ -478,14 +332,13 @@ class BackgroundResults:
         ## Global background model
         w = np.zeros_like(freq) + w
         if runGauss:
-            retVal =zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
+            retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
         else:
-            retVal =  zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
+            retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
 
         return retVal
 
-
-    def getMarginalDistribution(self, key = None):
+    def getMarginalDistribution(self, key=None):
         '''
         Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
         :param key: key for the Marginal Distribution
@@ -499,70 +352,6 @@ class BackgroundResults:
                 if i.name == key:
                     return i
 
-            self.logger.warning("Found no marginal Distribution for '"+key+"'")
+            self.logger.warning("Found no marginal Distribution for '" + key + "'")
             self.logger.warning("Returning full list")
             return self._marginalDistributions
-
-    def calculateRadius(self, tSun, nuMaxSun, deltaNuSun):
-        '''
-        Legacy
-        '''
-        if self._tEff is None:
-            self.logger.warning("Teff is None, no calculation of BC takes place")
-            return None
-
-        if self.nuMax is None:
-            self.logger.warning("NuMax is not calculated, need nuMax to proceed")
-            return None
-
-        if self.deltaNuCalculator is None:
-            self.logger.info("Delta Nu is not yet calculated, need to calculate that first")
-            self.calculateDeltaNu()
-
-        self.radiusStar = (self.deltaNuCalculator.deltaNu / deltaNuSun) ** -2 * (self.nuMax / nuMaxSun) * \
-                          sqrt(self._tEff / tSun)
-
-
-    def calculateLuminosity(self, tSun):
-        '''
-        Legacy
-        '''
-        if self._tEff is None:
-            self.logger.warning("Teff is None, no calculation of Luminosity takes place")
-            return None
-
-        if self.radiusStar is None:
-            self.logger.info("Radius not yet calculated, need to calculate that first")
-            self.calculateRadius()
-
-        self.luminosity = self.radiusStar ** 2 * (self._tEff / tSun) ** 4
-
-    def calculateDistanceModulus(self, appMag, kicmag, av, nuMaxSun, deltaNuSun, tSun):
-        '''
-        Legacy
-        '''
-        appMag = appMag if appMag != 0 else kicmag
-        if self._tEff is None:
-            self.logger.warning("TEff is None, no calculation of distance modulus takes place")
-            return None
-
-        if self.deltaNuCalculator is None:
-            self.logger.info("Delta Nu is not yet calculated, need to calculate that first")
-            self.calculateDeltaNu()
-
-        if self.nuMax is None:
-            self.logger.warning("NuMax is not calculated, need nuMax to proceed")
-            return None
-
-        if self._bolometricCorrCalculator is None:
-            self.logger.info("BC is not yet calculated, need to calculate that first")
-            self._bolometricCorrCalculator = BCEvaluator(self._tEff)
-            self.bolometricCorrection = self._bolometricCorrCalculator.BC
-
-        self.distanceModulus = (6 * log10(self.nuMax / nuMaxSun) + 15 * log10(self._tEff / tSun) - 12 * log10(self.deltaNuCalculator.deltaNu / deltaNuSun) \
-                                + 1.2 * (appMag + self.bolometricCorrection) - 1.2 * av - 5.7) / 1.2
-
-        self.kicDistanceModulus = (6 * log10(self.nuMax / nuMaxSun) + 15 * log10(self._tEff / tSun) - 12 * log10(self.deltaNuCalculator.deltaNu / deltaNuSun) \
-                                   + 1.2 * (kicmag + self.bolometricCorrection) - 1.2 * av - 5.7) / 1.2
-
-        self.mu_diff = self.distanceModulus - self.kicDistanceModulus
