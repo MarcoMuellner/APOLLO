@@ -201,11 +201,10 @@ class ResultsWriter:
         imagePath = ROOT_PATH + analyserResultsPath + "images/"
         resultDict = {}
 
-        if not os.path.exists(analyserResultsPath):
-            os.makedirs(analyserResultsPath)
-
-        if not os.path.exists(imagePath):
-            os.makedirs(imagePath)
+        with [analyserResultsPath,imagePath] as paths:
+            for i in paths:
+                if not os.path.exists(i):
+                    os.makedirs(i)
 
         with cd(analyserResultsPath):
             if self.powerSpectraCalculator is not None:
@@ -220,6 +219,7 @@ class ResultsWriter:
                 resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.nuMaxCalculator.nyqFreq
 
             if len(self._diamondsResults.keys()) != 0:
+                
                 resultDict[strAnalyzerResSectDiamondsPriors] = {}
                 resultDict[strAnalyzerResSectDiamonds] = {}
                 resultDict[strAnalyzerResSectAnalysis] = {}
