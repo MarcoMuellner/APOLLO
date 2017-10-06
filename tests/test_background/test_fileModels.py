@@ -56,9 +56,9 @@ def testEvidenceFile(settings):
     print(settings.customPath)
     e = BackgroundEvidenceFileModel("testKIC","runID")
     assert len(e.getData()) == 3
-    assert isinstance(e.getData(strEvidenceSkillLog),float)
-    assert isinstance(e.getData(strEvidenceSkillErrLog), float)
-    assert isinstance(e.getData(strEvidenceSkillInfLog), float)
+    assert isinstance(e.getData(strEvidSkillLog), float)
+    assert isinstance(e.getData(strEvidSkillErrLog), float)
+    assert isinstance(e.getData(strEvidSkillInfLog), float)
 
 def testEvidenceFileFailue(settings):
     print(settings.customPath)

@@ -102,7 +102,7 @@ class ResultsWriter:
             priorContent = True
 
         try:
-            resultContent = self._checkPriorContent(resultDict,strAnalyzerResSectDiamonds,3)
+            resultContent = self._checkPriorContent(resultDict, strAnalyseSectDiamonds, 3)
         except:
             self.logger.info("Diamonds results are not yet created, full programm needed")
             resultContent = True
@@ -218,42 +218,36 @@ class ResultsWriter:
 
                 resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.nuMaxCalculator.nyqFreq
 
-            if len(self._diamondsResults.keys()) != 0:
-                
-                resultDict[strAnalyzerResSectDiamondsPriors] = {}
-                resultDict[strAnalyzerResSectDiamonds] = {}
-                resultDict[strAnalyzerResSectAnalysis] = {}
-                for key,value in self._diamondsResults.items():
-                    resultDict[strAnalyzerResSectDiamondsPriors][key] = {}
-                    resultDict[strAnalyzerResSectDiamonds][key]={}
-                    resultDict[strAnalyzerResSectAnalysis][key] = {}
+            for key,value in self._diamondsResults.items():
+                with [strAnalyzerResSectDiamondsPriors
+                      ,strAnalyzerResSectDiamondsPriors
+                      ,strAnalyzerResSectDiamondsPriors] as keys:
+                    for i in keys:
+                        resultDict[i] = {}
+                        resultDict[i][key] = {}
 
-                    for priorKey,priorValue in value.prior.getData(mode=key).items():
-                        resultDict[strAnalyzerResSectDiamondsPriors][key][priorKey]=priorValue
+                resultDict[strAnalyzerResSectDiamondsPriors][key]=value.prior.getData(mode=key)
 
-                    resultDict[strAnalyzerResSectDiamonds][key][strEvidenceSkillLog] = \
-                        format(ufloat(value.evidence.getData(strEvidenceSkillLog)
-                                      ,value.evidence.getData(strEvidenceSkillErrLog)))
-                    resultDict[strAnalyzerResSectDiamonds][key][strEvidenceSkillInfLog] = value.evidence.getData(strEvidenceSkillInfLog)
+                resultDict[strAnalyseSectDiamonds][key][strEvidSkillLog] = format(value.evidence.getData(strEvidSkillLogWithErr))
+                resultDict[strAnalyseSectDiamonds][key][strEvidSkillInfLog] = value.evidence.getData(strEvidSkillInfLog)
 
-                    for backPriorKey,backPriorValue in value.summary.getData().items():
-                        resultDict[strAnalyzerResSectDiamonds][key][backPriorKey] = format(backPriorValue)
-                        if backPriorValue/resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][0] < 1.05:
-                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay (Lower Limit!)"
-                        elif backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][1] > 0.95:
-                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay (Upper Limit!)"
-                        else:
-                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
+                for backPriorKey,backPriorValue in value.summary.getData().items():
+                    resultDict[strAnalyseSectDiamonds][key][backPriorKey] = format(backPriorValue)
+                    if backPriorValue/resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][0] < 1.05 or \
+                            backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][1] > 0.95:
+                        resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay"
+                    else:
+                        resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
 
             if len(self.diamondsRunner.status.items()) != 0:
-                if strAnalyzerResSectDiamonds not in resultDict.keys():
-                    resultDict[strAnalyzerResSectDiamonds] = {}
+                if strAnalyseSectDiamonds not in resultDict.keys():
+                    resultDict[strAnalyseSectDiamonds] = {}
 
                 for key,value in self.diamondsRunner.status.items():
-                    if key not in resultDict[strAnalyzerResSectDiamonds].keys():
-                        resultDict[strAnalyzerResSectDiamonds][key]={}
+                    if key not in resultDict[strAnalyseSectDiamonds].keys():
+                        resultDict[strAnalyseSectDiamonds][key]={}
 
-                    resultDict[strAnalyzerResSectDiamonds][key]["Status"] = value
+                    resultDict[strAnalyseSectDiamonds][key]["Status"] = value
 
             if len(self._images.keys()) != 0:
                 with cd(imagePath):
@@ -268,52 +262,58 @@ class ResultsWriter:
                                 raise IOError
 
             if self._diamondsModel == strFitModeBayesianComparison:
-                backgroundEvidence = ufloat_fromstr(resultDict[strAnalyzerResSectDiamonds][strDiamondsModeFull][strEvidenceSkillLog])
-                noiseBackground = ufloat_fromstr(resultDict[strAnalyzerResSectDiamonds][strDiamondsModeNoise][strEvidenceSkillLog])
-
-                evidence = backgroundEvidence-noiseBackground
-                resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValBayes] = format(evidence)
-                if evidence < 1:
-                    resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = "Inconclusive"
-                elif 1 < evidence < 2.5:
-                    resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = "Weak evidence"
-                elif 2.5 < evidence < 5:
-                    resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = "Moderate evidence"
-                else:
-                    resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = "Strong evidence"
+                resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = self._getBayesFactorEvidence(resultDict)
 
             self.logger.debug(resultDict)
             with open("results.json", 'w') as f:
                 json.dump(resultDict, f)
 
-        @property
-        def powerSpectraCalculator(self):
-            return self._powerSpectraCalculator
+    @property
+    def powerSpectraCalculator(self):
+        return self._powerSpectraCalculator
 
-        @powerSpectraCalculator.setter
-        def powerSpectraCalculator(self, value):
-            self._powerSpectraCalculator = value
+    @powerSpectraCalculator.setter
+    def powerSpectraCalculator(self, value):
+        self._powerSpectraCalculator = value
 
-        @property
-        def nuMaxCalculator(self):
-            return self._nuMaxCalculator
+    @property
+    def nuMaxCalculator(self):
+        return self._nuMaxCalculator
 
-        @nuMaxCalculator.setter
-        def nuMaxCalculator(self, value):
-            self._nuMaxCalculator = value
+    @nuMaxCalculator.setter
+    def nuMaxCalculator(self, value):
+        self._nuMaxCalculator = value
 
-        @property
-        def diamondsRunner(self):
-            return self._diamondsRunner
+    @property
+    def diamondsRunner(self):
+        return self._diamondsRunner
 
-        @diamondsRunner.setter
-        def diamondsRunner(self, value):
-            self._diamondsRunner = value
+    @diamondsRunner.setter
+    def diamondsRunner(self, value):
+        self._diamondsRunner = value
 
-        @property
-        def diamondsRunNeeded(self):
-            return self._diamondsRunNeeded
+    @property
+    def diamondsRunNeeded(self):
+        return self._diamondsRunNeeded
 
-        @diamondsRunNeeded.setter
-        def diamondsRunNeeded(self, value):
-            self._diamondsRunNeeded = value
+    @diamondsRunNeeded.setter
+    def diamondsRunNeeded(self, value):
+        self._diamondsRunNeeded = value
+
+    def _getBayesFactorEvidence(self,resultDict):
+        backgroundEvidence = ufloat_fromstr(
+            resultDict[strAnalyseSectDiamonds][strDiamondsModeFull][strEvidSkillLog])
+        noiseBackground = ufloat_fromstr(resultDict[strAnalyseSectDiamonds][strDiamondsModeNoise][strEvidSkillLog])
+
+        evidence = backgroundEvidence - noiseBackground
+        resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValBayes] = format(evidence)
+        if evidence < 1:
+            conclusion = "Inconclusive"
+        elif 1 < evidence < 2.5:
+            conclusion = "Weak evidence"
+        elif 2.5 < evidence < 5:
+            conclusion = "Moderate evidence"
+        else:
+            conclusion = "Strong evidence"
+
+        return conclusion

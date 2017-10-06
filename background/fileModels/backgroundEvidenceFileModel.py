@@ -6,6 +6,7 @@ import numpy as np
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
 from settings.settings import Settings
+from uncertainties import ufloat
 
 
 class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
@@ -63,9 +64,10 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
         try:
             values = np.loadtxt(file).T
 
-            self._evidence[strEvidenceSkillLog] = values[0]
-            self._evidence[strEvidenceSkillErrLog] = values[1]
-            self._evidence[strEvidenceSkillInfLog] = values[2]
+            self._evidence[strEvidSkillLog] = values[0]
+            self._evidence[strEvidSkillErrLog] = values[1]
+            self._evidence[strEvidSkillInfLog] = values[2]
+            self._evidence[strEvidSkillLogWithErr] = ufloat(values[0], values[1])
         except Exception as e:
             self.logger.error("Failed to open File '" +file)
             self.logger.error(e)

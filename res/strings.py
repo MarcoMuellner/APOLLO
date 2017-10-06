@@ -61,9 +61,10 @@ strSummaryLowCredLim = "Lower Credible Limit"
 strSummaryUpCredLim = "Upper Credible Limit"
 strSummarySkew = "Skewness"
 #EvidenceFileStrings
-strEvidenceSkillLog = "Skilling's log(Evidence)"
-strEvidenceSkillErrLog = "Skilling's Error log(Evidence)"
-strEvidenceSkillInfLog = "Skilling's Information Gain"
+strEvidSkillLog = "Skilling's log(Evidence)"
+strEvidSkillErrLog = "Skilling's Error log(Evidence)"
+strEvidSkillInfLog = "Skilling's Information Gain"
+strEvidSkillLogWithErr = "Skillings log with Error"
 #PriorFileStrings
 strPriorFlatNoise = "w"
 strPriorAmpHarvey1 = "$\sigma_\mathrm{long}$"
@@ -109,7 +110,7 @@ strAnalyzerResTypeRedGiant = "RG"
 #ResultsStringsSectNames
 strAnalyzerResSectNuMaxCalc = "NuMaxCalc"
 strAnalyzerResSectDiamondsPriors = "Diamonds_Priors"
-strAnalyzerResSectDiamonds = "Diamonds"
+strAnalyseSectDiamonds = "Diamonds"
 strAnalyzerResSectAnalysis = "Analysis"
 #ResultStringsValNames
 strAnalyzerResValBayes = "Bayes Factor"

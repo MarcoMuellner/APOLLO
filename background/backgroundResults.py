@@ -258,6 +258,7 @@ class BackgroundResults:
         '''
         return self._getSummaryParameter(strPriorFlatNoise)
 
+
     def _getSummaryParameter(self, key=None):
         '''
         Returns the SummaryParameter, i.e. the value computed by DIAMONDS. Can be a single Parameter or a full dict
