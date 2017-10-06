@@ -39,10 +39,7 @@ class BackgroundBaseFileModel:
 
     @kicID.setter
     def kicID(self,value):
-        if value is None:
-            self._kicID = ""
-        else:
-            self._kicID = value
+        self._kicID = self._wrapperRunIDKicID(value)
         if self._kicID not in ["", None] and self._runID not in ["", None]:
             self._readData()
 
@@ -52,10 +49,13 @@ class BackgroundBaseFileModel:
 
     @runID.setter
     def runID(self,value):
-        if value is None:
-            self._runID = ""
-        else:
-            self._runID = value
-
+        self._runID = self._wrapperRunIDKicID(value)
         if self._kicID not in ["",None] and self._runID not in ["",None]:
             self._readData()
+
+    def _wrapperRunIDKicID(self,value):
+        if value is None:
+            return ""
+        else:
+            return value
+

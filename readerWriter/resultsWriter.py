@@ -201,10 +201,10 @@ class ResultsWriter:
         imagePath = ROOT_PATH + analyserResultsPath + "images/"
         resultDict = {}
 
-        with [analyserResultsPath,imagePath] as paths:
-            for i in paths:
-                if not os.path.exists(i):
-                    os.makedirs(i)
+        paths = [analyserResultsPath, imagePath]
+        for i in paths:
+            if not os.path.exists(i):
+                os.makedirs(i)
 
         with cd(analyserResultsPath):
             if self.powerSpectraCalculator is not None:
@@ -216,15 +216,16 @@ class ResultsWriter:
                 for key,(value,color) in self.nuMaxCalculator.marker.items():
                     resultDict[strAnalyzerResSectNuMaxCalc][key]=value
 
-                resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.nuMaxCalculator.nyqFreq
+                resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.powerSpectraCalculator.nyqFreq
 
             for key,value in self._diamondsResults.items():
-                with [strAnalyzerResSectDiamondsPriors
+                priorKeys = [strAnalyzerResSectDiamondsPriors
                       ,strAnalyzerResSectDiamondsPriors
-                      ,strAnalyzerResSectDiamondsPriors] as keys:
-                    for i in keys:
-                        resultDict[i] = {}
-                        resultDict[i][key] = {}
+                      ,strAnalyseSectDiamonds
+                      ,strAnalyzerResSectAnalysis]
+                for i in priorKeys:
+                    resultDict[i] = {}
+                    resultDict[i][key] = {}
 
                 resultDict[strAnalyzerResSectDiamondsPriors][key]=value.prior.getData(mode=key)
 

@@ -104,7 +104,6 @@ def testComputeNuMax(defaultSetup):
     assert result[0] > 0
     assert isinstance(result[1], NuMaxEvaluator)
     assert len(result[1].marker) == 3
-    assert abs(result[1].nyqFreq - 283.20699116753133) < 10**-4
 
 @pytest.mark.skip("Need to think about how to test this properly!")
 def testComputePriors(defaultSetup):

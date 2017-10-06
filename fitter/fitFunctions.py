@@ -12,6 +12,23 @@ def scipyFit(x, y, method):
 
 
 def gaussian(x, y0, amp, cen, wid):
+    '''
+    Fitting function used. Fits a Gaussian using the following function:
+    .. math::
+        y(x)=y_0+\frac{amp}{\sqrt{2\pi wid}}\text{exp}(-\frac{(x-cen)^2}{2*wid^2})
+    :param x:x-Axis against which we will approximate the function
+    :type x:1-D numpy array
+    :param y0:y-Offset of the function
+    :type y0:float
+    :param amp:Amplitude of the gaussian
+    :type amp:float
+    :param cen:x-Value of center of distribution
+    :type cen:float
+    :param wid:Standard deviation of the distribution
+    :type wid:float
+    :return:y-Array of a gaussian distribution
+    :rtype:1-D numpy array
+    '''
     return y0 + (amp / (np.sqrt(2 * np.pi) * wid)) * np.exp(-(x - cen) ** 2 / (2 * wid ** 2))
 
 

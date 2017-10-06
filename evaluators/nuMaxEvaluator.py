@@ -318,20 +318,6 @@ class NuMaxEvaluator:
         return sinc(x,a,tau_acf) + sin(x,b,tau_acf)
 
     @property
-    def nyqFreq(self):
-        '''
-        Computes the Nyquist frequency for the lightcurve supplied in the constructor.
-        :return: Nyquist frequency
-        :rtype: float
-        '''
-        if self._lightCurve is not None and self._nyq == 0:
-            self.logger.debug("Abtastfrequency is '"+str((self._lightCurve[0][3] - self._lightCurve[0][2])*24*3600)+"'")
-            self._nyq = 10**6/(2*(self._lightCurve[0][200] -self._lightCurve[0][199]))
-            self.logger.info("Nyquist frequency is '"+str(self._nyq)+"'")
-
-        return self._nyq
-
-    @property
     def lightCurve(self):
         '''
         Property of lightCurve.
