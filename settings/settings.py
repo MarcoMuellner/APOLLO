@@ -25,7 +25,7 @@ class Settings:
         """
         self.__logger = logging.getLogger(__name__)
         self.__defSettingMap = obsDict(strPathDefSettings,True)
-        self.__custSettingMap = obsDict(strPathSettings,True)
+        self.__custSettingMap = obsDict(strPathSettings,False)
         self._adjustCustMapWithDefMap()
 
     def _adjustCustMapWithDefMap(self):
