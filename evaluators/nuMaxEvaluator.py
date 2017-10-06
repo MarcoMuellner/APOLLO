@@ -179,7 +179,7 @@ class NuMaxEvaluator:
         self.logger.debug("Tau Filter is '"+str(tau_filter)+"'")
         new_normalized_bin_size = int(np.round(tau_filter/self.duty_cycle))
         self.logger.debug("New normalized bin size is '"+str(new_normalized_bin_size)+"'")
-        amp_smoothed_array = self._trismooth(self._lightCurve[1],new_normalized_bin_size)
+        amp_smoothed_array = trismooth(self._lightCurve[1],new_normalized_bin_size)
         amp_filtered_array = self._lightCurve[1]-amp_smoothed_array
 
         length = 1.5*tau_filter*4/self.duty_cycle
@@ -235,54 +235,6 @@ class NuMaxEvaluator:
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
-    def _trismooth(self,x,window_width):
-        '''
-        This function is implemented to create a similar function to the Trismooth function of idl
-        :rtype: 1-D numpy array
-        :type window_width: int
-        :param x: The array containg the data which should be filtered. In our case this represents the Flux within the
-                  lightCurve
-        :type x: 1-D numpy array
-        :param window_width: The bin size which the function will look at
-        :return: The smoothed variant of x
-        '''
-        if window_width%2 != 0:
-            window_width = window_width+1
-
-        lend = len(x)-1
-        if (lend+1) < window_width:
-            self.logger.error("Vector too short!")
-            self.logger.error("lend: '"+str(lend)+"'")
-            self.logger.error("window_width: '"+str(window_width)+"'")
-            raise ValueError
-
-        halfWeights = np.arange(window_width/2)
-        weights = np.append(halfWeights,[window_width/2])
-        weights = np.append(weights,halfWeights[::-1])
-        weights +=1
-        tot = np.sum(weights)
-
-        smoothed = np.zeros(lend+1)
-        offset = int(window_width/2)
-        local = np.zeros(window_width)
-
-        self.logger.debug("Len smoothed "+str(len(smoothed)))
-        self.logger.debug("Offset is "+str(offset))
-        self.logger.debug("len local "+str(len(local)))
-
-        for i in range(offset,lend-offset):
-            smoothed[i]=np.sum(x[i-offset:i+offset+1]*weights)
-
-        smoothed /=tot
-
-        for i in range(0,offset):
-            smoothed[i] = np.sum(x[0:i+offset+1]*weights[offset-i:]) / np.sum(weights[offset-i:])
-
-        for i in range(lend-offset,lend-1,-1):
-            smoothed[i] = np.sum(x[i-offset:]*weights[0:offset+(lend-i)]) / np.sum(weights[0:offset+(lend-i)])
-
-        return smoothed
-
     def _calculateAutocorrelation(self,oscillatingData):
         '''
         The numpy variant of computing the autocorrelation. See the documentation of the numpy function for more
@@ -301,30 +253,6 @@ class NuMaxEvaluator:
         maxcorr = np.argmax(corrs2)
         corrs2 = corrs2 / corrs2[maxcorr]
         return corrs2
-
-    def _scipyFit(self,data,tauGuess):
-        '''
-        Single fit variant (fits the total function all at ones to the data)
-        :rtype: List containing 3 elements
-        :type tauGuess: float
-        :type data: 2-D numpy array
-        :param data:[0] -> temporal axis in seconds, [1] -> normalized flux
-        :param tauGuess: The initial Guess for Tau. The rest is fixed
-        :return: Values for a,b, tau_acf
-        '''
-        y = data[1]
-        x = data[0]
-
-        self.logger.debug("Initial Guess is "+str(tauGuess))
-
-        arr = [1.0,1/20,tauGuess]
-        popt, pcov = optimize.curve_fit(self._fit, x, y,p0=arr,maxfev=5000)
-        perr = np.sqrt(np.diag(pcov))
-        self.logger.debug("a = '" + str(popt[0]) + " (" + str(perr[0]) + ")'")
-        self.logger.debug("b = '" + str(popt[1]) + " (" + str(perr[1]) + ")'")
-        self.logger.debug("tau_acf = '" + str(popt[2]) + " (" + str(perr[2]) + ")'")
-
-        return popt
 
     def _iterativeFit(self,data,tauGuess):
         '''
@@ -348,16 +276,16 @@ class NuMaxEvaluator:
         '-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess))}
         plotCustom(self.kicID,dataList,title='Initial Guess Fit',showLegend=True,fileName=self.figAppendix+"InitGuess.png")
         show(4)
-        popt, pcov = optimize.curve_fit(self._sinc,x,y,p0=arr,maxfev = 5000)
+        popt, pcov = optimize.curve_fit(sinc,x,y,p0=arr,maxfev = 5000)
 
         #compute residuals
 
         dataList = {'data': ('x', x, y), "Fit": (
-        '-', np.linspace(0, 20000, num=50000), self._sinc(np.linspace(0, 20000, num=50000),*popt))}
+        '-', np.linspace(0, 20000, num=50000), sinc(np.linspace(0, 20000, num=50000),*popt))}
         plotCustom(self.kicID,dataList, title='Initial Sinc fit', showLegend=True,fileName=self.figAppendix + "InitSincFit.png")
         show(4)
 
-        residuals = y-self._sinc(x,*popt)
+        residuals = y-sinc(x,*popt)
         scaled_time_array = x / popt[1]
         cut = x[scaled_time_array<=2]
         residuals = residuals[scaled_time_array<=2]
@@ -365,20 +293,20 @@ class NuMaxEvaluator:
         #fit sin to residual!
         arr = [1/20,popt[1]]
 
-        popt,pcov = optimize.curve_fit(self._sin,cut,residuals,p0=arr,maxfev=5000)
+        popt,pcov = optimize.curve_fit(sin,cut,residuals,p0=arr,maxfev=5000)
         b = popt[0]
 
         dataList = {"Residual data": ('x', cut, residuals), "Sin Fit": (
-            '-', np.linspace(0,20000,num=50000),self._sin(np.linspace(0,20000,num=50000),*popt))}
+            '-', np.linspace(0,20000,num=50000),sin(np.linspace(0,20000,num=50000),*popt))}
         plotCustom(self.kicID,dataList, title='Sin fit', showLegend=True, fileName=self.figAppendix + "SinFit.png")
         show(4)
 
-        y =  y[scaled_time_array<=2] - self._sin(cut,*popt)
+        y =  y[scaled_time_array<=2] - sin(cut,*popt)
 
-        popt, pcov = optimize.curve_fit(self._sinc,cut,y,p0=arr,maxfev = 5000)
+        popt, pcov = optimize.curve_fit(sinc,cut,y,p0=arr,maxfev = 5000)
 
         dataList = {"data": ('x', cut, y), "Sinc fit": (
-            '-', np.linspace(0,20000,num=50000),self._sinc(np.linspace(0,20000,num=50000),*popt))}
+            '-', np.linspace(0,20000,num=50000),sinc(np.linspace(0,20000,num=50000),*popt))}
         plotCustom(self.kicID,dataList, title='Second Sinc fit', showLegend=True, fileName=self.figAppendix + "SecondSinc.png")
         show(4)
 
@@ -386,32 +314,8 @@ class NuMaxEvaluator:
 
         return returnList
 
-
-    def _sin(self,x,amp,tau):
-        '''
-        Represents the used sin within our Fit
-        :type x: 1-D numpy array
-        :param amp: Amplitude of sin
-        :type amp: float
-        :type tau: float
-        :return: the functional values for the array x
-        :rtype: 1-D numpy array
-        '''
-        return amp*np.sin(2*np.pi*4*x/tau)
-
-    def _sinc(self,x, a, tau_acf):
-        '''
-        Represents the used sinc within our Fit
-        :param x: 1-D numpy array
-        :param a: float, amplitude of the sinc
-        :param tau_acf: float
-        :return: the functional value for the array x
-        :rtype: 1-D numpy array
-        '''
-        return a * np.sinc((4* np.pi*x / tau_acf))**2
-
     def _fit(self,x,a,b,tau_acf):
-        return self._sinc(x,a,tau_acf) + self._sin(x,b,tau_acf)
+        return sinc(x,a,tau_acf) + sin(x,b,tau_acf)
 
     @property
     def nyqFreq(self):
