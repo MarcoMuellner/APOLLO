@@ -22,7 +22,7 @@ END
 
 
 PRO A2ZP_ACF_method, filein, filter
-; original:  FUNCTION A2ZP_ACF_method, light_crv, filter
+; PRO A2ZP_ACF_method, light_crv, filter
  ;+
  ; ---------------------------------------------------------------------
  ; Author: Kevin Fusshoeller
@@ -57,7 +57,7 @@ PRO A2ZP_ACF_method, filein, filter
 ;filein='KIC008196817.txt'
 ;filein=' '
 readmultiple,filein,data,dim=2
-light_crv=dblarr(2,35981)
+light_crv=dblarr(2,71961)
 light_crv(0,*)=data.x1
 light_crv(1,*)=data.x2
 
@@ -181,7 +181,8 @@ light_crv(1,*)=data.x2
  ; Calculate flicker amplitude
  amp_substract_array = amp_substract_array(UNIQ(amp_substract_array))
  amp_flic = 0
- FOR i = 0, N_ELEMENTS(amp_substract_array) - 1 DO BEGIN
+ print, N_ELEMENTS(amp_substract_array)
+ FOR i = 0., N_ELEMENTS(amp_substract_array) - 1 DO BEGIN
     amp_flic += (amp_substract_array[i] - amp_mean)^2
  ENDFOR
  denominator = FLOAT(N_ELEMENTS(amp_substract_array))
@@ -194,7 +195,8 @@ light_crv(1,*)=data.x2
  ; Give a first rough value for the filtering frequency. Apply a triangular filter to the light
  ; curve.
  ; ---------------------------------------------------------------------
- nu_filter = 10.0^(5.187) / (amp_flic^(1.560) * 10.0^6)
+; nu_filter = 10.0^(5.187) / (amp_flic^(1.560) * 10.0^6)
+ nu_filter = 10.0^(5.187) / (amp_flic^(1.560) )
 
  print, 'First guess for filter = ', nu_filter
 
