@@ -6,6 +6,7 @@ import numpy as np
 # local imports
 from plotter.plotFunctions import *
 from fitter.fitFunctions import *
+from plotnine import *
 
 
 class NuMaxEvaluator:
@@ -201,10 +202,11 @@ class NuMaxEvaluator:
             self.logger.error("Tau guess is "+str(guess))
             self.logger.error(str(e))
 
-            dataList = {'Autocorrelation': ('-',self._lightCurve[0][0:int(length)]/4,autocor), "Initial Guess": (
-                '-', np.linspace(0, 20000, num=50000),
-                self._fit(np.linspace(0, 20000, num=50000), 1, 1 / 20, guess))}
-            plotCustom(self.kicID,dataList,title="Failed fit result",showLegend=True,fileName=self.figAppendix+"Sinc_Fit_error.png")
+            dataList = {'Autocorrelation': ((self._lightCurve[0][0:int(length)]/4,autocor),geom_line,None),
+                        'Fit':((np.linspace(0, 20000, num=50000),self._fit(np.linspace(0, 20000, num=50000))),geom_line,None)}
+
+            plotCustom(self.kicID,"Failed fit result",dataList,r'Time','Autocorrelation'
+                       ,self.figAppendix + "Sinc_Fit_error.png")
             show()
             raise e
         except BaseException as e:
@@ -214,11 +216,10 @@ class NuMaxEvaluator:
 
 
         dataList = {}
-        dataList['Autocorrelation'] = ('x',self._lightCurve[0][0:int(length)]/4,autocor)
-        dataList['Initial Fit'] = ('-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,guess))
-        dataList['Corrected Fit'] = ('-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),*popt))
-        plotCustom(self.kicID,dataList,title="Final Fit",showLegend=True,fileName=self.figAppendix+"Final_fit_.png")
-        show(2)
+        dataList['Autocorrelation'] = ((self._lightCurve[0][0:int(length)]/4,autocor),geom_point,None)
+        dataList['Initial Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,guess)),geom_line,None)
+        dataList['Corrected Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),*popt)),geom_line,None)
+        plotCustom(self.kicID,"Final Fit",dataList,r'Time','Autocorrelation',self.figAppendix+"Final_fit_.png",2)
 
         tau_first_fit = popt[2]/60
         #this is total hack. FIXME
@@ -272,18 +273,16 @@ class NuMaxEvaluator:
 
         arr = [1,tauGuess]
 
-        dataList = {'data':('x',x,y),"Initial Guess":(
-        '-',np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess))}
-        plotCustom(self.kicID,dataList,title='Initial Guess Fit',showLegend=True,fileName=self.figAppendix+"InitGuess.png")
-        show(4)
+        dataList = {'Data':((x,y),geom_point,None),
+                    "Initial Guess":((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess)),geom_line,None)}
+        plotCustom(self.kicID,'Initial Guess Fit',dataList,r'Time','Autocorrelation',self.figAppendix+"InitGuess.png",4)
         popt, pcov = optimize.curve_fit(sinc,x,y,p0=arr,maxfev = 5000)
 
         #compute residuals
 
-        dataList = {'data': ('x', x, y), "Fit": (
-        '-', np.linspace(0, 20000, num=50000), sinc(np.linspace(0, 20000, num=50000),*popt))}
-        plotCustom(self.kicID,dataList, title='Initial Sinc fit', showLegend=True,fileName=self.figAppendix + "InitSincFit.png")
-        show(4)
+        dataList = {'Data': ((x, y),geom_point,None),
+                    "Fit": ((np.linspace(0, 20000, num=50000), sinc(np.linspace(0, 20000, num=50000),*popt)),geom_line,None)}
+        plotCustom(self.kicID,'Initial Sinc fit',dataList, r'Time','Autocorrelation',self.figAppendix+"InitSincFit.png",4)
 
         residuals = y-sinc(x,*popt)
         scaled_time_array = x / popt[1]
@@ -296,19 +295,17 @@ class NuMaxEvaluator:
         popt,pcov = optimize.curve_fit(sin,cut,residuals,p0=arr,maxfev=5000)
         b = popt[0]
 
-        dataList = {"Residual data": ('x', cut, residuals), "Sin Fit": (
-            '-', np.linspace(0,20000,num=50000),sin(np.linspace(0,20000,num=50000),*popt))}
-        plotCustom(self.kicID,dataList, title='Sin fit', showLegend=True, fileName=self.figAppendix + "SinFit.png")
-        show(4)
+        dataList = {"Residual data": ((cut, residuals),geom_point,None),
+                    "Sin Fit": ((np.linspace(0,20000,num=50000),sin(np.linspace(0,20000,num=50000),*popt)),geom_line,None)}
+        plotCustom(self.kicID,'Sin fit',dataList,r"Time","Autocorrelation",self.figAppendix + "SinFit.png",4)
 
         y =  y[scaled_time_array<=2] - sin(cut,*popt)
 
         popt, pcov = optimize.curve_fit(sinc,cut,y,p0=arr,maxfev = 5000)
 
-        dataList = {"data": ('x', cut, y), "Sinc fit": (
-            '-', np.linspace(0,20000,num=50000),sinc(np.linspace(0,20000,num=50000),*popt))}
-        plotCustom(self.kicID,dataList, title='Second Sinc fit', showLegend=True, fileName=self.figAppendix + "SecondSinc.png")
-        show(4)
+        dataList = {"data": ((cut, y),geom_point,None),
+                    "Sinc fit": ((np.linspace(0,20000,num=50000),sinc(np.linspace(0,20000,num=50000),*popt)),geom_line,None)}
+        plotCustom(self.kicID,'Second Sinc fit',dataList,r"Time","Autocorrelation",self.figAppendix + "SecondSinc.png",4)
 
         returnList = [popt[0],b,popt[1]]
 

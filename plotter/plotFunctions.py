@@ -311,12 +311,57 @@ def plotLightCurve(data, visibilityLevel=0, fileName=""):
     if fileName != "":
         saveFigToResults(data.kicID, fileName, p)
 
-
-def plotCustom(kicID, dataList, title="", showLegend=False, fileName=""):
+def plotCustom(kicID, title, data, xLabel="", yLabel="", fileName ="", visibilityLevel = 0):
     """
+    Custom Plotter, designed to be a convinient function to plot a certain dataset.
+    :param kicID: The KICID for the plot. Needed for saving the plot
+    :type kicID: str
+    :param data: Dataset containing the plotData and other parameters. Should look like this:
+                    {name:(data,linestyle,linetype)}
+                    name:Name of the dataset
+                    data:Dataset to plot. First axis is x-Axis, Second is y-Axis
+                    linestyle: The linestyle used, i.e geom_line, geom_point, etc.
+                    linetype: dashed, solid etc. Can be None
+    :type data: dict
+    :param title: The title of the plot
+    :type title: str
+    :param xLabel: The xLabel of the plot
+    :type xLabel: str
+    :param yLabel: The yLabel of the plot
+    :type yLabel: str
+    :param fileName:The filename with which you want to save the plot. If it is empty, the plot will not be saved
+    :type fileName:str
+    :param visibilityLevel:This parameter defines if the plot is shown or not. If visibilityLevel<SettingsLevel it will
+    be shown
+    :type visibilityLevel:int
+    :return:
+    """
+    p = ggplot()
+    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
+    for name,(data,linestyle,linetype) in data.items():
+        linetype = 'solid' if linetype is None else linetype
+        plotData = pd.DataFrame({'x':data[0],'y':data[1],'Legend':[name]*len(data[1])})
+        if linestyle == geom_point:
+            p = p+linestyle(aes(x='x',y='y',color='Legend'),data=plotData)
+        else:
+            p = p + linestyle(aes(x='x', y='y', color='Legend'), data=plotData,linetype=linetype)
+
+    p = p+ggtitle(title)+xlab(xLabel)+ylab(yLabel)
+
+    if visibilityLevel <= debugLevel:
+        print(p)
+
+    if fileName != "":
+        saveFigToResults(kicID, fileName, p)
+
+
+
+"""
+def plotCustom(kicID, dataList, title="", showLegend=False, fileName=""):
+    '''
     Custom plotter. Convinience function. Plots the data from dataList.Due to the inconsistency and different
     plotting devices, show() needs to be called.
-    :param kicID: KicID/Title of the plot
+    :param kicID: KicID of the plot
     :type kicID: str
     :param dataList: The actual datalist that will be plotted. The structure of the dataList has to be in the form:
     {label,(marker,x,y)}
@@ -330,7 +375,7 @@ def plotCustom(kicID, dataList, title="", showLegend=False, fileName=""):
     :type showLegend: bool
     :param fileName:The filename with which you want to save the plot. If it is empty, the plot will not be saved
     :type fileName:str
-    """
+    '''
     fig = pl.figure()
     for label, (marker, x, y) in dataList.items():
         pl.plot(x, y, marker, label=label)
@@ -344,7 +389,7 @@ def plotCustom(kicID, dataList, title="", showLegend=False, fileName=""):
     if fileName != "":
         saveFigToResults(kicID, fileName, fig)
     return fig
-
+"""
 
 def show(visibilityLevel=0):
     """
