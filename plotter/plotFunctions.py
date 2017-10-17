@@ -9,6 +9,7 @@ from readerWriter.resultsWriter import ResultsWriter
 from res.strings import *
 from settings.settings import Settings
 
+pl.switch_backend('Agg')
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 

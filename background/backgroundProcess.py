@@ -111,7 +111,7 @@ class BackgroundProcess:
 
         self.evaluateRun(self._binaryDictToExecute)
 
-    def _checkDiamondsStdOut(self,text):
+    def _checkDiamondsStdOut(self,oldStatus,text):
         """
         Checks the stdout of DIAMONDS and returns the status, that DIAMONDS has.
         :param text: stderr/stdout of diamonds that is analyzed.
@@ -119,7 +119,7 @@ class BackgroundProcess:
         :return: Statusflag
         :rtype: str
         """
-        status = strDiamondsStatusRunning
+        status = oldStatus
         if strDiamondsErrBetterLikelihood in str(text):
             self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
             status = strDiamondsStatusLikelihood
@@ -149,7 +149,7 @@ class BackgroundProcess:
             bg = Background(kicID=self.kicID,modelObject=model,rootPath=rootPath)
             bg.run()
             bg.writeResults(rootPath,"background_")
-            status = self._checkDiamondsStdOut(buf.getvalue())
+            status = self._checkDiamondsStdOut(strDiamondsStatusRunning,buf.getvalue())
             if  status == strDiamondsStatusRunning:
                 finished = True
                 self._status[runID] = strDiamondsStatusGood
@@ -171,13 +171,14 @@ class BackgroundProcess:
         """
         finished = False
         with cd(self.diamondsBinaryPath):
+            self._status[runID] = strDiamondsStatusRunning
             p = self._runBinary(cmd)
 
             while p.poll() is None:
                 line = p.stderr.readline()
                 self.logger.info(line)
 
-                self._status[runID] = self._checkDiamondsStdOut(line)
+                self._status[runID] = self._checkDiamondsStdOut(self._status[runID],line)
 
             self.logger.debug(p.stderr.read())
             self.logger.info("Command '" + str(cmd) + "' done")

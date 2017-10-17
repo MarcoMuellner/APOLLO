@@ -224,8 +224,10 @@ class ResultsWriter:
                       ,strAnalyseSectDiamonds
                       ,strAnalyzerResSectAnalysis]
                 for i in priorKeys:
-                    resultDict[i] = {}
-                    resultDict[i][key] = {}
+                    if i not in resultDict.keys():
+                        resultDict[i] = {}
+                    if key not in resultDict[i].keys():
+                        resultDict[i][key] = {}
 
                 resultDict[strAnalyzerResSectDiamondsPriors][key]=value.prior.getData(mode=key)
 
