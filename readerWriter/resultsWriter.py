@@ -198,7 +198,7 @@ class ResultsWriter:
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
-        imagePath = ROOT_PATH + analyserResultsPath + "images/"
+        imagePath = os.path.abspath(analyserResultsPath) + "/images/"
         resultDict = {}
 
         paths = [analyserResultsPath, imagePath]
