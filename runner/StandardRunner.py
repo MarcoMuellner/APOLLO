@@ -10,6 +10,7 @@ from background.fileModels.backgroundFileCreator import BackgroundFileCreator
 from readerWriter.inputFileReader import InputFileReader
 from plotter.plotFunctions import *
 from support.directoryManager import cd
+from fitter.fitFunctions import *
 
 
 class StandardRunner(multiprocessing.Process):
@@ -156,6 +157,46 @@ class StandardRunner(multiprocessing.Process):
         :rtype: InputDataEvaluator
         '''
         file = InputFileReader(filename)
+
+        amp = (np.amax(file.lightCurve[1]) - np.amin(file.lightCurve[1]))/2
+        tau = file.lightCurve[0][np.where(np.amin(file.lightCurve[1])==file.lightCurve[1])[0]] - \
+              file.lightCurve[0][np.where(np.amax(file.lightCurve[1])==file.lightCurve[1])[0]]
+        offset = np.mean(file.lightCurve[1])
+
+        print("Amp is "+str(amp))
+        print("tau is " + str(5))
+        print("offset is " + str(offset))
+
+        popt,perr = scipyFit(file.lightCurve[0],file.lightCurve[1],sinOffset,p0=[amp,5,offset,0])
+        residual = file.lightCurve[1] - sinOffset(file.lightCurve[0],*popt)
+
+        data = {"Data":((file.lightCurve[0],file.lightCurve[1]),geom_point,None),
+                "SpotFit":((file.lightCurve[0],sinOffset(file.lightCurve[0],*popt)),geom_line,"solid"),
+                "Residual": ((file.lightCurve[0], residual), geom_point, "solid")}
+
+        plotCustom(self.kicID,"SpotFit",data)
+
+        ################
+        amp = (np.amax(residual) - np.amin(residual))/2
+        tau = file.lightCurve[0][np.where(np.amin(residual)==residual)[0]] - \
+              file.lightCurve[0][np.where(np.amax(residual)==residual)[0]]
+        offset = np.mean(residual)
+
+        print("Amp is "+str(amp))
+        print("tau is " + str(5))
+        print("offset is " + str(offset))
+
+        popt,perr = scipyFit(file.lightCurve[0],residual,sinOffset,p0=[amp,5,offset,0])
+        residualOld = residual
+        residual = residual - sinOffset(file.lightCurve[0],*popt)
+
+        data = {"Data":((file.lightCurve[0],residualOld),geom_point,None),
+                "SpotFit":((file.lightCurve[0],sinOffset(file.lightCurve[0],*popt)),geom_line,"solid"),
+                "Residual": ((file.lightCurve[0], residual), geom_point, "solid")}
+
+        plotCustom(self.kicID,"SpotFit",data)
+
+        file.lightCurve = np.array((file.lightCurve[0],residual))
 
         powerCalc = InputDataEvaluator(np.conjugate(file.lightCurve))
         powerCalc.kicID = self.kicID

@@ -4,9 +4,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def scipyFit(x, y, method):
+def scipyFit(x, y, method,p0 = None):
     print(type(x), type(y))
-    popt, pcov = optimize.curve_fit(method, x, y)
+    popt, pcov = optimize.curve_fit(method, x, y,p0=p0)
     perr = np.sqrt(np.diag(pcov))
     return popt, perr
 
@@ -30,6 +30,9 @@ def gaussian(x, y0, amp, cen, wid):
     :rtype:1-D numpy array
     '''
     return y0 + (amp / (np.sqrt(2 * np.pi) * wid)) * np.exp(-(x - cen) ** 2 / (2 * wid ** 2))
+
+def sinOffset(x,amp,tau,offset,phi):
+    return offset+amp*np.sin(2*np.pi*x/tau+phi)
 
 
 def linearPolynomial(x, a, b):
