@@ -81,11 +81,15 @@ for i in kicList:
     logger.info("STARTING STAR " + i)
     logger.info("************************************")
     runner = StandardRunner(i,filePath)
-    runner.run()
     try:
-        runner.join()
-    except AssertionError:
-        logger.debug("Runner already finished.")
+        runner.run()
+        try:
+            runner.join()
+        except AssertionError:
+            logger.debug("Runner already finished.")
+    except:
+        logger.warning("Run for "+i +"failed")
+        continue
     logger.info("************************************")
     logger.info("STAR" + i +"FINISHED")
     logger.info("************************************")
