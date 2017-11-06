@@ -45,8 +45,8 @@ def testFlickerandInitFilter(nuMaxObject):
 
     :type nuMaxObject: NuMaxEvaluator
     '''
-    assert abs(nuMaxObject._amp_flic -376.26416450273649) < 10**-6
-    assert abs(nuMaxObject._init_nu_filter - 14.764921474649485) < 10 ** -6
+    assert abs(nuMaxObject._amp_flic -376.24946261729275) < 10**-6
+    assert abs(nuMaxObject._init_nu_filter - 14.765821506000474) < 10 ** -6
     assert len(nuMaxObject.marker) == 1
     assert nuMaxObject.marker["InitialFilter"][0] == nuMaxObject._init_nu_filter
 

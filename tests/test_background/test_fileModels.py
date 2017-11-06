@@ -117,5 +117,7 @@ def testParameterSummary(settings):
 
 def testFailParameterSummary(settings):
     print(settings.customPath)
-    with pytest.raises(IOError):
-        BackgroundParamSummaryModel("thiswill","fail")
+    p = BackgroundParamSummaryModel("thiswill","fail")
+    assert p.getData(strPriorFlatNoise) == 0
+    assert p.getData(strPriorAmpHarvey1) == 0
+    assert p.getData(strPriorFreqHarvey1) == 0
