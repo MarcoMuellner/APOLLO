@@ -6,6 +6,9 @@ from astropy.io import fits
 from res.strings import *
 from settings.settings import Settings
 import pylab as pl
+from fitter.fitFunctions import *
+from plotter.plotFunctions import *
+from plotnine import *
 
 
 class InputFileReader:
@@ -14,14 +17,16 @@ class InputFileReader:
     simple 2-D txt files are available for this class. After calling the constructor, the class will run the computation
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename,kicID):
         """
         Constructor of the FileReader. Triggers the computation of the psd.
         :param filename: Filepath + filename of the lightcurve file that needs reading
         :type filename: str
         """
         self.logger = logging.getLogger(__name__)
+        self.kicID = kicID
         self.setFitsFile(filename)
+
 
 
     def setFitsFile(self, fileName):
@@ -63,8 +68,8 @@ class InputFileReader:
 
     def _removeStray(self,x,y):
         """
-        Removes the stray values of an array. For this it takes the mean of the flux, and removes all values above
-        1.1*mean and below 0.9*mean
+        Removes the stray values of a lightcurve. For this, a histogramm of the y-Values is created, and all values
+        below/above 5 sigma are removed from the curve.
         :param x: temporal axis
         :type x:ndarray
         :param y:flux
@@ -72,12 +77,33 @@ class InputFileReader:
         :return:2-D numpy array without the strays
         :rtype:2-D numpy array
         """
-        x = x[y > np.mean(y) * 0.1]
-        y = y[y > np.mean(y) * 0.1]
+        plotData = {"Before Reduction":(np.array((x,y)),geom_point,None)}
+        sigma = 5
 
-        x = x[y < np.mean(y) * 2]
-        y = y[y < np.mean(y) * 2]
+        bins = np.linspace(np.amin(y),np.amax(y),int((max-min)/20))
+
+        hist = np.histogram(y,bins=bins)[0]
+        bins = bins[0:len(bins)-1]
+
+        amp = np.amax(hist)
+        cen = bins[np.where(hist==amp)]
+        wid = np.std(hist)
+
+        plotCustom(self.kicID,self.kicID+"_histogramm",{"Histogramm":(np.array((bins,hist)),geom_line,'solid')}
+                   ,"bins","counts",self.kicID+"_histogramm",5)
+
+        x = x[y > cen[0] - sigma * wid]
+        y = y[y > cen[0] - sigma * wid]
+
+        x = x[y < cen[0] + sigma * wid]
+        y = y[y < cen[0] + sigma * wid]
+
+        plotData["After Reduction"] = (np.array((x, y)), geom_point, None)
+
+
         y -= np.amin(y)
+        plotCustom(self.kicID,self.kicID+"_reduction",plotData,"Time (d)","Flux (ppm)",self.kicID+"_reduction",5)
+
         return np.array((x, y))
 
     def _readData(self, filename):

@@ -159,7 +159,7 @@ class StandardRunner(multiprocessing.Process):
         :return: The Powerspectraobject containing the lightcurve and psd
         :rtype: InputDataEvaluator
         '''
-        file = InputFileReader(filename)
+        file = InputFileReader(filename,self.kicID)
         """
         amp = (np.amax(file.lightCurve[1]) - np.amin(file.lightCurve[1]))/2
         tau = file.lightCurve[0][np.where(np.amin(file.lightCurve[1])==file.lightCurve[1])[0]] - \
