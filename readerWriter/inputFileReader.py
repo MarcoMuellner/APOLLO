@@ -5,6 +5,7 @@ from astropy.io import fits
 
 from res.strings import *
 from settings.settings import Settings
+import pylab as pl
 
 
 class InputFileReader:
@@ -34,6 +35,7 @@ class InputFileReader:
         """
         self._rawData = self._readData(fileName)
         self.lightCurve = self._refineData(self._rawData)
+
         return self.lightCurve
 
     def _refineData(self, rawData):
@@ -70,12 +72,11 @@ class InputFileReader:
         :return:2-D numpy array without the strays
         :rtype:2-D numpy array
         """
+        x = x[y > np.mean(y) * 0.1]
+        y = y[y > np.mean(y) * 0.1]
 
-        x = x[y > np.mean(y) * 0.9]
-        y = y[y > np.mean(y) * 0.9]
-
-        x = x[y < np.mean(y) * 1.1]
-        y = y[y < np.mean(y) * 1.1]
+        x = x[y < np.mean(y) * 2]
+        y = y[y < np.mean(y) * 2]
         y -= np.amin(y)
         return np.array((x, y))
 

@@ -111,14 +111,14 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
                 p = p + geom_line(aes(y=i))
     if markerList is not None:
         try:
-            for i in markerList.keys():
-                logger.debug("Add marker with name '" + i + "'")
-                logger.debug("Add marker at '" + str(markerList[i][0]) + "'")
+            for name,(value,color) in markerList.items():
+                logger.debug("Add marker with name '" + name + "'")
+                logger.debug("Add marker at '" + str(value) + "'")
                 logger.debug("Min x-value: '" + str(min(psd[0])))
                 logger.debug("Max x-value: '" + str(max(psd[0])))
-                idx = (np.abs(psd[0] - markerList[i][0])).argmin()
+                idx = (np.abs(psd[0] - value)).argmin()
                 logger.debug("Real plotted value: '" + str(psd[0][idx]) + "'")
-                p = p + geom_vline(x=psd[0][idx], color=markerList[i][1])
+                p = p + geom_vline(xintercept=psd[0][idx], color=color,linetype="dashed")
         except:
             logger.error("MarkerList needs to be a dict with name,(tuple)")
 

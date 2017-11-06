@@ -58,7 +58,7 @@ class NuMaxEvaluator:
         self.duty_cycle = np.mean(self.lightCurve[0][1:self.elements -1] - self.lightCurve[0][0:self.elements
                                                                           -2])
         self.logger.debug("Duty cycle is '"+str(self.duty_cycle) +"'" )
-        normalized_bin = np.round(filterTime*3600/int(self.duty_cycle))
+        normalized_bin = np.round(filterTime *24*3600/int(self.duty_cycle))
         self.logger.debug("Normalized Bin is '"+str(normalized_bin)+"'")
         bins = int(self.elements/normalized_bin)
 

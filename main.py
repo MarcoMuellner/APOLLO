@@ -87,8 +87,10 @@ for i in kicList:
             runner.join()
         except AssertionError:
             logger.debug("Runner already finished.")
-    except:
+    except Exception as e:
         logger.warning("Run for "+i +"failed")
+        logger.warning(e)
+        logger.warning(e.__traceback__)
         continue
     logger.info("************************************")
     logger.info("STAR" + i +"FINISHED")

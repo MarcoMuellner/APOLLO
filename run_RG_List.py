@@ -1,6 +1,8 @@
 from runner.StandardRunner import StandardRunner
 import logging
 from loghandler.loghandler import *
+from settings.settings import Settings
+from res.strings import *
 
 starList = []
 #starList.append("004770846_1435") #works
@@ -28,17 +30,14 @@ starList.append("012008916_19")
 
 setup_logging()
 logger = logging.getLogger(__name__)
+Settings.Instance().getSetting(strDataSettings,strSectStarType).value = strStarTypeRedGiant
 
 for i in starList:
     logger.info("************************************")
     logger.info("STARTING STAR " + i)
     logger.info("************************************")
     runner = StandardRunner(i,"/Users/Marco/Google_Drive/Astroseismology/Software/Sterndaten/RG_ENRICO/")
-    runner.run()
-    try:
-        runner.join()
-    except AssertionError:
-        logger.debug("Runner already finished.")
+    runner._internalRun()
     logger.info("************************************")
     logger.info("STAR" + i +"FINISHED")
     logger.info("************************************")

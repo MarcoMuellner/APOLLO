@@ -103,6 +103,7 @@ class BackgroundProcess:
                 else:
                     finished = self._runDiamondsBinaries(runID,cmd)
                 if finished:
+                    self._binaryDictToExecute[runID] = (binary, True)
                     break
 
             if not finished:
@@ -182,6 +183,7 @@ class BackgroundProcess:
 
             self.logger.debug(p.stderr.read())
             self.logger.info("Command '" + str(cmd) + "' done")
+            self.logger.info("Status is "+str(self._status[runID])+"'")
             if self._status[runID] == strDiamondsStatusRunning:
                 finished = True
                 self._status[runID] = strDiamondsStatusGood

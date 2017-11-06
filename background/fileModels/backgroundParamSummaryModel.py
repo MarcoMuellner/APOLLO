@@ -108,12 +108,15 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
             self._rawValues[strSummaryLowCredLim] = values[4]
             self._rawValues[strSummaryUpCredLim] = values[5]
             self._rawValues[strSummarySkew] = values[6]
-
             self._createBackgroundModel()
         except Exception as e:
             self.logger.error("Failed to open File " + file)
             self.logger.error(e)
-            raise IOError
+            self._rawValues[strSummaryMedian] = np.array([0,0,0,0,0,0,0,0,0,0])
+            self._rawValues[strSummaryLowCredLim] = np.array([0,0,0,0,0,0,0,0,0,0])
+            self._rawValues[strSummaryUpCredLim] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+            self._createBackgroundModel()
 
     def _createBackgroundModel(self):
         '''

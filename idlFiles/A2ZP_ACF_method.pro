@@ -57,7 +57,7 @@ PRO A2ZP_ACF_method, filein, filter
 ;filein='KIC008196817.txt'
 ;filein=' '
 readmultiple,filein,data,dim=2
-light_crv=dblarr(2,71961)
+light_crv=dblarr(2,22273)
 light_crv(0,*)=data.x1
 light_crv(1,*)=data.x2
 
@@ -131,7 +131,7 @@ light_crv(1,*)=data.x2
 
     ; Rebinning
     i = LONG(k * index_shift)
-    FOR j = 0, n_bins - 1 DO BEGIN
+    FOR j = 0, n_bins -1 DO BEGIN
         bin_mean = 0.0
         ref_time = i
         count = 1
@@ -157,8 +157,25 @@ light_crv(1,*)=data.x2
         ENDIF
 
         ; Keep original length of light curve
-        amp_rebin_array[ref_time - k * index_shift : (i - 1) - k * index_shift] = bin_mean
-        n_points_per_bin_array[ref_time - k * index_shift : (i - 1) - k * index_shift] = count
+        PRINT, "I"
+        PRINT, i
+        PRINT, "n_bins"
+        PRINT, n_bins
+        PRINT, "LOW"
+        PRINT, ref_time - k * index_shift
+        PRINT, "HIGH"
+        PRINT, (i - 1) - k * index_shift
+        PRINT, "Size"
+        PRINT, SIZE(amp_rebin_array)
+        a = SIZE(amp_rebin_array)
+        PRINT, "A"
+        PRINT,a[1]
+        IF a[1] GT (i - 1) - k * index_shift THEN BEGIN
+          IF (i - 1) - k * index_shift GT ref_time - k * index_shift  THEN BEGIN
+            amp_rebin_array[ref_time - k * index_shift : (i - 1) - k * index_shift] = bin_mean
+            n_points_per_bin_array[ref_time - k * index_shift : (i - 1) - k * index_shift] = count
+          ENDIF
+        ENDIF
     ENDFOR
 
     amp_substract_array = amp_array[k * index_shift:k * index_shift + N_ELEMENTS(amp_rebin_array) - 1] - amp_rebin_array
@@ -196,7 +213,7 @@ light_crv(1,*)=data.x2
  ; curve.
  ; ---------------------------------------------------------------------
 ; nu_filter = 10.0^(5.187) / (amp_flic^(1.560) * 10.0^6)
- nu_filter = 10.0^(5.187) / (amp_flic^(1.560) )
+ nu_filter = 10.0^(5.187) / (amp_flic^(1.560) * 10.0^6)
 
  print, 'First guess for filter = ', nu_filter
 
@@ -205,6 +222,7 @@ light_crv(1,*)=data.x2
 
  ; Perform the smoothing and filtering
  new_normalized_bin_size = ROUND(tau_filter/ duty_cycle)
+ stop
  amp_smoothed_array = TRISMOOTH(light_crv, new_normalized_bin_size)
  amp_filtered_array = amp_array - amp_smoothed_array
 

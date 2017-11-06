@@ -79,15 +79,21 @@ class BackgroundResults:
         summaryRawData = self.summary.getRawData()
 
         for i in range(0, self.summary.dataLength()):
-            self._backgroundParameter.append(
-                BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
-            self._marginalDistributions.append(
-                BackgroundMarginalDistrFileModel(self._names[i], self._units[i], kicID, runID, i))
-            self._marginalDistributions[i].backgrounddata = np.vstack((summaryRawData[strSummaryMedian][i],
-                                                                       summaryRawData[strSummaryLowCredLim][i],
-                                                                       summaryRawData[strSummaryUpCredLim][i]))
-            if self._backgroundParameter[i].getData() is None:
-                self._psdOnlyFlag = True
+            try:
+                self._backgroundParameter.append(
+                    BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
+            except IOError:
+                self.logger.error("Failed to find backgroundparameter for "+self._names[i])
+            try:
+                self._marginalDistributions.append(
+                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], kicID, runID, i))
+                self._marginalDistributions[i].backgrounddata = np.vstack((summaryRawData[strSummaryMedian][i],
+                                                                           summaryRawData[strSummaryLowCredLim][i],
+                                                                           summaryRawData[strSummaryUpCredLim][i]))
+                if self._backgroundParameter[i].getData() is None:
+                    self._psdOnlyFlag = True
+            except IOError:
+                self.logger.error("Failed to find marginal distribution for "+self._names[i])
 
         if tEff is not None:
             self._tEff = ufloat(tEff, 200)

@@ -72,6 +72,9 @@ class StandardRunner(multiprocessing.Process):
 
         self._nuMaxResult = self._computeNuMax(self._psdCalc)
         self.logger.info("NuMax is "+str(self._nuMaxResult[0]))
+        self.logger.info(self._nuMaxResult)
+        self.logger.info(self._nuMaxResult[1].marker)
+        plotPSD(self._psdCalc,True,self._nuMaxResult[1].marker,False,1,"Nu Max values")
 
         self._priors = self._computePriors(self._nuMaxResult[0],self._psdCalc)
         self.logger.info("Priors are:")
@@ -157,7 +160,7 @@ class StandardRunner(multiprocessing.Process):
         :rtype: InputDataEvaluator
         '''
         file = InputFileReader(filename)
-
+        """
         amp = (np.amax(file.lightCurve[1]) - np.amin(file.lightCurve[1]))/2
         tau = file.lightCurve[0][np.where(np.amin(file.lightCurve[1])==file.lightCurve[1])[0]] - \
               file.lightCurve[0][np.where(np.amax(file.lightCurve[1])==file.lightCurve[1])[0]]
@@ -197,7 +200,7 @@ class StandardRunner(multiprocessing.Process):
         plotCustom(self.kicID,"SpotFit",data)
 
         file.lightCurve = np.array((file.lightCurve[0],residual))
-
+        """
         powerCalc = InputDataEvaluator(np.conjugate(file.lightCurve))
         powerCalc.kicID = self.kicID
 
@@ -269,7 +272,10 @@ class StandardRunner(multiprocessing.Process):
         BackgroundFileCreator(self.kicID, powerCalc.powerSpectralDensity, powerCalc.nyqFreq, priors)
 
         proc = BackgroundProcess(self.kicID)
-        proc.start()
+        try:
+            proc.start()
+        except ValueError:
+            self.logger.error("Background Process failed for kicID "+self.kicID)
         ResultsWriter.Instance(self.kicID).diamondsRunner = proc
 
     def _computeResults(self):

@@ -196,7 +196,7 @@ class ResultsWriter:
 
         '''
         starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
-        analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
+        analyserResultsPath = os.path.abspath(Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value)
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
         imagePath = os.path.abspath(analyserResultsPath) + "/images/"
         resultDict = {}
@@ -235,12 +235,17 @@ class ResultsWriter:
                 resultDict[strAnalyseSectDiamonds][key][strEvidSkillInfLog] = value.evidence.getData(strEvidSkillInfLog)
 
                 for backPriorKey,backPriorValue in value.summary.getData().items():
-                    resultDict[strAnalyseSectDiamonds][key][backPriorKey] = format(backPriorValue)
-                    if backPriorValue/resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][0] < 1.05 or \
-                            backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][1] > 0.95:
-                        resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay"
-                    else:
-                        resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
+                    try:
+                        resultDict[strAnalyseSectDiamonds][key][backPriorKey] = format(backPriorValue)
+                        if backPriorValue/resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][0] < 1.05 or \
+                                backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][1] > 0.95:
+                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay"
+                        else:
+                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
+                    except KeyError:
+                        self.logger.error("Failed fo find value for key: "+backPriorKey)
+                        self.logger.error("Failed fo find value for run: " + key)
+                        self.logger.error("Failed fo find value for section: " + strAnalyzerResSectDiamondsPriors)
 
             if len(self.diamondsRunner.status.items()) != 0:
                 if strAnalyseSectDiamonds not in resultDict.keys():
