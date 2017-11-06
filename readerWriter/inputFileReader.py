@@ -80,7 +80,7 @@ class InputFileReader:
         plotData = {"Before Reduction":(np.array((x,y)),geom_point,None)}
         sigma = 5
 
-        bins = np.linspace(np.amin(y),np.amax(y),int((max-min)/20))
+        bins = np.linspace(np.amin(y),np.amax(y),int((np.amax(y)-np.amin(y))/20))
 
         hist = np.histogram(y,bins=bins)[0]
         bins = bins[0:len(bins)-1]
