@@ -19,7 +19,7 @@ strSectStarType= 'Star Type'
 #strDiamondsSettings
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectBackgroundResPath   = 'Background Results Path'
-strSectDiamondsBinaryPath = 'Diamonds binary path'
+strSectDiamondsBinaryPath = 'Background binary path'
 strSectFittingMode = 'Fitting mode'
 strSectPyDIAMONDSRootPath = 'PyDIAMONDS root path'
 strSectDiamondsRunMode = 'Diamonds run mode'
