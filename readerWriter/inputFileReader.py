@@ -77,8 +77,10 @@ class InputFileReader:
         :return:2-D numpy array without the strays
         :rtype:2-D numpy array
         """
-        plotData = {"Before Reduction":(np.array((x,y)),geom_point,None)}
+        plotData = {"Before Reduction":(np.array((x,y)), geom_point,None)}
         sigma = 5
+
+        l = len(x)
 
         bins = np.linspace(np.amin(y),np.amax(y),int((np.amax(y)-np.amin(y))/20))
 
@@ -89,14 +91,36 @@ class InputFileReader:
         cen = bins[np.where(hist==amp)]
         wid = np.std(hist)
 
-        plotCustom(self.kicID,self.kicID+"_histogramm",{"Histogramm":(np.array((bins,hist)),geom_line,'solid')}
+        p0 = [0,amp,cen[0],wid]
+        boundaries = ([-0.1,-np.inf,-np.inf,-np.inf],[0.1,np.inf,np.inf,np.inf])
+
+        popt,__ = scipyFit(bins,hist,gaussian,p0,boundaries)
+
+        self.logger.info("Negative boundary " + str(cen - sigma * wid))
+        self.logger.info("Positive boundary " + str(cen + sigma * wid))
+        self.logger.info("Center " + str(cen))
+        self.logger.info("Sigma " + str(sigma))
+        self.logger.info("Width " + str(wid))
+        self.logger.info("Fit values, y0:"+str(popt[0])+" amp:"+str(popt[1])+" cen:"+str(popt[2])+" wid:"+str(popt[3]))
+
+        cen = popt[2]
+        wid = popt[3]
+
+        histogramPlotData = {"Histogramm":(np.array((bins,hist)),geom_line,'solid'),
+                             "Fit":(np.array((bins,gaussian(bins,*popt))),geom_line,'solid'),
+                             "Negative Boundary": (np.array(([cen - sigma * wid])), geom_vline, 'dashed'),
+                             "Positive Boundary": (np.array(([cen + sigma * wid])), geom_vline, 'dashed')}
+
+        plotCustom(self.kicID,self.kicID+"_histogramm",histogramPlotData
                    ,"bins","counts",self.kicID+"_histogramm",5)
 
-        x = x[y > cen[0] - sigma * wid]
-        y = y[y > cen[0] - sigma * wid]
+        x = x[y > cen - sigma * wid]
+        y = y[y > cen - sigma * wid]
 
-        x = x[y < cen[0] + sigma * wid]
-        y = y[y < cen[0] + sigma * wid]
+        x = x[y < cen + sigma * wid]
+        y = y[y < cen + sigma * wid]
+        self.logger.info("Removed " + str(l - len(x)) + " points from datastructure")
+
 
         plotData["After Reduction"] = (np.array((x, y)), geom_point, None)
 

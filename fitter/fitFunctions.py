@@ -4,9 +4,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def scipyFit(x, y, method,p0 = None):
-    print(type(x), type(y))
-    popt, pcov = optimize.curve_fit(method, x, y,p0=p0)
+def scipyFit(x, y, method,p0 = None,boundaries = (-np.inf,np.inf)):
+    if boundaries is not None and len(boundaries) != 2:
+        raise ValueError("Boundaries need to be a two 2D tuple")
+
+    if p0 is not None and boundaries is not None and len(p0) != len(boundaries[0]):
+        raise ValueError("P0 and Fixed Array have to have the same length")
+    popt, pcov = optimize.curve_fit(method, x, y,p0=p0,bounds = boundaries)
     perr = np.sqrt(np.diag(pcov))
     return popt, perr
 
