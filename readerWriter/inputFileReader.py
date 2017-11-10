@@ -271,6 +271,9 @@ class InputFileReader:
 
         return npArrays[maxIndex]
 
+    def removeUnrelatedVariations(self):
+        pass
+
     @property
     def lightCurve(self):
         """

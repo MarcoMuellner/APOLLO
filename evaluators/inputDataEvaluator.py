@@ -102,7 +102,11 @@ class InputDataEvaluator:
         f, psd = signal.periodogram(lightCurve[1], fs,scaling='density')
         f = f*10**6
         psd = np.divide(psd[1:],10**6)
-        return np.array((f[1:],psd))
+
+        f = f[1:]
+        psd = psd[f > 30]
+        f = f[f > 30]
+        return np.array((f,psd))
 
     def __butter_lowpass_filtfilt(self,data,order=5):
         '''

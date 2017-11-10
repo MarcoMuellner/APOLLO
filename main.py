@@ -93,7 +93,7 @@ for i in kicList:
         logger.warning(e.__traceback__)
         continue
     logger.info("************************************")
-    logger.info("STAR" + i +"FINISHED")
+    logger.info("STAR " + i +" FINISHED")
     logger.info("************************************")
 
 

@@ -159,7 +159,7 @@ class PriorEvaluator:
         :return: Min-Max value for the photon noise in ppm^2
         :rtype: tuple, 2 values as float
         '''
-        return (0.2 * self._photonNoise, 2 * self._photonNoise)
+        return (0.2 * self._photonNoise, 4 * self._photonNoise)
 
     @property
     def photonNoise(self):
