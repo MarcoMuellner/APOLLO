@@ -75,14 +75,14 @@ def testPhotonNoise(lightCurveInitObject):
 
     :type lightCurveInitObject: InputDataEvaluator
     '''
-    assert abs(lightCurveInitObject.photonNoise -4.174009048728105)<10**-4
+    assert abs(lightCurveInitObject.photonNoise -4.174009048728105)<10**-1
 
 def testNyqFreq(lightCurveInitObject):
     '''
 
     :type lightCurveInitObject: InputDataEvaluator
     '''
-    assert abs(lightCurveInitObject.nyqFreq -283.20699116753133)<10**-4
+    assert abs(lightCurveInitObject.nyqFreq -283.20699116753133)<10**-1
 
 @pytest.mark.parametrize("kics",[0,"hello",0.0])
 def testKicID(lightCurveInitObject,kics):

@@ -41,3 +41,42 @@ def testStart(defaultObject,errorModes):
     assert defaultObject.status[strDiamondsModeFull] == errorModes[1]
     assert defaultObject.status[strDiamondsModeNoise] == errorModes[1]
 
+
+@pytest.mark.parametrize("texts",[("Fine text",strDiamondsStatusRunning),
+                                  (strDiamondsErrBetterLikelihood,strDiamondsStatusLikelihood),
+                                  (strDiamondsErrCovarianceFailed,strDiamondsStatusCovariance),
+                                  (strDiamondsErrAssertionFailed,strDiamondsStatusAssertion)])
+def testCheckDiamondsStdOut(defaultObject,texts):
+    """
+    Checks the Std Out parser of the Process object. Inputs various possible texts and checks if the status is set
+    accordingly to the proper state
+    :type defaultObject: BackgroundProcess
+    :param texts: Texts that are checked
+    :type texts: tuple
+    """
+    defaultStatus = strDiamondsStatusRunning
+    assert texts [1] == defaultObject._checkDiamondsStdOut(defaultStatus,texts[0])
+
+@pytest.mark.parametrize("testDicts",[({strDiamondsModeFull:("",True),strDiamondsModeNoise:("",False)},False),
+                                      ({strDiamondsModeFull:("",False),strDiamondsModeNoise:("",True)},False),
+                                      ({strDiamondsModeFull:("",False),strDiamondsModeNoise:("",False)},False),
+                                      ({strDiamondsModeFull:("",True),strDiamondsModeNoise:("",True)},True),
+                                      ({strDiamondsModeFull:("",False)},False),
+                                      ({strDiamondsModeNoise:("",False)},False),
+                                      ({strDiamondsModeNoise: ("", True)}, True),
+                                      ({strDiamondsModeFull: ("", True)}, True),
+                                      ])
+def testEvaluateRun(defaultObject,testDicts):
+    """
+    Tests the evaluator of the run. Testdicts provides test Dictionaries with valid results from a run and checks against
+    the second component of the tuple
+    :type defaultObject: BackgroundProcess
+    :param testDicts: Test Dictionaries
+    :type testDicts: tuple
+    """
+    if not testDicts[1]:
+        with pytest.raises(ValueError):
+            defaultObject.evaluateRun(testDicts[0])
+    else:
+        assert testDicts[1] == defaultObject.evaluateRun(testDicts[0])
+
