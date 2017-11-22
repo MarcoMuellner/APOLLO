@@ -4,6 +4,7 @@ import logging
 import numpy as np
 from matplotlib.pyplot import Figure
 from uncertainties import ufloat, ufloat_fromstr
+from collections import OrderedDict
 
 from background.backgroundResults import BackgroundResults
 from res.strings import *
@@ -65,9 +66,9 @@ class ResultsWriter:
         self.powerSpectraCalculator = None
         self.diamondsRunner = None
         self.nuMaxCalculator = None
-        self._diamondsResults = {}
+        self._diamondsResults = OrderedDict()
         self._diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
-        self._images = {}
+        self._images = OrderedDict()
 
         #try to read old values and set flag accordingly
         if self._kicID is not None:
@@ -199,7 +200,7 @@ class ResultsWriter:
         analyserResultsPath = os.path.abspath(Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value)
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
         imagePath = os.path.abspath(analyserResultsPath) + "/images/"
-        resultDict = {}
+        resultDict = OrderedDict()
 
         paths = [analyserResultsPath, imagePath]
         for i in paths:
@@ -212,7 +213,7 @@ class ResultsWriter:
                 np.savetxt("PSD.txt", self.powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
 
             if self.nuMaxCalculator is not None:
-                resultDict[strAnalyzerResSectNuMaxCalc]={}
+                resultDict[strAnalyzerResSectNuMaxCalc]=OrderedDict()
                 for key,(value,color) in self.nuMaxCalculator.marker.items():
                     resultDict[strAnalyzerResSectNuMaxCalc][key]=value
 
@@ -225,9 +226,9 @@ class ResultsWriter:
                       ,strAnalyzerResSectAnalysis]
                 for i in priorKeys:
                     if i not in resultDict.keys():
-                        resultDict[i] = {}
+                        resultDict[i] = OrderedDict()
                     if key not in resultDict[i].keys():
-                        resultDict[i][key] = {}
+                        resultDict[i][key] = OrderedDict()
 
                 resultDict[strAnalyzerResSectDiamondsPriors][key]=value.prior.getData(mode=key)
 
@@ -249,11 +250,11 @@ class ResultsWriter:
 
             if len(self.diamondsRunner.status.items()) != 0:
                 if strAnalyseSectDiamonds not in resultDict.keys():
-                    resultDict[strAnalyseSectDiamonds] = {}
+                    resultDict[strAnalyseSectDiamonds] = OrderedDict()
 
                 for key,value in self.diamondsRunner.status.items():
                     if key not in resultDict[strAnalyseSectDiamonds].keys():
-                        resultDict[strAnalyseSectDiamonds][key]={}
+                        resultDict[strAnalyseSectDiamonds][key]=OrderedDict()
 
                     resultDict[strAnalyseSectDiamonds][key]["Status"] = value
 

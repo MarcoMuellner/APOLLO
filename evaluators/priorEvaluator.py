@@ -25,10 +25,10 @@ class PriorEvaluator:
         '''
         Runs the computation of the priors. Triggered by setting the nuMax property
         '''
+        self._calculateOscillationAmplitude()
         self._calculateFirstHarveyFrequency()
         self._calculate2nd3rdHarveyFrequencies()
         self._calculateHarveyAmplitudes()
-        self._calculateOscillationAmplitude()
         self._calculateSigma()
 
     def _calculate2nd3rdHarveyFrequencies(self):
@@ -55,6 +55,8 @@ class PriorEvaluator:
         #Third Harvey Fit done by myself: -0.704
 
         self._harveyAmplitude = k * pow(self.nuMax, s)
+        if self._harveyAmplitude < self._oscillationAmplitude:
+            self._harveyAmplitude = self.oscillationAmplitude*1.3
 
     def _calculateSigma(self):
         '''
@@ -159,7 +161,7 @@ class PriorEvaluator:
         :return: Min-Max value for the photon noise in ppm^2
         :rtype: tuple, 2 values as float
         '''
-        return (0.2 * self._photonNoise, 4 * self._photonNoise)
+        return (0.5 * self._photonNoise, 1.5 * self._photonNoise)
 
     @property
     def photonNoise(self):

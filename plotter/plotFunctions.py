@@ -172,12 +172,14 @@ def plotParameterTrend(data,fileName):
     assigned to it.
     """
     backgroundParameters = data.getBackgroundParameters()
-    fig = pl.figure()
+    fig = pl.figure(figsize=(20,20))
     for iii in range(0, len(backgroundParameters)):
         par = backgroundParameters[iii].getData()
         pl.subplot(2, 5, iii + 1)
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].name + ' (' + backgroundParameters[iii].unit + ')', fontsize=16)
+
+
 
     if fileName != "":
         saveFigToResults(data.kicID, fileName, fig)
@@ -360,43 +362,6 @@ def plotCustom(kicID, title, data, xLabel="", yLabel="", fileName ="", visibilit
 
     if fileName != "":
         saveFigToResults(kicID, fileName, p)
-
-
-
-"""
-def plotCustom(kicID, dataList, title="", showLegend=False, fileName=""):
-    '''
-    Custom plotter. Convinience function. Plots the data from dataList.Due to the inconsistency and different
-    plotting devices, show() needs to be called.
-    :param kicID: KicID of the plot
-    :type kicID: str
-    :param dataList: The actual datalist that will be plotted. The structure of the dataList has to be in the form:
-    {label,(marker,x,y)}
-    - label is the label of the line
-    - marker is the way the plot is shown, i.e.'x','o', '-' and so on
-    - x,y is the actual data that needs to be shown
-    :type dataList: dict[str,(str,ndarray,ndarray)]
-    :param title: Title of the whole plot
-    :type title: str
-    :param showLegend: Flag if the legend should be shown
-    :type showLegend: bool
-    :param fileName:The filename with which you want to save the plot. If it is empty, the plot will not be saved
-    :type fileName:str
-    '''
-    fig = pl.figure()
-    for label, (marker, x, y) in dataList.items():
-        pl.plot(x, y, marker, label=label)
-
-    if title != "":
-        pl.title(title)
-
-    if showLegend:
-        pl.legend()
-
-    if fileName != "":
-        saveFigToResults(kicID, fileName, fig)
-    return fig
-"""
 
 def show(visibilityLevel=0):
     """

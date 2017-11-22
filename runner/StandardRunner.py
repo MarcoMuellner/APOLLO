@@ -167,6 +167,7 @@ class StandardRunner(multiprocessing.Process):
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc, True,visibilityLevel=2,fileName="PSD.png")
+
         return powerCalc
 
 
@@ -249,7 +250,7 @@ class StandardRunner(multiprocessing.Process):
         for fitMode,binary in models.items():
             if diamondsModel in [strFitModeBayesianComparison,fitMode]:
                 result = BackgroundResults(kicID=self.kicID,runID=binary)
-                plotPSD(result, False, visibilityLevel=1, fileName="PSD_Noise_fit.png")
+                plotPSD(result, False, visibilityLevel=1, fileName="PSD_"+binary+"_fit.png")
                 plotParameterTrend(result, fileName=binary+"_Parametertrend.png")
                 show(2)
 

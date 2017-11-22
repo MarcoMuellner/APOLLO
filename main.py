@@ -67,7 +67,9 @@ if args.starType == "RG":
     starMode = strStarTypeRedGiant
 elif args.starType == "YS":
     starMode = strStarTypeYoungStar
-    Settings.Instance().getSetting(strDataSettings,strSectDataRefinement).value = strRefineStray
+    Settings.Instance().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
+else:
+    raise IOError("Startype must be either YS or RG")
 
 Settings.Instance().getSetting(strDataSettings,strSectStarType).value = starMode
 
@@ -87,11 +89,13 @@ for i in kicList:
             runner.join()
         except AssertionError:
             logger.debug("Runner already finished.")
+
     except Exception as e:
         logger.warning("Run for "+i +"failed")
         logger.warning(e)
         logger.warning(e.__traceback__)
         continue
+
     logger.info("************************************")
     logger.info("STAR " + i +" FINISHED")
     logger.info("************************************")

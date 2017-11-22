@@ -61,8 +61,7 @@ class InputFileReader:
             self.logger.debug("Failed to find refine data method with: '" + splitMode + "'")
             raise ValueError
 
-        if strRefineStray == Settings.Instance().getSetting(strDataSettings, strSectDataRefinement).value:
-            lightCurve = self._removeStray(lightCurve[0],lightCurve[1])
+        lightCurve = self._removeStray(lightCurve[0],lightCurve[1])
 
         return lightCurve
 
@@ -87,9 +86,14 @@ class InputFileReader:
         hist = np.histogram(y,bins=bins)[0]
         bins = bins[0:len(bins)-1]
 
-        amp = np.amax(hist)
-        cen = bins[np.where(hist==amp)]
+
+        cen = bins[np.where(hist==np.amax(hist))]
         wid = np.std(hist)
+        if Settings.Instance().getSetting(strDataSettings, strSectStarType) == strStarTypeRedGiant:
+            amp = (np.amax(hist))*np.sqrt(2*np.pi)*wid*np.exp(((cen/wid)**2)/2)
+        else:
+            amp = np.amax(hist)
+
 
         p0 = [0,amp,cen[0],wid]
         boundaries = ([-0.1,-np.inf,-np.inf,-np.inf],[0.1,np.inf,np.inf,np.inf])
@@ -106,8 +110,11 @@ class InputFileReader:
         cen = popt[2]
         wid = popt[3]
 
+        lin = np.linspace(np.min(bins),np.max(bins),len(bins)*100)
+
         histogramPlotData = {"Histogramm":(np.array((bins,hist)),geom_line,'solid'),
-                             "Fit":(np.array((bins,gaussian(bins,*popt))),geom_line,'solid'),
+                             "Initial Fit":(np.array((lin,gaussian(lin,*p0))),geom_line,'solid'),
+                             "Fit":(np.array((lin,gaussian(lin,*popt))),geom_line,'solid'),
                              "Negative Boundary": (np.array(([cen - sigma * wid])), geom_vline, 'dashed'),
                              "Positive Boundary": (np.array(([cen + sigma * wid])), geom_vline, 'dashed')}
 
@@ -125,8 +132,10 @@ class InputFileReader:
         plotData["After Reduction"] = (np.array((x, y)), geom_point, None)
 
 
-        y -= np.amin(y)
+
         plotCustom(self.kicID,self.kicID+"_reduction",plotData,"Time (d)","Flux (ppm)",self.kicID+"_reduction",5)
+
+        y -= cen
 
         return np.array((x, y))
 

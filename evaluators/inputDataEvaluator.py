@@ -2,9 +2,12 @@ import logging
 
 import numpy as np
 from scipy import signal
+from plotnine import *
 
 from res.strings import *
 from settings.settings import Settings
+from fitter.fitFunctions import *
+from plotter.plotFunctions import *
 
 
 class InputDataEvaluator:
@@ -51,7 +54,7 @@ class InputDataEvaluator:
         elif self.lightCurve is None and self.powerSpectralDensity is not None:
             self.logger.warning("Cannot create Lightcurve from PSD alone")
 
-        self._nyq = 0
+        self._nyq = None
 
 
     def lightCurveToPowerspectra(self,lightCurve):
@@ -104,8 +107,9 @@ class InputDataEvaluator:
         psd = np.divide(psd[1:],10**6)
 
         f = f[1:]
-        psd = psd[f > 30]
-        f = f[f > 30]
+        if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
+            psd = psd[f > 30]
+            f = f[f > 30]
         return np.array((f,psd))
 
     def __butter_lowpass_filtfilt(self,data,order=5):
@@ -143,12 +147,12 @@ class InputDataEvaluator:
         :return: The nyquist frequency
         :rtype: float
         '''
-        if self.lightCurve is not None:
+        if self.lightCurve is not None and self._nyq is None:
             self.logger.debug(
                 "Abtastfrequency is '" + str((self._lightCurve[0][3] - self._lightCurve[0][2]) * 24 * 3600) + "'")
             self._nyq = 10 ** 6 / (2 * (self._lightCurve[0][200] - self._lightCurve[0][199])*3600*24)
             self.logger.info("Nyquist frequency is '" + str(self._nyq) + "'")
-        else:
+        elif self.lightCurve is None:
             self.logger.error("LightCurve is None therfore no calculation of nyquist frequency possible")
             raise ValueError
 
@@ -223,7 +227,28 @@ class InputDataEvaluator:
         :rtype: float
         '''
         if self._photonNoise == None and self.powerSpectralDensity is not None:
-            self._photonNoise = np.mean(self.powerSpectralDensity[1][int(0.9 * len(self.powerSpectralDensity[1])):len(self.powerSpectralDensity[1]) - 1])
+            bins = np.linspace(np.amin(self.powerSpectralDensity), np.amax(self.powerSpectralDensity),
+                               int((np.amax(self.powerSpectralDensity) - np.amin(self.powerSpectralDensity)) / 20))
+            hist = np.histogram(self.powerSpectralDensity, bins=bins)[0]
+            bins = bins[0:len(bins) - 1]
+
+            p0 = [0, hist[0], 0]
+            boundaries = ([- 0.1, -np.inf, -np.inf], [+ 0.1, np.inf, np.inf])
+
+            popt, __ = scipyFit(bins, hist, exponentialDistribution, p0, boundaries)
+            self.photonNoise = 1/popt[2]
+
+            self.logger.info("Expected value for photon noise is " + str(1 / popt[2]))
+
+            lin = np.linspace(np.min(bins), np.max(bins), len(bins) * 100)
+            histogramPlotData = {"Histogramm": (np.array((bins, hist)), geom_line, 'solid'),
+                                 "Initial Fit": (np.array((lin, exponentialDistribution(lin, *p0))), geom_line, 'solid'),
+                                 "Fit": (np.array((lin, exponentialDistribution(lin, *popt))), geom_line, 'solid'),
+                                 "Photon Noise": (np.array(([self.photonNoise])), geom_vline, 'dashed')}
+
+            plotCustom(self.kicID, self.kicID + "_psd_histogramm", histogramPlotData
+                       , "bins", "counts", self.kicID + "_psd_histogramm", 5)
+
         return self._photonNoise
 
     @photonNoise.setter
