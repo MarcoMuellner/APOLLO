@@ -60,7 +60,6 @@ elif args.mode == "BC":
 
 logger.info("Mode is " + fitMode)
 Settings.Instance().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
-
 starMode = ""
 
 if args.starType == "RG":
@@ -84,11 +83,7 @@ for i in kicList:
     logger.info("************************************")
     runner = StandardRunner(i,filePath)
     try:
-        runner.run()
-        try:
-            runner.join()
-        except AssertionError:
-            logger.debug("Runner already finished.")
+        runner._internalRun()
 
     except Exception as e:
         logger.warning("Run for "+i +"failed")

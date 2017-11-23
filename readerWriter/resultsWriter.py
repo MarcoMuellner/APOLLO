@@ -97,31 +97,34 @@ class ResultsWriter:
             resultDict = json.load(f)
 
         try:
-            priorContent = self._checkPriorContent(resultDict,strAnalyzerResSectDiamondsPriors)
+            priorContentFailed = self._checkPriorContent(resultDict,strAnalyzerResSectDiamondsPriors)
         except:
             self.logger.info("Diamonds modes not in results file, full programm needed!")
-            priorContent = True
+            priorContentFailed = True
 
         try:
-            resultContent = self._checkPriorContent(resultDict, strAnalyseSectDiamonds, 3)
+            resultContentFailed = self._checkPriorContent(resultDict, strAnalyseSectDiamonds, 3)
         except:
             self.logger.info("Diamonds results are not yet created, full programm needed")
-            resultContent = True
+            resultContentFailed = True
 
-        resultOkay = False
+        resultFailed = False
         try:
             for key,newDict in resultDict[strAnalyzerResSectAnalysis].items():
                 if isinstance(newDict,dict):
                     for name,okayValue in newDict.items():
                         if okayValue != "Okay":
                             self.logger.info("Diamonds results for name "+name+" is not okay, rerunning!")
-                            resultOkay = True
+                            resultFailed = True
         except:
             self.logger.info("Diamonds resultOkay doesn't have an Analyzer section, full programm needed")
-            resultOkay = True
+            resultFailed = True
 
-        self.logger.info("Need for DIAMONDS run is "+str(resultContent or priorContent or resultOkay))
-        return (resultContent or priorContent or resultOkay)
+        self.logger.info("Results Content is (Analyzer section) "+str(resultContentFailed))
+        self.logger.info("Prior Content is "+str(priorContentFailed))
+        self.logger.info("Result okay is "+str(resultFailed))
+        self.logger.info("Need for DIAMONDS run is "+str(resultContentFailed or priorContentFailed or resultFailed))
+        return (resultContentFailed or priorContentFailed or resultFailed)
 
 
     def _checkPriorContent(self, resultDict, sectName, numberOffset=0):
@@ -140,7 +143,7 @@ class ResultsWriter:
         modes = {strDiamondsModeNoise:7+numberOffset,strDiamondsModeFull:10+numberOffset}
 
         for mode,number in modes.items():
-            if self._diamondsModel in [mode, strFitModeBayesianComparison] and len(resultDict[sectName][mode]) != number:
+            if self._diamondsModel in [mode, strFitModeBayesianComparison] and len(resultDict[sectName][mode]) not in [7,10]:
                 self.logger.info("Sector name: " + sectName)
                 self.logger.info("Mode "+mode+" not in results, run full programm")
                 return True

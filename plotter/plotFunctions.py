@@ -8,8 +8,12 @@ import numpy as np
 from readerWriter.resultsWriter import ResultsWriter
 from res.strings import *
 from settings.settings import Settings
+from sys import platform
 
-#pl.switch_backend('Agg')
+#apparently this is necessary for Linux, i don't know why.
+if platform == "linux" or platform == "linux2":
+    pl.switch_backend('Agg')
+
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
