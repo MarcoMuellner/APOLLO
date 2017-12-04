@@ -142,7 +142,7 @@ class PriorEvaluator:
         :return: Min-Max value for the standard deviation in uHz
         :rtype: tuple, 2 values as float
         '''
-        return (0.2 * self._sigma, 1.5 * self._sigma)
+        return (0.01 * self._sigma, 1.3 * self._sigma)
 
     @property
     def oscillationAmplitudeBoundary(self):
@@ -151,7 +151,7 @@ class PriorEvaluator:
         :return: Min-Max value for the amplitude of oscillation in ppm^2
         :rtype: tuple, 2 values as float
         '''
-        return (0.25 * self._oscillationAmplitude, 1.5
+        return (0.25 * self._oscillationAmplitude, 2.5
                 * self._oscillationAmplitude)
 
     @property

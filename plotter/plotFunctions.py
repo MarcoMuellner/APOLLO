@@ -18,7 +18,7 @@ pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
 
-def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, fileName=""):
+def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, fileName="",forceGauss = False):
     '''
     This function creates a possibility to plot a powerSpectralDensity. Depending on the parameters, you can plot
     the PSD only, with markers, with smoothing, the full fit and all combinations of them.
@@ -48,7 +48,7 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     psd = data.powerSpectralDensity
     backgroundModel = None
-    if not psdOnly:
+    if not psdOnly or forceGauss:
         backgroundModel = data.createBackgroundModel()
         if len(backgroundModel) == 5:
             runGauss = True
