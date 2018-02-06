@@ -29,3 +29,13 @@ tests/testFiles/diamondsFiles/background/results/KIC123456789/background_hyperPa
 tests/testFiles/diamondsFiles/background/results/KIC123456789/background_hyperParameters_noise\.txt
 
 kicList\.txt
+
+venv/
+
+\.DS_Store
+
+6424157\.dat
+
+6424157\.dat\.gz
+
+KIC6424157\.txt

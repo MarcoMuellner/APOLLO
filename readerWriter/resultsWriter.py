@@ -211,70 +211,19 @@ class ResultsWriter:
                 os.makedirs(i)
 
         with cd(analyserResultsPath):
-            if self.powerSpectraCalculator is not None:
-                np.savetxt("Lightcurve.txt", self.powerSpectraCalculator.lightCurve, header="Time(days) Flux")
-                np.savetxt("PSD.txt", self.powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
+            self._saveRawData(analyserResultsPath)
 
-            if self.nuMaxCalculator is not None:
-                resultDict[strAnalyzerResSectNuMaxCalc]=OrderedDict()
-                for key,(value,color) in self.nuMaxCalculator.marker.items():
-                    resultDict[strAnalyzerResSectNuMaxCalc][key]=value
+            resultDict = self._createSectionsInMap(resultDict)
 
-                resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.powerSpectraCalculator.nyqFreq
+            resultDict = self._saveMetaFrequencies(resultDict)
 
-            for key,value in self._diamondsResults.items():
-                priorKeys = [strAnalyzerResSectDiamondsPriors
-                      ,strAnalyzerResSectDiamondsPriors
-                      ,strAnalyseSectDiamonds
-                      ,strAnalyzerResSectAnalysis]
-                for i in priorKeys:
-                    if i not in resultDict.keys():
-                        resultDict[i] = OrderedDict()
-                    if key not in resultDict[i].keys():
-                        resultDict[i][key] = OrderedDict()
+            resultDict = self._savePriorStuff(resultDict)
 
-                resultDict[strAnalyzerResSectDiamondsPriors][key]=value.prior.getData(mode=key)
+            resultDict = self._saveStatus(resultDict)
 
-                resultDict[strAnalyseSectDiamonds][key][strEvidSkillLog] = format(value.evidence.getData(strEvidSkillLogWithErr))
-                resultDict[strAnalyseSectDiamonds][key][strEvidSkillInfLog] = value.evidence.getData(strEvidSkillInfLog)
+            self._saveImages(imagePath)
 
-                for backPriorKey,backPriorValue in value.summary.getData().items():
-                    try:
-                        resultDict[strAnalyseSectDiamonds][key][backPriorKey] = format(backPriorValue)
-                        if backPriorValue/resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][0] < 1.05 or \
-                                backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][1] > 0.95:
-                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay"
-                        else:
-                            resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
-                    except KeyError:
-                        self.logger.error("Failed fo find value for key: "+backPriorKey)
-                        self.logger.error("Failed fo find value for run: " + key)
-                        self.logger.error("Failed fo find value for section: " + strAnalyzerResSectDiamondsPriors)
-
-            if len(self.diamondsRunner.status.items()) != 0:
-                if strAnalyseSectDiamonds not in resultDict.keys():
-                    resultDict[strAnalyseSectDiamonds] = OrderedDict()
-
-                for key,value in self.diamondsRunner.status.items():
-                    if key not in resultDict[strAnalyseSectDiamonds].keys():
-                        resultDict[strAnalyseSectDiamonds][key]=OrderedDict()
-
-                    resultDict[strAnalyseSectDiamonds][key]["Status"] = value
-
-            if len(self._images.keys()) != 0:
-                with cd(imagePath):
-                    for imageName,figure in self._images.items():
-                        try:
-                            figure.save(imageName)
-                        except:
-                            try:
-                                figure.savefig(imageName)
-                            except:
-                                self.logger.error("File with name "+imageName+" doesnt seem to be a ggplot or matplotlib type")
-                                raise IOError
-
-            if self._diamondsModel == strFitModeBayesianComparison:
-                resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = self._getBayesFactorEvidence(resultDict)
+            resultDict = self._saveBayesValue(resultDict)
 
             self.logger.debug(resultDict)
             with open("results.json", 'w') as f:
@@ -329,3 +278,110 @@ class ResultsWriter:
             conclusion = "Strong evidence"
 
         return conclusion
+
+    def _saveRawData(self,path):
+        """
+        saves the rawData to path
+        :param path: path to the results
+        :type path: str
+        """
+        with cd(path):
+            if self.powerSpectraCalculator is not None:
+                np.savetxt("Lightcurve.txt", self.powerSpectraCalculator.lightCurve, header="Time(days) Flux")
+                np.savetxt("PSD.txt", self.powerSpectraCalculator.powerSpectralDensity, header="Frequency(uHz) PSD(ppm^2/uHz)")
+
+    def _saveMetaFrequencies(self,resultDict):
+        """
+        Saves characteristic frequencies of the analysis. This includes the three iterative filter frequencies from
+        the iterative fit as well as the Nyquist frequency
+        :param resultDict: resultdict on which to append to
+        :return: resultdict containting the data
+        """
+        if self.nuMaxCalculator is not None:
+            for key, (value, color) in self.nuMaxCalculator.marker.items():
+                resultDict[strAnalyzerResSectNuMaxCalc][key] = value
+
+            resultDict[strAnalyzerResSectNuMaxCalc]["Nyquist"] = self.powerSpectraCalculator.nyqFreq
+
+        return resultDict
+
+    def _createSectionsInMap(self,resultDict):
+
+        resultDict[strAnalyzerResSectNuMaxCalc] = OrderedDict()
+
+        for key, value in self._diamondsResults.items():
+
+            #sections in resultFile
+            priorKeys = [strAnalyzerResSectDiamondsPriors
+                , strAnalyzerResSectDiamondsPriors
+                , strAnalyseSectDiamonds
+                , strAnalyzerResSectAnalysis]
+
+            #adding the sections in the resultFile
+            for i in priorKeys:
+
+                if i not in resultDict.keys():
+                    resultDict[i] = OrderedDict()
+
+                if key not in resultDict[i].keys():
+                    resultDict[i][key] = OrderedDict()
+
+        if len(self.diamondsRunner.status.items()) != 0:
+            if strAnalyseSectDiamonds not in resultDict.keys():
+                resultDict[strAnalyseSectDiamonds] = OrderedDict()
+
+            for key, value in self.diamondsRunner.status.items():
+                if key not in resultDict[strAnalyseSectDiamonds].keys():
+                    resultDict[strAnalyseSectDiamonds][key] = OrderedDict()
+
+        return resultDict
+
+    def _savePriorStuff(self,resultDict):
+        for key, value in self._diamondsResults.items():
+            resultDict[strAnalyzerResSectDiamondsPriors][key] = value.prior.getData(mode=key)
+
+            resultDict[strAnalyseSectDiamonds][key][strEvidSkillLog] = format(
+value.evidence.getData(strEvidSkillLogWithErr))
+            resultDict[strAnalyseSectDiamonds][key][strEvidSkillInfLog] = value.evidence.getData(strEvidSkillInfLog)
+
+            for backPriorKey, backPriorValue in value.summary.getData().items():
+                try:
+                    resultDict[strAnalyseSectDiamonds][key][backPriorKey] = format(backPriorValue)
+                    if backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][0] < 1.05 or \
+                            backPriorValue / resultDict[strAnalyzerResSectDiamondsPriors][key][backPriorKey][1] > 0.95:
+                        resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Not okay"
+                    else:
+                        resultDict[strAnalyzerResSectAnalysis][key][backPriorKey] = "Okay"
+                except KeyError:
+                    self.logger.error("Failed fo find value for key: " + backPriorKey)
+                    self.logger.error("Failed fo find value for run: " + key)
+                    self.logger.error("Failed fo find value for section: " + strAnalyzerResSectDiamondsPriors)
+
+        return resultDict
+
+    def _saveStatus(self,resultDict):
+        if len(self.diamondsRunner.status.items()) != 0:
+            for key, value in self.diamondsRunner.status.items():
+                resultDict[strAnalyseSectDiamonds][key]["Status"] = value
+
+        return resultDict
+
+    def _saveImages(self,imagePath):
+        if len(self._images.keys()) != 0:
+            with cd(imagePath):
+                for imageName, figure in self._images.items():
+                    try:
+                        figure.save(imageName)
+                    except:
+                        try:
+                            figure.savefig(imageName)
+                        except:
+                            self.logger.error(
+                                "File with name " + imageName + " doesnt seem to be a ggplot or matplotlib type")
+                            raise IOError
+
+    def _saveBayesValue(self,resultDict):
+        if self._diamondsModel == strFitModeBayesianComparison:
+            resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = self._getBayesFactorEvidence(resultDict)
+        return resultDict
+
