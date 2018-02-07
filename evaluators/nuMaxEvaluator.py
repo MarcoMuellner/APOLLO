@@ -52,84 +52,37 @@ class NuMaxEvaluator:
         This method is only used internally in the class.
         '''
         #find the new number of bins after the filter
-        self._nyq = 0
-        filterTime = 5
+        filterTime = 5 *24 * 3600 #in days
         self.elements = len(self.lightCurve[0])
-        self.duty_cycle = np.mean(self.lightCurve[0][1:self.elements -1] - self.lightCurve[0][0:self.elements
-                                                                          -2])
-        self.logger.debug("Duty cycle is '"+str(self.duty_cycle) +"'" )
-        normalized_bin = np.round(filterTime *24*3600/int(self.duty_cycle))
-        self.logger.debug("Normalized Bin is '"+str(normalized_bin)+"'")
-        bins = int(self.elements/normalized_bin)
+        self.t_step = np.mean(self.lightCurve[0][1:self.elements] - self.lightCurve[0][0:self.elements- 1])
 
-        # Find out how many points are left
-        n_points_left = self.elements - normalized_bin*bins
-        index_shift = 0
-        n_cols = 1
+        boxSize = np.round(filterTime/int(self.t_step))
+        binCount = int(self.elements/boxSize)
+        pointsLeft = self.elements - boxSize*binCount
 
-        if n_points_left > 1:
-            factors=factorint(n_points_left,multiple=True)
-            self.logger.debug(factors)
-            if len(factors) > 1:
-                index_shift = factors[0]**factors[1]
-            else:
-                index_shift = factors[0]
-            n_cols = int(n_points_left/index_shift + 1)
-        elif n_points_left == 1:
-            n_cols = 2
-            index_shift = 1
+        self.logger.debug("Duty cycle is '" + str(self.t_step) + "'")
+        self.logger.debug("Box Size is '" + str(boxSize) + "'")
+        self.logger.debug("Number of bins is '" + str(binCount) + "'")
 
-        self.logger.debug("Index shift is "+str(index_shift))
-        self.logger.debug("n_cols is "+str(n_cols))
+        indexShift,cols = self._getIndexShift(pointsLeft)
 
+        meanArray,subtractArrayAmplitude = self._getFlickerArrays(cols,indexShift,boxSize,filterTime)
 
-        amp_mean_array = np.zeros(n_cols)
+        meanAmplitude = np.mean(meanArray)
 
-        for k in range(0,n_cols):
-            amp_rebin_array = np.zeros(int(self.elements-n_points_left))
-            n_points_per_bin_array = np.zeros(int(self.elements-n_points_left))
-
-            i = k*index_shift
-
-            for j in range(0,bins):
-                bin_mean = 0.0
-                ref_time = i
-                count = 1
-
-                while i < (self.elements-1) and (self.lightCurve[0][i] - self.lightCurve[0][ref_time])/(3600*24) <filterTime:
-                    bin_mean +=self.lightCurve[1][i]
-                    if self.lightCurve[1][i] != 0:
-                        count +=1
-                    i+=1
-
-                bin_mean += self.lightCurve[1][i]
-                if self.lightCurve[1][i] != 0:
-                    count +=1
-                count_float = float(count)
-
-                if count > 1:
-                    bin_mean /= (count_float-1)
-
-                amp_rebin_array[ref_time - k*index_shift:(i-1)-k*index_shift] = bin_mean
-                n_points_per_bin_array[ref_time - k*index_shift:(i-1) - k*index_shift] = count
-
-            amp_substract_array = self.lightCurve[1][k*index_shift:k*index_shift+len(amp_rebin_array)] -amp_rebin_array
-            amp_substract_array = amp_substract_array[n_points_per_bin_array>=normalized_bin/2]
-            amp_mean_array[k] = np.mean(amp_substract_array)
-
-        amp_mean = np.mean(amp_mean_array)
-
-        self.logger.info("Mean is: '"+str(amp_mean)+"'")
+        self.logger.info("Mean is: '"+str(meanAmplitude)+"'")
 
         #Calculate Flicker Amplitude
-        amp_substract_array = np.unique(amp_substract_array)
-        amp_flic = 0
-        for i in range(0,len(amp_substract_array)):
-            amp_flic +=(amp_substract_array[i] - amp_mean)**2
-        denominator = float(len(amp_substract_array))
-        self._amp_flic = np.sqrt(amp_flic / denominator)
+        subtractArrayAmplitude = np.unique(subtractArrayAmplitude)
+        flicAmplitude = 0
 
-        self.logger.debug("Flicker amplitude is '"+str(amp_flic))
+        for i in range(0,len(subtractArrayAmplitude)):
+            flicAmplitude +=(subtractArrayAmplitude[i] - meanAmplitude)**2
+
+        denominator = float(len(subtractArrayAmplitude))
+        self._amp_flic = np.sqrt(flicAmplitude / denominator)
+
+        self.logger.debug("Flicker amplitude is '"+str(flicAmplitude))
 
     def _calculateInitFilterFrequency(self):
         '''
@@ -178,14 +131,14 @@ class NuMaxEvaluator:
         tau_filter *= 10**6
 
         self.logger.debug("Tau Filter is '"+str(tau_filter)+"'")
-        new_normalized_bin_size = int(np.round(tau_filter/self.duty_cycle))
+        new_normalized_bin_size = int(np.round(tau_filter / self.t_step))
         self.logger.debug("New normalized bin size is '"+str(new_normalized_bin_size)+"'")
         amp_smoothed_array = trismooth(self._lightCurve[1],new_normalized_bin_size)
         amp_filtered_array = self._lightCurve[1]-amp_smoothed_array
 
-        length = 1.5*tau_filter*4/self.duty_cycle
+        length = 1.5*tau_filter*4/self.t_step
         if length > self.elements:
-            length = 1.5*4/(10**-7*self.duty_cycle)-1
+            length = 1.5 * 4 / (10 ** -7 * self.t_step) - 1
         if length > self.elements:
             length = self.elements - 1
 
@@ -367,3 +320,77 @@ class NuMaxEvaluator:
     @kicID.setter
     def kicID(self,value):
         self._kicID = value
+        
+    def _getIndexShift(self,pointsLeft):
+        """
+        Depending on how many points are left in the array from the binsize, this method will return the according
+        indexShift for the data as well as the amount of cols whereover these have to be iterated
+        :param pointsLeft: Restpoints after binning
+        :return: indexShift,cols
+        """
+        indexShift = 0
+        cols = 1
+
+        if pointsLeft > 1:
+
+            factors=factorint(pointsLeft,multiple=True)
+
+            if len(factors) > 1:
+                indexShift = factors[0]**factors[1]
+            else:
+                indexShift = factors[0]
+
+            cols = int(pointsLeft/indexShift + 1)
+
+        elif pointsLeft == 1:
+            cols = 2
+            indexShift = 1
+
+        self.logger.debug("Index shift is "+str(indexShift))
+        self.logger.debug("n_cols is "+str(cols))
+
+        return indexShift,cols
+
+
+    def _getFlickerArrays(self,cols,indexShift,boxSize,filterTime):
+        """
+        This method, depending on the indexshift, boxsize and filtertime creates the appropiate arrays, for which the
+        flicker amplitude is calculated. It calculates the mean of every box for the boxsize
+        """
+        binCount = int(self.elements/boxSize)
+        pointsLeft = self.elements - boxSize*binCount
+
+        arrayMean = np.zeros(cols)
+
+        for k in range(0,cols):
+            arrayRebin = np.zeros(int(self.elements-pointsLeft))
+            nPointsBinArray = np.zeros(int(self.elements-pointsLeft))
+
+            i = k*indexShift
+
+            for j in range(0,binCount):
+                meanBin = 0.0
+                timeReference = i
+                count = 1
+
+                while i < (self.elements-1) and (self.lightCurve[0][i] - self.lightCurve[0][timeReference])/(3600*24) <filterTime:
+                    meanBin +=self.lightCurve[1][i]
+                    if self.lightCurve[1][i] != 0:
+                        count +=1
+                    i+=1
+
+                meanBin += self.lightCurve[1][i]
+                if self.lightCurve[1][i] != 0:
+                    count +=1
+
+                if count > 1:
+                    meanBin /= count-1
+
+                arrayRebin[timeReference - k*indexShift:(i-1)-k*indexShift] = meanBin
+                nPointsBinArray[timeReference - k*indexShift:(i-1) - k*indexShift] = count
+
+            subtractArrayAmplitude = self.lightCurve[1][k*indexShift:k*indexShift+len(arrayRebin)] -arrayRebin
+            subtractArrayAmplitude = subtractArrayAmplitude[nPointsBinArray>=boxSize/2]
+            arrayMean[k] = np.mean(subtractArrayAmplitude)
+
+        return arrayMean,subtractArrayAmplitude
