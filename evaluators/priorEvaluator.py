@@ -19,7 +19,10 @@ class PriorEvaluator:
         '''
         self._powerCalc = powerCalc
         self.photonNoise=powerCalc.photonNoise
-        self.nuMax = nuMax
+        if isinstance(nuMax,float) or isinstance(nuMax,int):
+            self.nuMax = nuMax
+        else:
+            raise TypeError("NuMax needs to be a number!")
 
     def _runComputation(self):
         '''

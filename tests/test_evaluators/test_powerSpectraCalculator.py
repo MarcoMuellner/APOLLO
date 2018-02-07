@@ -75,7 +75,7 @@ def testPhotonNoise(lightCurveInitObject):
 
     :type lightCurveInitObject: InputDataEvaluator
     '''
-    assert abs(lightCurveInitObject.photonNoise -4.174009048728105)<10**-1
+    assert abs(lightCurveInitObject.photonNoise -19.305658352604116)<10**-1
 
 def testNyqFreq(lightCurveInitObject):
     '''

@@ -88,7 +88,7 @@ def testReadAndConvertLightCurve(defaultSetup):
     assert result.powerSpectralDensity is not None
     assert result.lightCurve is not None
     assert result.smoothedData is not None
-    assert abs(result.photonNoise -4.174009048728105) < 10**-1
+    assert abs(result.photonNoise -19.305658352604116) < 10**-1
     assert abs(result.nyqFreq - 283.20699116753133) < 10**-1
 
 def testComputeNuMax(defaultSetup):
