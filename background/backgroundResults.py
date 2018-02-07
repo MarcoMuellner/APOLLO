@@ -325,8 +325,9 @@ class BackgroundResults:
             try:
                 self._backgroundParameter.append(
                     BackgroundParameterFileModel(self._names[i], self._units[i], self._kicID, self._runID, i))
-            except IOError:
+            except IOError as e:
                 self.logger.error("Failed to find backgroundparameter for "+self._names[i])
+                self.logger.error(e)
             try:
                 self._marginalDistributions.append(
                     BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self._kicID, self._runID, i))
@@ -335,5 +336,6 @@ class BackgroundResults:
                                                                            self.summary.getRawData()[strSummaryUpCredLim][i]))
                 if self._backgroundParameter[i].getData() is None:
                     self._psdOnlyFlag = True
-            except IOError:
+            except IOError as e:
                 self.logger.error("Failed to find marginal distribution for "+self._names[i])
+                self.logger.error(e)

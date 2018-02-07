@@ -14,8 +14,14 @@ class obsDict(object):
         self.__lock = Lock()
         self.__readOnly = readOnly
         if self.__checkFile(self.__path):
-            with open(pathToFile, 'rt') as f:
-                self.__map = json.load(f)
+            try:
+                if self.__map != {}:
+                    with open(pathToFile, 'r') as f:
+                        self.__map = json.load(f)
+            except:
+                with open(pathToFile, 'r') as f:
+                    self.__map = json.load(f)
+
         else:
             self.__map = {}
 
@@ -66,7 +72,7 @@ class obsSetting(object):
             self.__logger.log(9,"dict is '"+str(self.__dict.map)+"', innerSect is '"+self.__innerSect+"', option is '"+self.__option+"'")
             self.__dict.bind_to(self.__dictChanged)
             self.__observers =  []
-            self.__lock = Lock()
+ #           self.__lock = Lock()
 
             self.__value = self.__dict.map['Settings'][self.__innerSect][self.__option][strOptionValue]
             self.__logger.log(9,"Value set to '"+self.__value+"'")

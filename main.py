@@ -82,14 +82,14 @@ for i in kicList:
     logger.info("STARTING STAR " + i)
     logger.info("************************************")
     runner = StandardRunner(i,filePath)
-    try:
-        runner._internalRun()
+    #try:
+    runner._internalRun()
 
-    except Exception as e:
-        logger.warning("Run for "+i +"failed")
-        logger.warning(e)
-        logger.warning(e.__traceback__)
-        continue
+    #except Exception as e:
+    #    logger.warning("Run for "+i +"failed")
+    #    logger.warning(e)
+    #    logger.warning(e.__traceback__)
+    #    continue
 
     logger.info("************************************")
     logger.info("STAR " + i +" FINISHED")

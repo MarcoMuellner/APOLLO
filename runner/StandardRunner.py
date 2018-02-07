@@ -1,5 +1,3 @@
-import multiprocessing
-
 from background.backgroundResults import BackgroundResults
 
 from evaluators.nuMaxEvaluator import NuMaxEvaluator
@@ -13,7 +11,7 @@ from support.directoryManager import cd
 from fitter.fitFunctions import *
 
 
-class StandardRunner(multiprocessing.Process):
+class StandardRunner():
     '''
     The Standard Runner class represents a full run for one star. It contains all the results and information about the
     star and includes various subclasses that are accessible within this class, especially in the analyzerResult class.
@@ -37,7 +35,6 @@ class StandardRunner(multiprocessing.Process):
         :type fileName:str
         '''
         self.logger = logging.getLogger(__name__)
-        multiprocessing.Process.__init__(self,kwargs ={'env' : os.environ.copy()})
         self.kicID = kicID
         self.filePath =filePath
         self.fileName = fileName

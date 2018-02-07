@@ -45,8 +45,8 @@ def testFlickerandInitFilter(nuMaxObject):
 
     :type nuMaxObject: NuMaxEvaluator
     '''
-    assert abs(nuMaxObject._amp_flic -376.24946261729275) < 10**-6
-    assert abs(nuMaxObject._init_nu_filter - 14.765821506000474) < 10 ** -6
+    assert abs(nuMaxObject._amp_flic -390.58552866178582) < 10**-6
+    assert abs(nuMaxObject._init_nu_filter - 13.929092048564819 ) < 10 ** -6
     assert len(nuMaxObject.marker) == 1
     assert nuMaxObject.marker["InitialFilter"][0] == nuMaxObject._init_nu_filter
 
@@ -63,9 +63,9 @@ def testFailureIterativeFilter(nuMaxObject,value):
         nuMaxObject._iterativeFilter(0)
 
 @pytest.mark.parametrize("input,output",[
-                            (15,80.33954376499203),
-                            (15.0,80.33954376499203),
-                            (80.33954376499203,112.37891726222568 )
+                            (15,78.383222026099915),
+                            (15.0,78.383222026099915),
+                            (80.33954376499203,18.918587915972843 )
                                         ])
 def testIterativeFilterValues(nuMaxObject,input,output):
     '''

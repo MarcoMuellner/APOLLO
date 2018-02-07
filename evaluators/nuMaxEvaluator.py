@@ -126,36 +126,38 @@ class NuMaxEvaluator:
             raise ValueError("Filter frequency cannot be 0")
 
         self.figAppendix = str("1st_Fit_" if self.lastFilter == 0 else "2nd_Fit_")  # needed for figure saving
-        self.logger.debug("Filterfrequency for iterative filter is '"+str(filterFrequency)+"'")
-        tau_filter = 1/(filterFrequency)
-        tau_filter *= 10**6
 
-        self.logger.debug("Tau Filter is '"+str(tau_filter)+"'")
-        new_normalized_bin_size = int(np.round(tau_filter / self.t_step))
-        self.logger.debug("New normalized bin size is '"+str(new_normalized_bin_size)+"'")
-        amp_smoothed_array = trismooth(self._lightCurve[1],new_normalized_bin_size)
-        amp_filtered_array = self._lightCurve[1]-amp_smoothed_array
+        tauFilter = 10**6/filterFrequency
 
-        length = 1.5*tau_filter*4/self.t_step
+        self.logger.debug("Filterfrequency for iterative filter is '" + str(filterFrequency) + "'")
+        self.logger.debug("Tau Filter is '"+str(tauFilter)+"'")
+
+        #calculates Bin size from the filter and the step
+        normalizedBinSize = int(np.round(tauFilter / self.t_step))
+
+        #filteredArray -> rest of array that should be significant
+        filteredArray = self._lightCurve[1]-trismooth(self._lightCurve[1],normalizedBinSize)
+
+
+        #FIXME this is a hack probably!
+        length = 1.5*tauFilter*4/self.t_step
         if length > self.elements:
             length = 1.5 * 4 / (10 ** -7 * self.t_step) - 1
         if length > self.elements:
             length = self.elements - 1
 
-        autocor = self._calculateAutocorrelation(amp_filtered_array)
-        autocor = autocor[0:int(length)]
-        autocor = autocor**2
+        #gets the autocorrelation for the whole length squared
+        autocor = self._calculateAutocorrelation(filteredArray)[1:int(length)]**2
 
-        guess = tau_filter/2
+        guess = tauFilter/2
 
         try:
-            popt = self._iterativeFit((self._lightCurve[0][0:int(length)]/4,autocor),guess)
+            popt = self._iterativeFit((self._lightCurve[0][1:int(length)]/4,autocor),guess)
         except RuntimeError as e:
-            self.logger.error("Failed to fit Autocorrelation")
-            self.logger.error("Tau guess is "+str(guess))
+            self.logger.error("Failed to fit Autocorrelation, tau guess is "+str(guess))
             self.logger.error(str(e))
 
-            dataList = {'Autocorrelation': ((self._lightCurve[0][0:int(length)]/4,autocor),geom_line,None),
+            dataList = {'Autocorrelation': ((self._lightCurve[0][1:int(length)]/4,autocor),geom_line,None),
                         'Fit':((np.linspace(0, 20000, num=50000),self._fit(np.linspace(0, 20000, num=50000))),geom_line,None)}
 
             plotCustom(self.kicID,"Failed fit result",dataList,r'Time','Autocorrelation'
@@ -169,8 +171,8 @@ class NuMaxEvaluator:
 
 
         dataList = {}
-        dataList['Autocorrelation'] = ((self._lightCurve[0][0:int(length)]/4,autocor),geom_point,None)
-        dataList['Initial Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,guess)),geom_line,None)
+        dataList['Autocorrelation'] = ((self._lightCurve[0][1:int(length)]/4,autocor),geom_point,None)
+        dataList['Initial Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),max(autocor),max(autocor)/20,guess)),geom_line,None)
         dataList['Corrected Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),*popt)),geom_line,None)
         plotCustom(self.kicID,"Final Fit",dataList,r'Time','Autocorrelation',self.figAppendix+"Final_fit_.png",2)
 
@@ -182,10 +184,12 @@ class NuMaxEvaluator:
         self.logger.debug("Tau fit is "+str(tau_first_fit))
 
         self.compFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
+
         if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
             self.lastFilter = self.compFilter if (filterFrequency == self._init_nu_filter) else (10 ** 6 / popt[2])
         elif Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
             self.lastFilter = self.compFilter if (filterFrequency == self._init_nu_filter) else (10 ** 6 * 1.5 / popt[2]) #This shouldn't be necessary FIXME
+
         self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
         return self.lastFilter
 
@@ -219,15 +223,15 @@ class NuMaxEvaluator:
         :param tauGuess: Initial Guess for Tau. The rest is fixed
         :return: Values for a,b, tau_acf
         '''
-        y = data[1]
-        x = data[0]
+        y = data[1][0:int(len(data[0])/3)]
+        x = data[0][0:int(len(data[0])/3)]
 
         self.logger.debug("Initial Guess is "+str(tauGuess))
 
-        arr = [1,tauGuess]
+        arr = [max(y),tauGuess]
 
         dataList = {'Data':((x,y),geom_point,None),
-                    "Initial Guess":((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),1,1/20,tauGuess)),geom_line,None)}
+                    "Initial Guess":((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),max(y),max(y)/20,tauGuess)),geom_line,None)}
         plotCustom(self.kicID,'Initial Guess Fit',dataList,r'Time','Autocorrelation',self.figAppendix+"InitGuess.png",4)
         popt, pcov = optimize.curve_fit(sinc,x,y,p0=arr,maxfev = 5000)
 
@@ -243,7 +247,7 @@ class NuMaxEvaluator:
         residuals = residuals[scaled_time_array<=2]
 
         #fit sin to residual!
-        arr = [1/20,popt[1]]
+        arr = [max(y)/20,popt[1]]
 
         popt,pcov = optimize.curve_fit(sin,cut,residuals,p0=arr,maxfev=5000)
         b = popt[0]

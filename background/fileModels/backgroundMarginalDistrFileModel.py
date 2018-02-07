@@ -29,6 +29,7 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         self._id = id
         self._name = name
         self._unit = unit
+        self.dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
         if (kickId is not None and runID is not None and id is not None):
             self._readData()
         return
@@ -128,8 +129,7 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         '''
         Reads the Data. Should be only used internally
         '''
-        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
-        file = dataFolder + "KIC" + self.kicID + "/" + self.runID + "/" + "background_marginalDistribution00"+\
+        file = self.dataFolder + "KIC" + self.kicID + "/" + self.runID + "/" + "background_marginalDistribution00"+\
                str(self.id)+".txt"
         try:
             self._data = np.loadtxt(file).T
