@@ -49,51 +49,12 @@ class BackgroundResults:
         self._backgroundParameter = []
         self._marginalDistributions = []
         self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
-        nyqFile = glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]
-        self._nyq = float(np.loadtxt(nyqFile))
-
-        self._names = [strPriorFlatNoise,
-                       strPriorAmpHarvey1,
-                       strPriorFreqHarvey1,
-                       strPriorAmpHarvey2,
-                       strPriorFreqHarvey2,
-                       strPriorAmpHarvey3,
-                       strPriorFreqHarvey3,
-                       strPriorHeight,
-                       strPriorNuMax,
-                       strPriorSigma]
-
-        self._units = [strPriorUnitFlatNoise,
-                       strPriorUnitAmpHarvey1,
-                       strPriorUnitFreqHarvey1,
-                       strPriorUnitAmpHarvey2,
-                       strPriorUnitFreqHarvey2,
-                       strPriorUnitAmpHarvey3,
-                       strPriorUnitFreqHarvey3,
-                       strPriorUnitHeight,
-                       strPriorUnitNuMax,
-                       strPriorUnitSigma]
-
+        self._nyq = float(np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]))
+        self._names = priorNames
+        self._units = priorUnits
         self._psdOnlyFlag = False
 
-        summaryRawData = self.summary.getRawData()
-
-        for i in range(0, self.summary.dataLength()):
-            try:
-                self._backgroundParameter.append(
-                    BackgroundParameterFileModel(self._names[i], self._units[i], kicID, runID, i))
-            except IOError:
-                self.logger.error("Failed to find backgroundparameter for "+self._names[i])
-            try:
-                self._marginalDistributions.append(
-                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], kicID, runID, i))
-                self._marginalDistributions[i].backgrounddata = np.vstack((summaryRawData[strSummaryMedian][i],
-                                                                           summaryRawData[strSummaryLowCredLim][i],
-                                                                           summaryRawData[strSummaryUpCredLim][i]))
-                if self._backgroundParameter[i].getData() is None:
-                    self._psdOnlyFlag = True
-            except IOError:
-                self.logger.error("Failed to find marginal distribution for "+self._names[i])
+        self._readBackgroundParameter()
 
         if tEff is not None:
             self._tEff = ufloat(tEff, 200)
@@ -366,3 +327,21 @@ class BackgroundResults:
             retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
 
         return retVal
+
+    def _readBackgroundParameter(self):
+        for i in range(0, self.summary.dataLength()):
+            try:
+                self._backgroundParameter.append(
+                    BackgroundParameterFileModel(self._names[i], self._units[i], self._kicID, self._runID, i))
+            except IOError:
+                self.logger.error("Failed to find backgroundparameter for "+self._names[i])
+            try:
+                self._marginalDistributions.append(
+                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self._kicID, self._runID, i))
+                self._marginalDistributions[i].backgrounddata = np.vstack((self.summary.getRawData()[strSummaryMedian][i],
+                                                                           self.summary.getRawData()[strSummaryLowCredLim][i],
+                                                                           self.summary.getRawData()[strSummaryUpCredLim][i]))
+                if self._backgroundParameter[i].getData() is None:
+                    self._psdOnlyFlag = True
+            except IOError:
+                self.logger.error("Failed to find marginal distribution for "+self._names[i])

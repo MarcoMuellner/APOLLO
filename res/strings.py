@@ -117,3 +117,25 @@ strAnalyzerResValBayes = "Bayes Factor"
 strAnalyzerResValStrength = "Strength of evidence"
 #strRootPath
 ROOT_PATH = os.getcwd()
+#Namelists
+priorNames = [strPriorFlatNoise,
+       strPriorAmpHarvey1,
+       strPriorFreqHarvey1,
+       strPriorAmpHarvey2,
+       strPriorFreqHarvey2,
+       strPriorAmpHarvey3,
+       strPriorFreqHarvey3,
+       strPriorHeight,
+       strPriorNuMax,
+       strPriorSigma]
+
+priorUnits = [strPriorUnitFlatNoise,
+           strPriorUnitAmpHarvey1,
+           strPriorUnitFreqHarvey1,
+           strPriorUnitAmpHarvey2,
+           strPriorUnitFreqHarvey2,
+           strPriorUnitAmpHarvey3,
+           strPriorUnitFreqHarvey3,
+           strPriorUnitHeight,
+           strPriorUnitNuMax,
+           strPriorUnitSigma]
