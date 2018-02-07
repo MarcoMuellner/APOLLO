@@ -1,6 +1,6 @@
-from math import log10
 from evaluators.inputDataEvaluator import InputDataEvaluator
 import numpy as np
+from uncertainties.core import Variable
 
 class PriorEvaluator:
     '''
@@ -19,7 +19,7 @@ class PriorEvaluator:
         '''
         self._powerCalc = powerCalc
         self.photonNoise=powerCalc.photonNoise
-        if isinstance(nuMax,float) or isinstance(nuMax,int):
+        if isinstance(nuMax,float) or isinstance(nuMax,int) or isinstance(nuMax,Variable):
             self.nuMax = nuMax
         else:
             raise TypeError("NuMax needs to be a number!")

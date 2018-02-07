@@ -26,17 +26,14 @@ class BackgroundResults:
      need to instantiate this class twice with a different runID
     '''
 
-    def __init__(self, kicID, runID, tEff=None):
+    def __init__(self, kicID:str, runID:str, tEff:float=None):
         '''
         The constructor of the class. It sets up all classes that provide an interface to the lower laying files
         from DIAMONDS. It also sets up some other things like names
         :param kicID: The KicID of the star
-        :type kicID: string
         :param runID: The RunID of the star -> fullBackground or noiseOnly
-        :type runID:string
         :param tEff: The effective temperature of the star. Used for calculations of radius, luminosity and distance
         modulus. An error of 200K is assumed. Optional
-        :type tEff:float
         '''
         self.logger = logging.getLogger(__name__)
         self._kicID = kicID
@@ -61,36 +58,32 @@ class BackgroundResults:
             self._bolometricCorrCalculator = BCEvaluator(tEff)
             self._bolometricCorrection = self._bolometricCorrCalculator.BC
 
-    def getBackgroundParameters(self, key=None):
+    def getBackgroundParameters(self, key:str=None):
         '''
         Provides an interface for the single background Parameters (e.g. Noise,HarveyParameters, Powerexcess parameters)
         fitted by DIAMONDS. Depending on the mode, this will either return a list of 7-10 items or a single item
         if key is not None
         :param key: key for the parameter. Should be a name of a parameter --> see strings.py. Optional
-        :type key:string
         :return:Full dict or single parameter depending on key
         :rtype:List/BackgroundParameterFileModel
         '''
         return self._getValueFromDict(self._backgroundParameter,key)
 
-    def getMarginalDistribution(self, key=None):
+    def getMarginalDistribution(self, key:str=None):
         '''
         Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
         :param key: key for the Marginal Distribution
-        :type key: string
         :rtype:list/MarginalDistribution
         '''
         return self._getValueFromDict(self._marginalDistributions,key)
 
 
 
-    def _getValueFromDict(self,dict,key=None):
+    def _getValueFromDict(self,dict:dict,key:str=None):
         '''
         This is a helper method, which returns a single item from a list if the item exists or the whole dict otherwhise
         :param dict: The list to search in
-        :type dict: list
         :param key: The key. Optional
-        :type key: str
         :return: The appropriate Value(s)
         '''
         if key is None:
@@ -248,12 +241,11 @@ class BackgroundResults:
         return self._getSummaryParameter(strPriorFlatNoise)
 
 
-    def _getSummaryParameter(self, key=None):
+    def _getSummaryParameter(self, key:str=None):
         '''
         Returns the SummaryParameter, i.e. the value computed by DIAMONDS. Can be a single Parameter or a full dict
         if key is None
         :param key: Key for the dict -> see strings.py
-        :type key: string
         :return: Single Parameter or full dict
         :rtype: dict/ufloat
         '''
