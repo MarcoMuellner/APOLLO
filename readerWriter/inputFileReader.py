@@ -53,6 +53,7 @@ class InputFileReader:
         :rtype: 2-D numpy array
         """
         splitMode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
+
         if splitMode == strLightCombining:
             lightCurve = self._refineDataCombiningMethod(rawData)
         elif splitMode == strLightCutting:
@@ -60,12 +61,9 @@ class InputFileReader:
         elif splitMode == strLightInterpolating:
             lightCurve = self._refineDataInterpolation(rawData)
         else:
-            self.logger.debug("Failed to find refine data method with: '" + splitMode + "'")
-            raise ValueError
+            raise ValueError("Failed to find refine data method with: '" + splitMode + "'")
 
-        lightCurve = self._removeStray(lightCurve[0],lightCurve[1])
-
-        return lightCurve
+        return self._removeStray(lightCurve[0],lightCurve[1])
 
     def _removeStray(self,x,y):
         """
@@ -81,13 +79,10 @@ class InputFileReader:
         plotData = {"Before Reduction":(np.array((x,y)), geom_point,None)}
         sigma = 5
 
-        l = len(x)
-
         bins = np.linspace(np.amin(y),np.amax(y),int((np.amax(y)-np.amin(y))/20))
 
         hist = np.histogram(y,bins=bins)[0]
         bins = bins[0:len(bins)-1]
-
 
         cen = bins[np.where(hist==np.amax(hist))]
         wid = np.std(hist)
@@ -102,8 +97,7 @@ class InputFileReader:
 
         popt,__ = scipyFit(bins,hist,gaussian,p0,boundaries)
 
-        cen = popt[2]
-        wid = popt[3]
+        (cen,wid) = (popt[2],popt[3])
 
         lin = np.linspace(np.min(bins),np.max(bins),len(bins)*100)
 
@@ -113,21 +107,12 @@ class InputFileReader:
                              "Negative Boundary": (np.array(([cen - sigma * wid])), geom_vline, 'dashed'),
                              "Positive Boundary": (np.array(([cen + sigma * wid])), geom_vline, 'dashed')}
 
-        plotCustom(self.kicID,self.kicID+"_histogramm",histogramPlotData
-                   ,"bins","counts",self.kicID+"_histogramm",5)
+        plotCustom(self.kicID,self.kicID+"_histogramm",histogramPlotData ,"bins","counts",self.kicID+"_histogramm",5)
 
-        x = x[y > cen - sigma * wid]
-        y = y[y > cen - sigma * wid]
-
-        x = x[y < cen + sigma * wid]
-        y = y[y < cen + sigma * wid]
-        self.logger.info("Removed " + str(l - len(x)) + " points from datastructure")
-
+        x = x[np.logical_and(y > cen - sigma * wid, y < cen + sigma * wid)]
+        y = y[np.logical_and(y > cen - sigma * wid, y < cen + sigma * wid)]
 
         plotData["After Reduction"] = (np.array((x, y)), geom_point, None)
-
-
-
         plotCustom(self.kicID,self.kicID+"_reduction",plotData,"Time (d)","Flux (ppm)",self.kicID+"_reduction",5)
 
         y -= cen
