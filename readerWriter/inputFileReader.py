@@ -102,13 +102,6 @@ class InputFileReader:
 
         popt,__ = scipyFit(bins,hist,gaussian,p0,boundaries)
 
-        self.logger.info("Negative boundary " + str(cen - sigma * wid))
-        self.logger.info("Positive boundary " + str(cen + sigma * wid))
-        self.logger.info("Center " + str(cen))
-        self.logger.info("Sigma " + str(sigma))
-        self.logger.info("Width " + str(wid))
-        self.logger.info("Fit values, y0:"+str(popt[0])+" amp:"+str(popt[1])+" cen:"+str(popt[2])+" wid:"+str(popt[3]))
-
         cen = popt[2]
         wid = popt[3]
 
@@ -168,169 +161,72 @@ class InputFileReader:
         self.logger.debug("Ending is " + self._mode)
         return rawData
 
-    # This method uses a combination of segments in lightcurves
-    def _refineDataCombiningMethod(self, rawData):
-        """
-        This method creates a combination of segments in lightCurves. This is necessary if the data is split up, so
-        that there are areas where no measurement took place. It removes this segment and simply appends the next
-        segment. You can also split the segments up using _refineDataCuttingMethod
-        :param rawData: The raw data of the file, read by _readData()
-        :return: The combined version of rawData
-        :rtype: 2-D numpy array
-        """
-        zeroTimeStamp = rawData[0][0]
-        deltaTime = rawData[1][0] - rawData[0][0]
+    def _refineDataCombiningMethod(self,rawData):
+        rawData = rawData.T
+        (gapIDs, mostCommon, rawData) = self._prepareRawAndSearchGaps(rawData)
 
-        self.logger.debug("Zero timestamp is '" + str(deltaTime) + "h'")
-        self.logger.debug("Delta time between two points is '" + str(deltaTime) + "h'")
+        if not gapIDs.size or gapIDs is None:
+            return rawData
 
-        arrays = []
-        fluxArray = []
-        timeArray = []
-        lenTime = 0
-        lenFlux = 0
-        zeroValue = 0
-        for i in range(0, rawData.shape[0] - 1):
-            if abs(rawData[i][1]) < 10 ** -2:
-                continue
 
-            if (abs(rawData[i][0] - zeroTimeStamp - deltaTime) > 10 ** -1):
-                self.logger.debug("Difference between two points is '" + str(rawData[i][0] - zeroTimeStamp - deltaTime) + "'")
-                arrays.append((timeArray, fluxArray))
-                lenTime += len(timeArray)
-                lenFlux += len(fluxArray)
-                timeArray = []
-                fluxArray = []
-                self.logger.debug("Raw data is '" + str(rawData[i][0]) + "'")
-                self.logger.debug("Zero timestamp is '" + str(zeroTimeStamp) + "'")
-                self.logger.debug("Delta time is '" + str(deltaTime) + "'")
-                zeroValue = zeroValue + rawData[i][0] - zeroTimeStamp + deltaTime
-                self.logger.debug("ZeroValue is '" + str(zeroValue) + "'")
+        for i in gapIDs:
+            rawData[0][i:] += rawData[0][i]-rawData[0][i+1]+ mostCommon
 
-            timeArray.append(rawData[i][0] - zeroValue)
-            fluxArray.append(rawData[i][1])
-            zeroTimeStamp = rawData[i][0]
+        return rawData
 
-        lenTime += len(timeArray)
-        lenFlux += len(fluxArray)
-        arrays.append((timeArray, fluxArray))
+    def _refineDataCuttingMethod(self,rawData):
+        rawData = rawData.T
+        (gapIDs, mostCommon, rawData) = self._prepareRawAndSearchGaps(rawData)
 
-        resultTime = np.zeros(lenTime)
-        resultFlux = np.zeros(lenFlux)
-        prevlength = 0
-        for i in arrays:
-            self.logger.debug(min(i[0]))
-            self.logger.debug(max(i[0]))
-            resultTime[prevlength:prevlength + len(i[0])] = np.array(i[0])
-            resultFlux[prevlength:prevlength + len(i[0])] = np.array(i[1])
-            prevlength += len(i[0])
+        if not gapIDs.size or gapIDs is None:
+            return rawData
 
-        return (resultTime, resultFlux)
+        diffGap = gapIDs[1:len(gapIDs)] - gapIDs[0:len(gapIDs) - 1]
+        idMaxDiff = np.argmax(diffGap)
 
-    # This method cuts the lightcurve and returns every segment
-    def _refineDataCuttingMethod(self, rawData):
-        """
-        This method cuts the data up into segments, and removes the areas where no observation took place. It will
-        than return the dataset with the most datapoints. The second possibility is _refineDataCombiningMethod
-        :param rawData: The raw data of the file read in _readData
-        :return: The dataset with the most datapoints in the lightCurve
-        :rtype: 2-D numpy array
-        """
-
-        self.logger.debug("First x value is " + str(rawData[0][0]))
-        self.logger.debug("Second x value is " + str(rawData[1][0]))
-
-        zeroTimeStamp = rawData[0][0]
-        deltaTime = rawData[1][0] - rawData[0][0]
-        self.logger.debug("Zero timestamp is '" + str(zeroTimeStamp) + "h'")
-        self.logger.debug("Delta time is '" + str(deltaTime) + "h'")
-
-        arrays = []
-        fluxArray = []
-        timeArray = []
-        zeroValue = 0
-        for i in range(0, rawData.shape[0] - 1):
-            if abs(rawData[i][1]) < 10 ** -2:
-                continue
-
-            if (abs(rawData[i][0] - zeroTimeStamp - deltaTime) > 10 ** -1):
-                self.logger.debug("Difference is '" + str(rawData[i][0] - zeroTimeStamp - deltaTime) + "'")
-                arrays.append((timeArray, fluxArray))
-                timeArray = []
-                fluxArray = []
-                zeroValue = rawData[i][0]
-
-            timeArray.append(rawData[i][0] - zeroValue)
-            fluxArray.append(rawData[i][1])
-            zeroTimeStamp = rawData[i][0]
-
-        arrays.append((timeArray, fluxArray))
-        npArrays = []
-
-        maxIndex = 0
-        previousMaxLength = 0
-        for it, (arrZero, arrOne) in enumerate(arrays):
-            npArr = np.array((arrZero, arrOne))
-            npArrays.append(npArr)
-
-            if len(npArr[0]) > previousMaxLength and max(npArr[0]) < 150:
-                maxIndex = it
-                self.logger.debug("Previous length: '" + str(previousMaxLength) + "'")
-                self.logger.debug("New Length: '" + str(len(npArr[0])) + "'")
-                self.logger.debug("MaxIndex: '" + str(it) + "'")
-                previousMaxLength = len(npArr[0])
-
-        return npArrays[maxIndex]
+        return np.array((rawData[0][gapIDs[idMaxDiff]:gapIDs[idMaxDiff+1]],rawData[1][gapIDs[idMaxDiff]:gapIDs[idMaxDiff+1]]))
 
     def _refineDataInterpolation(self,rawData):
 
         rawData = rawData.T
-        (gapIDs,mostCommon) = self._identifyGaps(rawData)
+
+        (gapIDs,mostCommon,rawData) = self._prepareRawAndSearchGaps(rawData)
+
+        if not gapIDs.size or gapIDs is None:
+            return rawData
 
         incrementer = 0
 
         for i in gapIDs:
-
+            #ident moves the ID after each
             ident = i+incrementer
-            firstY = rawData[1][ident]
-            secondY = rawData[1][ident+1]
-
-            firstX = rawData[0][ident] + mostCommon
-            secondX = rawData[0][ident+1] - mostCommon
 
             count = int(np.round((rawData[0][ident+1]-rawData[0][ident])/mostCommon))
 
-            deltaY = (secondY - firstY)/count
-            firstY +=deltaY
-            secondY -=deltaY
+            deltaY = (rawData[1][ident+1] - rawData[1][ident])/count
 
-            insertY = np.linspace(firstY,secondY,num=count-1)
-            insertX = np.linspace(firstX,secondX,num=count-1)
+            insertY = np.linspace(rawData[1][ident]+deltaY,rawData[1][ident+1]-deltaY,num=count-1)
+            insertX = np.linspace(rawData[0][ident]+mostCommon,rawData[0][ident+1] - mostCommon,num=count-1)
 
-            x = np.insert(rawData[0],ident+1,insertX)
+            x = np.insert(rawData[0], ident + 1, insertX)
             y = np.insert(rawData[1], ident + 1, insertY)
 
             rawData = np.array((x,y))
+            incrementer += count - 1
 
-            incrementer += count-1
 
         return rawData
 
 
-    def _identifyGaps(self,rawData):
-        """
-        This method checks a lightCurve for "gaps", data points that contain anything or have no changes over a longtime.
-        It returns a list of tuples with begin and end index for the datapoints that show a deviation of the norm.
-        :param rawData:
-        :return: list of tuples
-        """
+    def _prepareRawAndSearchGaps(self, rawData):
         x = rawData[0]
         diffX = np.round(x[1:len(x)] - x[0:len(x)-1],decimals=2)
         realDiffX = x[1:len(x)] - x[0:len(x) - 1]
         (values,counts) = np.unique(realDiffX,return_counts=True)
         mostCommon = values[np.argmax(counts)]
 
-        return (np.where(diffX !=  np.round(mostCommon,decimals=2))[0],mostCommon)
+        rawData = np.array(((rawData[0]-rawData[0][0]),rawData[1]))
+        return (np.where(diffX !=  np.round(mostCommon,decimals=2))[0],mostCommon,rawData)
 
     @property
     def lightCurve(self):

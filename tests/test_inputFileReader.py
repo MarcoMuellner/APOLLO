@@ -24,4 +24,3 @@ def testRefineData(defaultSetup:InputFileReader,value):
     refineSetting.value = value
 
     defaultSetup._refineData(defaultSetup._rawData)
-
