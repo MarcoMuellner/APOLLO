@@ -57,6 +57,8 @@ class InputFileReader:
             lightCurve = self._refineDataCombiningMethod(rawData)
         elif splitMode == strLightCutting:
             lightCurve = self._refineDataCuttingMethod(rawData)
+        elif splitMode == strLightInterpolating:
+            lightCurve = self._refineDataInterpolation(rawData)
         else:
             self.logger.debug("Failed to find refine data method with: '" + splitMode + "'")
             raise ValueError
@@ -280,8 +282,55 @@ class InputFileReader:
 
         return npArrays[maxIndex]
 
-    def removeUnrelatedVariations(self):
-        pass
+    def _refineDataInterpolation(self,rawData):
+
+        rawData = rawData.T
+        (gapIDs,mostCommon) = self._identifyGaps(rawData)
+
+        incrementer = 0
+
+        for i in gapIDs:
+
+            ident = i+incrementer
+            firstY = rawData[1][ident]
+            secondY = rawData[1][ident+1]
+
+            firstX = rawData[0][ident] + mostCommon
+            secondX = rawData[0][ident+1] - mostCommon
+
+            count = int(np.round((rawData[0][ident+1]-rawData[0][ident])/mostCommon))
+
+            deltaY = (secondY - firstY)/count
+            firstY +=deltaY
+            secondY -=deltaY
+
+            insertY = np.linspace(firstY,secondY,num=count-1)
+            insertX = np.linspace(firstX,secondX,num=count-1)
+
+            x = np.insert(rawData[0],ident+1,insertX)
+            y = np.insert(rawData[1], ident + 1, insertY)
+
+            rawData = np.array((x,y))
+
+            incrementer += count-1
+
+        return rawData
+
+
+    def _identifyGaps(self,rawData):
+        """
+        This method checks a lightCurve for "gaps", data points that contain anything or have no changes over a longtime.
+        It returns a list of tuples with begin and end index for the datapoints that show a deviation of the norm.
+        :param rawData:
+        :return: list of tuples
+        """
+        x = rawData[0]
+        diffX = np.round(x[1:len(x)] - x[0:len(x)-1],decimals=2)
+        realDiffX = x[1:len(x)] - x[0:len(x) - 1]
+        (values,counts) = np.unique(realDiffX,return_counts=True)
+        mostCommon = values[np.argmax(counts)]
+
+        return (np.where(diffX !=  np.round(mostCommon,decimals=2))[0],mostCommon)
 
     @property
     def lightCurve(self):

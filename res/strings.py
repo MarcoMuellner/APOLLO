@@ -42,6 +42,7 @@ strRefineStray = "Remove Stray"
 #LightcurveAlgorithmValues
 strLightCutting = 'cutting'
 strLightCombining = 'combining'
+strLightInterpolating = 'interpolating'
 #StartypeValues
 strStarTypeYoungStar = 'Young Star'
 strStarTypeRedGiant = 'Red Giant'
