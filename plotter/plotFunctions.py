@@ -17,6 +17,14 @@ if platform == "linux" or platform == "linux2":
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
+yAxisAnnotation = {'color': 'grey', 'linetype': 'solid'}
+smoothingAnnotation = {'color': 'green', 'linetype': 'solid'}
+harveyAnnotation = {'color': 'blue', 'linetype': 'dashed'}
+backgroundAnnotation = {'color': 'yellow', 'linetype': 'dotted'}
+powerExcessAnnotation = {'color': 'blue', 'linetype': 'dotted'}
+withoutGaussAnnotation = {'color': 'red', 'linetype': 'solid'}
+fullBackgroundAnnotation = {'color': 'cyan', 'linetype': 'dashed'}
+
 
 def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, fileName="",forceGauss = False):
     '''
@@ -47,7 +55,7 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     '''
     debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
     psd = data.powerSpectralDensity
-    backgroundModel = None
+
     if not psdOnly or forceGauss:
         backgroundModel = data.createBackgroundModel()
         if len(backgroundModel) == 5:
@@ -57,6 +65,7 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
             runGauss = False
             title = "Noise only model"
     else:
+        backgroundModel = None
         runGauss = False
         title = "PSD"
 
@@ -64,24 +73,10 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     dataList = {}
     annotationList = {}
 
-    yAxisAnnotation = {'color': 'grey', 'linetype': 'solid'}
-    smoothingAnnotation = {'color': 'green', 'linetype': 'solid'}
-    harveyAnnotation = {'color': 'blue', 'linetype': 'dashed'}
-    backgroundAnnotation = {'color': 'yellow', 'linetype': 'dotted'}
-    powerExcessAnnotation = {'color': 'blue', 'linetype': 'dotted'}
-    withoutGaussAnnotation = {'color': 'red', 'linetype': 'solid'}
-    fullBackgroundAnnotation = {'color': 'cyan', 'linetype': 'dashed'}
-
     dataDescriptor = {r'Frequency [$\mu$Hz]': (None, psd[0]),
                       r'PSD [ppm$^2$/$\mu$Hz]': (yAxisAnnotation, psd[1])
                       }
-    if not psdOnly:
-        dataDescriptor['First Harvey'] = (harveyAnnotation, backgroundModel[0])
-        dataDescriptor['Second Harvey'] = (harveyAnnotation, backgroundModel[1])
-        dataDescriptor['Third Harvey'] = (harveyAnnotation, backgroundModel[2])
-        dataDescriptor['Background'] = (backgroundAnnotation, backgroundModel[3])
-        dataDescriptor['Without Gaussian'] = (withoutGaussAnnotation, np.sum(backgroundModel[0:4], axis=0))
-        dataDescriptor['Full Background'] = (fullBackgroundAnnotation, np.sum(backgroundModel, axis=0))
+    dataDescriptor = annotateDataDescriptor(dataDescriptor,backgroundModel,psdOnly)
 
     if smooth:
         try:
@@ -116,12 +111,7 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     if markerList is not None:
         try:
             for name,(value,color) in markerList.items():
-                logger.debug("Add marker with name '" + name + "'")
-                logger.debug("Add marker at '" + str(value) + "'")
-                logger.debug("Min x-value: '" + str(min(psd[0])))
-                logger.debug("Max x-value: '" + str(max(psd[0])))
                 idx = (np.abs(psd[0] - value)).argmin()
-                logger.debug("Real plotted value: '" + str(psd[0][idx]) + "'")
                 p = p + geom_vline(xintercept=psd[0][idx], color=color,linetype="dashed")
         except:
             logger.error("MarkerList needs to be a dict with name,(tuple)")
@@ -268,3 +258,14 @@ def saveFigToResults(kicID, filename, figure):
     :type figure: Figure
     """
     ResultsWriter.Instance(kicID).addImage(filename, figure)
+
+def annotateDataDescriptor(dataDescriptor,backgroundModel,psdOnly):
+    if not psdOnly:
+        dataDescriptor['First Harvey'] = (harveyAnnotation, backgroundModel[0])
+        dataDescriptor['Second Harvey'] = (harveyAnnotation, backgroundModel[1])
+        dataDescriptor['Third Harvey'] = (harveyAnnotation, backgroundModel[2])
+        dataDescriptor['Background'] = (backgroundAnnotation, backgroundModel[3])
+        dataDescriptor['Without Gaussian'] = (withoutGaussAnnotation, np.sum(backgroundModel[0:4], axis=0))
+        dataDescriptor['Full Background'] = (fullBackgroundAnnotation, np.sum(backgroundModel, axis=0))
+
+    return dataDescriptor
