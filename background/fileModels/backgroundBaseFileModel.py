@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 
 class BackgroundBaseFileModel:
     '''
@@ -59,3 +60,11 @@ class BackgroundBaseFileModel:
         else:
             return value
 
+    def _readFile(self,file):
+        try:
+            data = np.loadtxt(file).T
+        except FileNotFoundError as e:
+            self.logger.error("Failed to open File "+file)
+            self.logger.error(e)
+            raise IOError("Failed to open file. "+file)
+        return data

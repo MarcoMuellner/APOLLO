@@ -82,10 +82,5 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
 
         file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter00" + str(
             self._id) + ".txt"
-        try:
-            self._parameters = np.loadtxt(file).T
-        except FileNotFoundError as e:
-            self.logger.error("No file with name "+file)
-            self.logger.error(e)
-            raise IOError("No file with name "+file)
 
+        self._parameters = self._readFile(file)

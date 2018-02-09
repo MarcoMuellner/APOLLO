@@ -131,9 +131,4 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         '''
         file = self.dataFolder + "KIC" + self.kicID + "/" + self.runID + "/" + "background_marginalDistribution00"+\
                str(self.id)+".txt"
-        try:
-            self._data = np.loadtxt(file).T
-        except FileNotFoundError as e:
-            self.logger.error("Failed to open File "+file)
-            self.logger.error(e)
-            raise IOError("Failed to open marginal distr. "+file)
+        self._data = self._readFile(file)
