@@ -34,30 +34,6 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
             self._readData()
         return
 
-
-    @property
-    def id(self):
-        '''
-        ID of the marginal distribution (between 0 and 9)
-        :return: ID
-        :rtype: int
-        '''
-        return self._id
-
-    @id.setter
-    def id(self,value):
-        '''
-        Sets the ID and rereads the data
-        :param value: ID
-        :type value: int
-        '''
-        if value is None:
-            self._id = ""
-        else:
-            self._id = value
-        if self.kicID not in ["",None] and self.runID not in ["",None] and self._id not in ["",None]:
-            self._readData()
-
     @property
     def name(self):
         '''

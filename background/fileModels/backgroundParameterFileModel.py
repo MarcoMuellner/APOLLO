@@ -50,20 +50,6 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         '''
         return self._unit
 
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self,value):
-        if value is None:
-            self._id = ""
-        else:
-            self._id = value
-
-        if self.kicID not in ["", None] and self.runID not in ["", None] and self._id not in ["", None]:
-            self._readData()
-
 
     def getData(self,reReaddata = False):
         '''

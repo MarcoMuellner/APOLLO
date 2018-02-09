@@ -140,3 +140,12 @@ priorUnits = [strPriorUnitFlatNoise,
            strPriorUnitHeight,
            strPriorUnitNuMax,
            strPriorUnitSigma]
+
+summaryValues = [strSummaryMean ,
+    strSummaryMedian ,
+    strSummaryMode ,
+    strSummaryIIMoment ,
+    strSummaryLowCredLim ,
+    strSummaryUpCredLim ,
+    strSummarySkew ,
+]

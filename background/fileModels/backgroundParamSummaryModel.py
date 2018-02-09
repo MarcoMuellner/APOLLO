@@ -46,9 +46,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         :return: Full dict if key is None(default), one value if key is not None
         :rtype: dict/float
         '''
-        if any(self._rawValues) is False:
-            self._readData()
-        return self._getInternalData(self._rawValues,key)
+        return self._getDataWrapper(self._priorValues, key)
 
     def getData(self,key=None):
         '''
@@ -62,9 +60,12 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         :return: Full dict if key is None (default), one value if key is not None
         :rtype: dict/float
         '''
-        if any(self._priorValues) is False:
+        return self._getDataWrapper(self._priorValues,key)
+
+    def _getDataWrapper(self,map,key):
+        if any(map) is False:
             self._readData()
-        return self._getInternalData(self._priorValues,key)
+        return self._getInternalData(map,key)
 
     def _getInternalData(self,dict,key):
         '''
@@ -94,13 +95,9 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         try:
 
             values = np.loadtxt(file).T
-            self._rawValues[strSummaryMean] = values[0]
-            self._rawValues[strSummaryMedian] = values[1]
-            self._rawValues[strSummaryMode] = values[2]
-            self._rawValues[strSummaryIIMoment] = values[3]
-            self._rawValues[strSummaryLowCredLim] = values[4]
-            self._rawValues[strSummaryUpCredLim] = values[5]
-            self._rawValues[strSummarySkew] = values[6]
+            for i in range(0,6):
+                self._rawValues[summaryValues[i]] = values[i]
+
             self._createBackgroundModel()
         except Exception as e:
             self.logger.error("Failed to open File " + file)
@@ -117,15 +114,9 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         '''
         par_median = self._rawValues[strSummaryMedian]
         par_le = self._rawValues[strSummaryLowCredLim]
+        length = 6
+        if len(par_median) > 7 and len(par_le) > 7:
+            length = 9
 
-        self._priorValues[strPriorFlatNoise] = ufloat(par_median[0], abs(par_median[0] - par_le[0]))
-        self._priorValues[strPriorAmpHarvey1] = ufloat(par_median[1], abs(par_median[1] - par_le[1]))
-        self._priorValues[strPriorFreqHarvey1] = ufloat(par_median[2], abs(par_median[2] - par_le[2]))
-        self._priorValues[strPriorAmpHarvey2] = ufloat(par_median[3], abs(par_median[3] - par_le[3]))
-        self._priorValues[strPriorFreqHarvey2] = ufloat(par_median[4], abs(par_median[4] - par_le[4]))
-        self._priorValues[strPriorAmpHarvey3] = ufloat(par_median[5], abs(par_median[5] - par_le[5]))
-        self._priorValues[strPriorFreqHarvey3] = ufloat(par_median[6], abs(par_median[6] - par_le[6]))
-        if len(par_median)>7 and len(par_le)>7:
-            self._priorValues[strPriorHeight] = ufloat(par_median[7], abs(par_median[7] - par_le[7]))
-            self._priorValues[strPriorNuMax] = ufloat(par_median[8], abs(par_median[8] - par_le[8]))
-            self._priorValues[strPriorSigma] = ufloat(par_median[9], abs(par_median[9] - par_le[9]))
+        for i in range(0,length):
+            self._priorValues[priorNames[i]] = ufloat(par_median[i], abs(par_median[i] - par_le[i]))

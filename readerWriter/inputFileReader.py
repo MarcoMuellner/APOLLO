@@ -109,8 +109,12 @@ class InputFileReader:
 
         plotCustom(self.kicID,self.kicID+"_histogramm",histogramPlotData ,"bins","counts",self.kicID+"_histogramm",5)
 
-        x = x[np.logical_and(y > cen - sigma * wid, y < cen + sigma * wid)]
-        y = y[np.logical_and(y > cen - sigma * wid, y < cen + sigma * wid)]
+        data = []
+        for i in [x,y]:
+            data.append(i[np.logical_and(y > cen - sigma * wid, y < cen + sigma * wid)])
+
+        x = data[0]
+        y = data[1]
 
         plotData["After Reduction"] = (np.array((x, y)), geom_point, None)
         plotCustom(self.kicID,self.kicID+"_reduction",plotData,"Time (d)","Flux (ppm)",self.kicID+"_reduction",5)
