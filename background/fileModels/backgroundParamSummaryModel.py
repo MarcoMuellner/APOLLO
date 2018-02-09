@@ -46,7 +46,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         :return: Full dict if key is None(default), one value if key is not None
         :rtype: dict/float
         '''
-        return self._getDataWrapper(self._priorValues, key)
+        return self._getDataWrapper(self._rawValues, key)
 
     def getData(self,key=None):
         '''
@@ -95,7 +95,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         try:
 
             values = np.loadtxt(file).T
-            for i in range(0,6):
+            for i in range(0,7):
                 self._rawValues[summaryValues[i]] = values[i]
 
             self._createBackgroundModel()
@@ -114,9 +114,9 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         '''
         par_median = self._rawValues[strSummaryMedian]
         par_le = self._rawValues[strSummaryLowCredLim]
-        length = 6
+        length = 7
         if len(par_median) > 7 and len(par_le) > 7:
-            length = 9
+            length = 10
 
         for i in range(0,length):
             self._priorValues[priorNames[i]] = ufloat(par_median[i], abs(par_median[i] - par_le[i]))
