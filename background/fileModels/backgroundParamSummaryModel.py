@@ -79,14 +79,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         :rtype: dict/float
         '''
 
-        if key is None:
-            return dict
-        else:
-            try:
-                return dict[key]
-            except:
-                self.logger.warning("No value for key '"+key+"',returning full dict")
-                return dict
+        return self._getValueFromDict(dict,key)
 
     def _readData(self):
         '''

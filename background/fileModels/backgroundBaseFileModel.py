@@ -33,6 +33,16 @@ class BackgroundBaseFileModel:
             self._unit = ""
             return self._unit
 
+    def _getValueFromDict(self,dict,key):
+        if key is None:
+            return dict
+        else:
+            try:
+                return dict[key]
+            except:
+                self.logger.warning("No value for key '"+key+"',returning full dict")
+                return dict
+
 
     @property
     def kicID(self):
