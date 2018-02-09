@@ -189,16 +189,16 @@ class InputFileReader:
             count = int(np.round((rawData[0][ident+1]-rawData[0][ident])/mostCommon))
 
             deltaY = (rawData[1][ident+1] - rawData[1][ident])/count
+            lister = [(0,rawData[0],mostCommon),(1,rawData[1],deltaY)]
+            data = []
 
-            insertY = np.linspace(rawData[1][ident]+deltaY,rawData[1][ident+1]-deltaY,num=count-1)
-            insertX = np.linspace(rawData[0][ident]+mostCommon,rawData[0][ident+1] - mostCommon,num=count-1)
+            #inserts new block of data into the dataset for x and y
+            for (id,raw,adder) in lister:
+                insert = np.linspace(raw[ident]+adder,raw[ident+1]-adder,num=count-1)
+                data.append(np.insert(raw, ident + 1, insert))
 
-            x = np.insert(rawData[0], ident + 1, insertX)
-            y = np.insert(rawData[1], ident + 1, insertY)
-
-            rawData = np.array((x,y))
+            rawData = np.array((data[0],data[1]))
             incrementer += count - 1
-
 
         return rawData
 
