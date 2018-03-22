@@ -39,3 +39,9 @@ venv/
 6424157\.dat\.gz
 
 KIC6424157\.txt
+
+\.pytest_cache/v/cache/
+
+tests/\.pytest_cache/v/cache/
+
+info\.log\.1

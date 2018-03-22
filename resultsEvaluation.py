@@ -14,7 +14,10 @@ for i in os.listdir(path):
     if "YS" not in i:
         continue
     with open(path+i+"/results.json", 'rt') as f:
-        resultDict = json.load(f)
+	try:
+        	resultDict = json.load(f)
+	except:
+		continue
 
     analyzeSection = resultDict[strAnalyzerResSectAnalysis]
     bayesFactor = analyzeSection[strAnalyzerResValBayes]

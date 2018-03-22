@@ -88,9 +88,6 @@ def trismooth(x,window_width):
 
     lend = len(x)-1
     if (lend+1) < window_width:
-        logger.error("Vector too short!")
-        logger.error("lend: '"+str(lend)+"'")
-        logger.error("window_width: '"+str(window_width)+"'")
         raise ValueError
 
     halfWeights = np.arange(window_width/2)
@@ -102,10 +99,6 @@ def trismooth(x,window_width):
     smoothed = np.zeros(lend+1)
     offset = int(window_width/2)
     local = np.zeros(window_width)
-
-    logger.debug("Len smoothed "+str(len(smoothed)))
-    logger.debug("Offset is "+str(offset))
-    logger.debug("len local "+str(len(local)))
 
     for i in range(offset,lend-offset):
         smoothed[i]=np.sum(x[i-offset:i+offset+1]*weights)

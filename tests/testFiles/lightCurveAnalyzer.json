@@ -11,7 +11,7 @@
             "Refine lightcurves algorithm":{
                 "GUI Name":"Results Path for diamonds",
                 "GUI Type":"textEdit",
-                "Value":"cutting"
+                "Value":"interpolating"
             },
             "Refinement of Data":{
                 "GUI Name":"Refinement of Data",
