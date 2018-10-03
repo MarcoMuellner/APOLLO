@@ -45,3 +45,5 @@ KIC6424157\.txt
 tests/\.pytest_cache/v/cache/
 
 info\.log\.1
+
+*.png

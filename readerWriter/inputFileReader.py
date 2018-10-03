@@ -25,11 +25,11 @@ class InputFileReader:
         """
         self.logger = logging.getLogger(__name__)
         self.kicID = kicID
-        self.setFitsFile(filename)
+        self.setFile(filename)
 
 
 
-    def setFitsFile(self, fileName):
+    def setFile(self, fileName):
         """
         This method is the entrypoint and the only public method. It triggers the reading of a file and the refinement
         of the data if necessary
@@ -86,11 +86,10 @@ class InputFileReader:
 
         cen = bins[np.where(hist==np.amax(hist))]
         wid = np.std(hist)
-        if Settings.Instance().getSetting(strDataSettings, strSectStarType) == strStarTypeRedGiant:
-            amp = (np.amax(hist))*np.sqrt(2*np.pi)*wid*np.exp(((cen/wid)**2)/2)
+        if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
+            amp = np.amax(hist)*np.sqrt(2*np.pi)*wid*np.exp(((cen/wid)**2)/2)*10
         else:
             amp = np.amax(hist)
-
 
         p0 = [0,amp,cen[0],wid]
         boundaries = ([-0.1,-np.inf,-np.inf,-np.inf],[0.1,np.inf,np.inf,np.inf])
@@ -181,7 +180,7 @@ class InputFileReader:
 
         (gapIDs,mostCommon,rawData) = self._prepareRawAndSearchGaps(rawData)
 
-        if not gapIDs.size or gapIDs is None:
+        if gapIDs is None or not gapIDs.size:
             return rawData
 
         incrementer = 0
@@ -215,7 +214,14 @@ class InputFileReader:
         mostCommon = values[np.argmax(counts)]
 
         rawData = np.array(((rawData[0]-rawData[0][0]),rawData[1]))
-        return (np.where(diffX !=  np.round(mostCommon,decimals=2))[0],mostCommon,rawData)
+
+        gapIDs = np.where(diffX !=  np.round(mostCommon,decimals=2))
+        if len(gapIDs[0]) == 0:
+            gapIDs = None
+        else:
+            gapIDs = gapIDs[0]
+
+        return (gapIDs,mostCommon,rawData)
 
     @property
     def lightCurve(self):

@@ -107,6 +107,8 @@ class InputDataEvaluator:
         psd = np.divide(psd[1:],10**6)
 
         f = f[1:]
+
+
         if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
             psd = psd[f > 30]
             f = f[f > 30]

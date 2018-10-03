@@ -4,6 +4,7 @@ from loghandler.loghandler import *
 from res.strings import *
 from settings.settings import Settings
 from runner.StandardRunner import StandardRunner
+import traceback
 
 parser = argparse.ArgumentParser()
 parser.add_argument("kicFolder",help="The folder where the KIC files are stored.",type=str)
@@ -86,9 +87,10 @@ for i in kicList:
         runner._internalRun()
 
     except Exception as e:
+        trace = traceback.format_exc()
         logger.warning("Run for "+i +"failed")
-        logger.warning(e)
-        logger.warning(e.__traceback__)
+        logger.warning(str(e.__class__.__name__) +":"+ str(e))
+        logger.warning(trace[:1023])
         continue
 
     logger.info("************************************")
