@@ -5,6 +5,7 @@ from res.strings import *
 from settings.settings import Settings
 from runner.StandardRunner import StandardRunner
 import traceback
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("kicFolder",help="The folder where the KIC files are stored.",type=str)
@@ -85,6 +86,9 @@ for i in kicList:
     runner = StandardRunner(i,filePath)
     try:
         runner._internalRun()
+    except KeyboardInterrupt:
+        logger.info("Stopping run")
+        sys.exit()
 
     except Exception as e:
         trace = traceback.format_exc()

@@ -9,6 +9,8 @@ from readerWriter.inputFileReader import InputFileReader
 from plotter.plotFunctions import *
 from support.directoryManager import cd
 from fitter.fitFunctions import *
+import signal
+import sys
 
 
 class StandardRunner():
@@ -56,6 +58,8 @@ class StandardRunner():
 
         will run in its own process. So after calling you need to call join() to wait for it to be finished
         '''
+
+        signal.signal(signal.SIGINT,self.sigInterrupt)
         if not ResultsWriter.Instance(self.kicID).diamondsRunNeeded:
             self.logger.info("Star "+self.kicID+" is already done, skipping")
             return
@@ -82,6 +86,11 @@ class StandardRunner():
 
         self._computeResults()
         self.logger.info("Result created")
+
+    def sigInterrupt(self,sig,frame):
+        self.logger.info("Run interrrupted, saving data")
+        self._computeResults()
+        sys.exit()
 
     def _lookForFile(self,kicID,filePath):
         '''
