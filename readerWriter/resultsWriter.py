@@ -11,6 +11,7 @@ from res.strings import *
 from settings.settings import Settings
 from support.directoryManager import cd
 from support.singleton import Singleton
+import traceback
 
 
 @Singleton
@@ -210,24 +211,31 @@ class ResultsWriter:
             if not os.path.exists(i):
                 os.makedirs(i)
 
-        with cd(analyserResultsPath):
-            self._saveRawData(analyserResultsPath)
+        try:
+            with cd(analyserResultsPath):
+                self._saveRawData(analyserResultsPath)
 
-            resultDict = self._createSectionsInMap(resultDict)
+                resultDict = self._createSectionsInMap(resultDict)
 
-            resultDict = self._saveMetaFrequencies(resultDict)
+                resultDict = self._saveMetaFrequencies(resultDict)
 
-            resultDict = self._savePriorStuff(resultDict)
+                resultDict = self._savePriorStuff(resultDict)
 
-            resultDict = self._saveStatus(resultDict)
+                resultDict = self._saveStatus(resultDict)
 
+                self._saveImages(imagePath)
+
+                resultDict = self._saveBayesValue(resultDict)
+
+                self.logger.debug(resultDict)
+                with open("results.json", 'w') as f:
+                    json.dump(resultDict, f)
+        except Exception as e:
+            self.logger.warning("Writing results failed")
+            trace = traceback.format_exc()
+            self.logger.warning(str(e.__class__.__name__) + ":" + str(e))
+            self.logger.warning(trace[:1023])
             self._saveImages(imagePath)
-
-            resultDict = self._saveBayesValue(resultDict)
-
-            self.logger.debug(resultDict)
-            with open("results.json", 'w') as f:
-                json.dump(resultDict, f)
 
     @property
     def powerSpectraCalculator(self):
