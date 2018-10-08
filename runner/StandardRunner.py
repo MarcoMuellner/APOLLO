@@ -11,6 +11,7 @@ from support.directoryManager import cd
 from fitter.fitFunctions import *
 import signal
 import sys
+import traceback
 
 
 class StandardRunner():
@@ -43,7 +44,7 @@ class StandardRunner():
 
     def run(self):
         self._internalRun()
-
+    @profile
     def _internalRun(self):
         '''
         Runs the Standardrunner. The sequence is:
@@ -60,29 +61,37 @@ class StandardRunner():
         '''
 
         signal.signal(signal.SIGINT,self.sigInterrupt)
-        if not ResultsWriter.Instance(self.kicID).diamondsRunNeeded:
-            self.logger.info("Star "+self.kicID+" is already done, skipping")
-            return
+        try:
+            if not ResultsWriter.Instance(self.kicID).diamondsRunNeeded:
+                self.logger.info("Star "+self.kicID+" is already done, skipping")
+                return
 
-        self.fileName = self._lookForFile(self.kicID,self.filePath)
-        self.logger.info("Lightcurve file is "+self.fileName)
+            self.fileName = self._lookForFile(self.kicID,self.filePath)
+            self.logger.info("Lightcurve file is "+self.fileName)
 
-        self._psdCalc = self._readAndConvertLightCurve(self.fileName)
-        self.logger.info("Nyquist frequency according to psdCalc is "+str(self._psdCalc.nyqFreq))
-        self.logger.info("Photon noise according to psdCalc is " + str(self._psdCalc.photonNoise))
+            self._psdCalc = self._readAndConvertLightCurve(self.fileName)
+            self.logger.info("Nyquist frequency according to psdCalc is "+str(self._psdCalc.nyqFreq))
+            self.logger.info("Photon noise according to psdCalc is " + str(self._psdCalc.photonNoise))
 
-        self._nuMaxResult = self._computeNuMax(self._psdCalc)
-        self.logger.info("NuMax is "+str(self._nuMaxResult[0]))
-        self.logger.info(self._nuMaxResult)
-        self.logger.info(self._nuMaxResult[1].marker)
-        plotPSD(self._psdCalc,True,self._nuMaxResult[1].marker,False,1,"Nu Max values")
+            self._nuMaxResult = self._computeNuMax(self._psdCalc)
+            self.logger.info("NuMax is "+str(self._nuMaxResult[0]))
+            self.logger.info(self._nuMaxResult)
+            self.logger.info(self._nuMaxResult[1].marker)
+            plotPSD(self._psdCalc,True,self._nuMaxResult[1].marker,False,1,"Nu Max values")
 
-        self._priors = self._computePriors(self._nuMaxResult[0],self._psdCalc)
-        self.logger.info("Priors are:")
-        self.logger.info(self._priors)
+            self._priors = self._computePriors(self._nuMaxResult[0],self._psdCalc)
+            self.logger.info("Priors are:")
+            self.logger.info(self._priors)
 
-        self._createFilesAndRunDiamonds(self._psdCalc, self._priors)
-        self.logger.info("Files created,diamondsRun")
+            self._createFilesAndRunDiamonds(self._psdCalc, self._priors)
+            self.logger.info("Files created,diamondsRun")
+        except Exception as e:
+            self.logger.warning("run failed, saving data")
+            trace = traceback.format_exc()
+            self.logger.warning(str(e.__class__.__name__) + ":" + str(e))
+            self.logger.warning(trace[:1023])
+            self._computeResults()
+            raise e
 
         self._computeResults()
         self.logger.info("Result created")

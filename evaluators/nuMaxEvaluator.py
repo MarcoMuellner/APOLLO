@@ -234,7 +234,7 @@ class NuMaxEvaluator:
         arr = [max(y),tauGuess]
 
         dataList = {'Data':((x,y),geom_point,None),
-                    "Initial Guess":((plotX,self._fit(plotX,max(y),max(y)/20,tauGuess)),geom_line,None)}
+                        "Initial Guess":((plotX,self._fit(plotX,max(y),max(y)/20,tauGuess)),geom_line,None)}
         plotCustom(self.kicID,'Initial Guess Fit',dataList,r'Time','Autocorrelation',self.figAppendix+"InitGuess.png",4)
         popt, pcov = optimize.curve_fit(sinc,x,y,p0=arr,maxfev = 5000)
 
