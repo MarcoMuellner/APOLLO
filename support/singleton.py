@@ -28,6 +28,18 @@ class Singleton:
             self._instanceList[args] = self.__decorated(args)
 
             return self._instanceList[args]
+
+    def deleteItem(self,*args):
+        if not hasattr(self,"_instanceList"):
+            return
+
+        try:
+            item =  self._instanceList[args]
+        except KeyError:
+            return
+
+        del item
+
     def __call__(self):
         raise TypeError("Singletons must be accessed through 'Instance()'.")
     def __instancecheck__(self,inst):

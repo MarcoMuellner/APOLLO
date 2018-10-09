@@ -81,22 +81,18 @@ class InputFileReader:
 
         bins = np.linspace(np.amin(y),np.amax(y),int((np.amax(y)-np.amin(y))/20))
 
-        hist = np.histogram(y,bins=bins)[0]
-        bins = bins[0:len(bins)-1]
+        hist = np.histogram(y,bins=bins,density=True)[0]
 
-        cen = bins[np.where(hist==np.amax(hist))]
-        wid = np.std(hist)
-        if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
-            amp = np.amax(hist)*np.sqrt(2*np.pi)*wid*np.exp(((cen/wid)**2)/2)*10
-        else:
-            amp = np.amax(hist)
+        mids = (bins[1:]+bins[:-1])/2
+        cen = np.average(mids,weights=hist)
+        wid = np.sqrt(np.average((mids-cen)**2,weights=hist))
 
-        p0 = [0,amp,cen[0],wid]
-        boundaries = ([-0.1,-np.inf,-np.inf,-np.inf],[0.1,np.inf,np.inf,np.inf])
+        p0 = [0,cen,wid]
+        bins=bins[:-1]
 
-        popt,__ = scipyFit(bins,hist,gaussian,p0,boundaries)
+        popt,__ = scipyFit(bins,hist,gaussian,p0)
 
-        (cen,wid) = (popt[2],popt[3])
+        (cen,wid) = (popt[1],popt[2])
 
         lin = np.linspace(np.min(bins),np.max(bins),len(bins)*100)
 

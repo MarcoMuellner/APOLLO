@@ -44,7 +44,7 @@ class StandardRunner():
 
     def run(self):
         self._internalRun()
-    @profile
+
     def _internalRun(self):
         '''
         Runs the Standardrunner. The sequence is:
@@ -90,15 +90,20 @@ class StandardRunner():
             trace = traceback.format_exc()
             self.logger.warning(str(e.__class__.__name__) + ":" + str(e))
             self.logger.warning(trace[:1023])
+            ResultsWriter.deleteItem(self.kicID)
             self._computeResults()
             raise e
 
         self._computeResults()
+        ResultsWriter.deleteItem(self.kicID)
         self.logger.info("Result created")
 
     def sigInterrupt(self,sig,frame):
         self.logger.info("Run interrrupted, saving data")
-        self._computeResults()
+        try:
+            self._computeResults()
+        except:
+            pass
         sys.exit()
 
     def _lookForFile(self,kicID,filePath):

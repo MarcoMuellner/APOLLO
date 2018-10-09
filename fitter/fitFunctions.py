@@ -15,7 +15,7 @@ def scipyFit(x, y, method,p0 = None,boundaries = ([-np.inf],[np.inf])):
     return popt, perr
 
 
-def gaussian(x, y0, amp, cen, wid):
+def gaussian(x, y0, cen, wid):
     '''
     Fitting function used. Fits a Gaussian using the following function:
     .. math::
@@ -33,7 +33,7 @@ def gaussian(x, y0, amp, cen, wid):
     :return:y-Array of a gaussian distribution
     :rtype:1-D numpy array
     '''
-    return y0 + (amp / (np.sqrt(2 * np.pi) * wid)) * np.exp(-(x - cen) ** 2 / (2 * wid ** 2))
+    return y0 + (1 / (np.sqrt(2 * np.pi) * wid)) * np.exp(-(x - cen) ** 2 / (2 * wid ** 2))
 
 def sinOffset(x,amp,tau,offset,phi):
     return offset+amp*np.sin(2*np.pi*x/tau+phi)

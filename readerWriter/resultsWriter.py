@@ -388,6 +388,8 @@ value.evidence.getData(strEvidSkillLogWithErr))
                                 "File with name " + imageName + " doesnt seem to be a ggplot or matplotlib type")
                             raise IOError
 
+        self._images.clear()
+
     def _saveBayesValue(self,resultDict):
         if self._diamondsModel == strFitModeBayesianComparison:
             resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = self._getBayesFactorEvidence(resultDict)
