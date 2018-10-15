@@ -41,10 +41,10 @@ class StandardRunner():
         self.kicID = kicID
         self.filePath =filePath
         self.fileName = fileName
+        self.resInst : ResultsWriter = None
 
     def run(self):
         self._internalRun()
-
     def _internalRun(self):
         '''
         Runs the Standardrunner. The sequence is:
@@ -62,7 +62,8 @@ class StandardRunner():
 
         signal.signal(signal.SIGINT,self.sigInterrupt)
         try:
-            if not ResultsWriter.Instance(self.kicID).diamondsRunNeeded:
+            self.resInst = ResultsWriter.getInstance(self.kicID)
+            if not self.resInst.diamondsRunNeeded:
                 self.logger.info("Star "+self.kicID+" is already done, skipping")
                 return
 
@@ -89,19 +90,23 @@ class StandardRunner():
             self.logger.warning("run failed, saving data")
             trace = traceback.format_exc()
             self.logger.warning(str(e.__class__.__name__) + ":" + str(e))
-            self.logger.warning(trace[:1023])
-            ResultsWriter.deleteItem(self.kicID)
-            self._computeResults()
-            raise e
+            self.logger.warning(trace)
+        finally:
+            if self.resInst.diamondsRunNeeded:
+                try:
+                    self._computeResults()
+                except Exception as e:
+                    self.logger.warning(f"Failed to write results for {self.kicID}")
+            ResultsWriter.removeInstance(self.kicID)
+            self.logger.info("Result created")
 
-        self._computeResults()
-        ResultsWriter.deleteItem(self.kicID)
-        self.logger.info("Result created")
+
 
     def sigInterrupt(self,sig,frame):
         self.logger.info("Run interrrupted, saving data")
         try:
-            self._computeResults()
+            if self.resInst.diamondsRunNeeded:
+                self._computeResults()
         except:
             pass
         sys.exit()
@@ -183,7 +188,7 @@ class StandardRunner():
         powerCalc = InputDataEvaluator(np.conjugate(file.lightCurve))
         powerCalc.kicID = self.kicID
 
-        ResultsWriter.Instance(self.kicID).powerSpectraCalculator = powerCalc
+        self.resInst.powerSpectraCalculator = powerCalc
 
         plotLightCurve(powerCalc,2,fileName="Lightcurve.png")
         plotPSD(powerCalc, True,visibilityLevel=2,fileName="PSD.png")
@@ -200,7 +205,7 @@ class StandardRunner():
         :rtype: tuple
         '''
         nuMaxCalc = NuMaxEvaluator(self.kicID, psdCalc.lightCurve)
-        ResultsWriter.Instance(self.kicID).nuMaxCalculator = nuMaxCalc
+        self.resInst.nuMaxCalculator = nuMaxCalc
 
         return (nuMaxCalc.computeNuMax(),nuMaxCalc)
 
@@ -256,7 +261,7 @@ class StandardRunner():
             proc.start()
         except ValueError:
             self.logger.error("Background Process failed for kicID "+self.kicID)
-        ResultsWriter.Instance(self.kicID).diamondsRunner = proc
+        self.resInst.diamondsRunner = proc
 
     def _computeResults(self):
         '''
@@ -274,8 +279,8 @@ class StandardRunner():
                 plotParameterTrend(result, fileName=binary+"_Parametertrend.png")
                 show(2)
 
-        ResultsWriter.Instance(self.kicID).collectDiamondsResult()
-        ResultsWriter.Instance(self.kicID).performAnalysis()
+        self.resInst.collectDiamondsResult()
+        self.resInst.performAnalysis()
 
     @property
     def result(self):

@@ -11,8 +11,11 @@ from settings.settings import Settings
 from sys import platform
 
 #apparently this is necessary for Linux, i don't know why.
-if platform == "linux" or platform == "linux2":
-    pl.switch_backend('Agg')
+#if platform == "linux" or platform == "linux2":
+#    pl.switch_backend('Agg')
+
+import warnings
+warnings.filterwarnings("ignore")
 
 pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
@@ -257,7 +260,7 @@ def saveFigToResults(kicID, filename, figure):
     :param figure: Figure object, provided by the different plotter mechanisms
     :type figure: Figure
     """
-    ResultsWriter.Instance(kicID).addImage(filename, figure)
+    ResultsWriter.addImage(kicID,filename,figure)
 
 def annotateDataDescriptor(dataDescriptor,backgroundModel,psdOnly):
     if not psdOnly:

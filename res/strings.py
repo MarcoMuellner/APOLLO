@@ -16,6 +16,7 @@ strSectLightCurveAlgorithm = 'Refine lightcurves algorithm'
 strSectDataRefinement = 'Refinement of Data'
 strSectPowerMode = 'Mode used to calculate Powerspectra (scipy,numpy)'
 strSectStarType= 'Star Type'
+strSectIterativeRun = 'Iterative Run'
 #strDiamondsSettings
 strSectBackgroundDataPath   = 'Background Data Path'
 strSectBackgroundResPath   = 'Background Results Path'
@@ -27,6 +28,7 @@ strSectDiamondsRunMode = 'Diamonds run mode'
 strSectDevMode = "Developer Mode"
 strSectAnalyzerResults = "Analyzer Results Path"
 strSectForceDiamondsRun = "Force DIAMONDS run"
+strSectOnlyResultsNeeded = "Only results needed"
 strSectRunBinaries = "Run Binaries"
 #SettingOptions
 strOptionName       = 'GUI_Name'
@@ -91,9 +93,11 @@ strPriorUnitSigma = "$\mu$Hz"
 #DiamondsModes
 strDiamondsModeNoise = "NoiseOnly"
 strDiamondsModeFull = "FullBackground"
+#Models used for Diamonds
+strInternalDiamondsModelNoise = "noise"
+strInternalDiamondsModelFull = "standard"
 #DiamondsBinaryNames
-strDiamondsExecNoise = "noiseBackground"
-strDiamondsExecFull = "background"
+strDiamondsExec = "background"
 #DiamondsErrorStrings
 strDiamondsErrBetterLikelihood = "Can't find point with a better Likelihood"
 strDiamondsErrCovarianceFailed = "Covariance Matrix decomposition failed"

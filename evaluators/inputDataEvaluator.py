@@ -238,11 +238,11 @@ class InputDataEvaluator:
             boundaries = ([- 0.1, -np.inf, -np.inf], [+ 0.1, np.inf, np.inf])
 
             popt, __ = scipyFit(bins, hist, exponentialDistribution, p0, boundaries)
-            self.photonNoise = 1/popt[2]
+            self._photonNoise = 1/popt[2]
 
             self.logger.info("Expected value for photon noise is " + str(1 / popt[2]))
 
-            lin = np.linspace(np.min(bins), np.max(bins), len(bins) * 100)
+            lin = np.linspace(np.min(bins), np.max(bins), len(bins))
             histogramPlotData = {"Histogramm": (np.array((bins, hist)), geom_line, 'solid'),
                                  "Initial Fit": (np.array((lin, exponentialDistribution(lin, *p0))), geom_line, 'solid'),
                                  "Fit": (np.array((lin, exponentialDistribution(lin, *popt))), geom_line, 'solid'),

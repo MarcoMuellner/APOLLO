@@ -86,17 +86,13 @@ for i in kicList:
     runner = StandardRunner(i,filePath)
     try:
         runner._internalRun()
-    except KeyboardInterrupt:
-        logger.info("Stopping run")
-        sys.exit()
-
     except Exception as e:
         trace = traceback.format_exc()
         logger.warning("Run for "+i +"failed")
         logger.warning(str(e.__class__.__name__) +":"+ str(e))
         logger.warning(trace[:1023])
         continue
-
+    del runner
     logger.info("************************************")
     logger.info("STAR " + i +" FINISHED")
     logger.info("************************************")

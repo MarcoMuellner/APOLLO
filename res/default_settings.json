@@ -22,6 +22,11 @@
                 "GUI Name":"Star Type",
                 "GUI Type":"textEdit",
                 "Value":"Red Giant"
+            },
+            "Iterative Run":{
+                "GUI Name":"Iterative Run",
+                "GUI Type":"textEdit",
+                "Value":"True"
             }
         },
         "Diamonds Settings":{
@@ -69,6 +74,11 @@
             },
             "Force DIAMONDS run":{
                 "GUI Name":"Force DIAMONDS run",
+                "GUI Type":"textEdit",
+                "Value":"False"
+            },
+            "Only results needed":{
+                "GUI Name":"Only results needed to skip run",
                 "GUI Type":"textEdit",
                 "Value":"False"
             },

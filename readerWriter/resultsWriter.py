@@ -13,8 +13,6 @@ from support.directoryManager import cd
 from support.singleton import Singleton
 import traceback
 
-
-@Singleton
 class ResultsWriter:
     '''
     This class gathers all results from the DIAMONDS run and the ACF function. After calling the constructor, which is
@@ -25,18 +23,46 @@ class ResultsWriter:
     To finish of the analysis, you need to call performAnalysis() at the end of your analysis. Be careful, this instance
     doesn't really die. This should not be a problem though, because the data saved is quite miniscule.
     '''
-    def __init__(self,*args):
+    instanceMap = {}
+
+    @staticmethod
+    def clearMap():
+        ResultsWriter.instanceMap.clear()
+
+    @staticmethod
+    def getInstance(kicID):
+        inst = ResultsWriter(kicID)
+        ResultsWriter.instanceMap[kicID] = inst
+        return inst
+
+    @staticmethod
+    def removeInstance(kicID):
+
+        try:
+            ResultsWriter.instanceMap[kicID].logger.info(f"Deleting {kicID}")
+            del ResultsWriter.instanceMap[kicID]
+        except (KeyError,TypeError) as e:
+            pass
+
+    @staticmethod
+    def addImage(kicID,filename,figure):
+        try:
+            ResultsWriter.instanceMap[kicID].addImageInternal(filename,figure)
+        except KeyError:
+            raise KeyError(f"KIC {kicID} is not in instance Map!")
+
+    def __init__(self,kicID = None):
         '''
         Constructor of AnalyserResults. Only called by Singleton Constructor
         '''
         self.logger = logging.getLogger(__name__)
         self.defaultPath = os.getcwd()
 
-        if len(args) == 1:
-            self.kicID = args[0][0]
+        if kicID != None:
+            self.kicID = kicID
 
 
-    def addImage(self,name,figure):
+    def addImageInternal(self,name,figure):
         '''
         Adds an image to the results list. Basically only called from saveFigToResults by plotFunctions
         :param name: Name of the image
@@ -88,6 +114,7 @@ class ResultsWriter:
                                                           strSectStarType).value == strStarTypeYoungStar else "RG"
         analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
         forceDiamondsRun = ("True" == Settings.Instance().getSetting(strMiscSettings, strSectForceDiamondsRun).value)
+        onlyResultsNeeded = ("True" == Settings.Instance().getSetting(strMiscSettings, strSectOnlyResultsNeeded).value)
 
         analyserResultsPath += "/" + starType + "_" + self._kicID + "/results.json"
 
@@ -96,6 +123,10 @@ class ResultsWriter:
 
         with open(analyserResultsPath,'rt') as f:
             resultDict = json.load(f)
+
+        if onlyResultsNeeded:
+            self.logger.info("Only results file needed to skip run. Skipping "+self.kicID)
+            return False
 
         try:
             priorContentFailed = self._checkPriorContent(resultDict,strAnalyzerResSectDiamondsPriors)
@@ -153,7 +184,7 @@ class ResultsWriter:
 
     def collectDiamondsResult(self):
         '''
-        This method gatheres the Results of the DIAMONDS run using the Results class.See the Results class for
+        This method gathers the Results of the DIAMONDS run using the Results class.See the Results class for
         further information. Checks first if the run was even necessary using the settings
         '''
         if self._kicID is None:

@@ -1,6 +1,7 @@
 #local imports
 
 from sympy.ntheory import factorint
+from scipy.signal import argrelextrema
 import numpy as np
 
 # local imports
@@ -104,7 +105,8 @@ class NuMaxEvaluator:
         '''
         self.lastFilter = 0
         self.marker["First Filter"] = (self._iterativeFilter(self._init_nu_filter), 'g')
-        self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter), 'b')
+        if Settings.Instance().getSetting(strDataSettings, strSectIterativeRun).value == "True":
+            self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter), 'b')
 
         return self.lastFilter
 
@@ -224,24 +226,29 @@ class NuMaxEvaluator:
         :param tauGuess: Initial Guess for Tau. The rest is fixed
         :return: Values for a,b, tau_acf
         '''
-        y = data[1][0:int(len(data[0])/3)]
-        x = data[0][0:int(len(data[0])/3)]
+        minima = argrelextrema(data[1],np.less)[0][0]
+        counter = 0
+        minimaFactor = int(30*np.exp(-minima/3) + minima) #kinda arbitrary, just need enough points
+        y = data[1][counter:minimaFactor]
+        x = data[0][counter:minimaFactor]
         x -= data[0][0]
-        plotX = np.linspace(0, 20000, num=50000)
+        plotX = np.linspace(0, max(x), num=max(x)*5)
 
         self.logger.debug("Initial Guess is "+str(tauGuess))
 
-        arr = [max(y),tauGuess]
+        sincArr = [max(y),tauGuess]
 
         dataList = {'Data':((x,y),geom_point,None),
-                        "Initial Guess":((plotX,self._fit(plotX,max(y),max(y)/20,tauGuess)),geom_line,None)}
+                    'Initial Guess':((plotX,self._fit(plotX,max(y),max(y)/20,tauGuess)),geom_line,None)}
+
         plotCustom(self.kicID,'Initial Guess Fit',dataList,r'Time','Autocorrelation',self.figAppendix+"InitGuess.png",4)
-        popt, pcov = optimize.curve_fit(sinc,x,y,p0=arr,maxfev = 5000)
+        popt, pcov = optimize.curve_fit(sinc,x,y,p0=sincArr)
+        sincArr = popt
 
         #compute residuals
 
         dataList = {'Data': ((x, y),geom_point,None),
-                    "Fit": ((np.linspace(0, 20000, num=50000), sinc(np.linspace(0, 20000, num=50000),*popt)),geom_line,None)}
+                    "Fit": ((plotX, sinc(plotX,*popt)),geom_line,None)}
         plotCustom(self.kicID,'Initial Sinc fit',dataList, r'Time','Autocorrelation',self.figAppendix+"InitSincFit.png",4)
 
         plotMaxValue = popt[1]
@@ -255,7 +262,7 @@ class NuMaxEvaluator:
         #fit sin to residual!
         arr = [max(residuals),popt[1]]
 
-        popt,pcov = optimize.curve_fit(sin,cut,residuals,p0=arr,maxfev=5000)
+        popt,pcov = optimize.curve_fit(sin,cut,residuals,p0=arr)
         b = popt[0]
 
         dataList = {"Residual data": ((cut, residuals),geom_point,None),
@@ -265,7 +272,7 @@ class NuMaxEvaluator:
 
         y =  y[x<=plotMaxValue] - sin(cut,*popt)
 
-        popt, pcov = optimize.curve_fit(sinc,cut,y,p0=arr,maxfev = 5000)
+        popt, pcov = optimize.curve_fit(sinc,cut,y,p0=sincArr)
 
         dataList = {"data": ((cut, y),geom_point,None),
                     "Sinc fit": ((plotX,sinc(plotX,*popt)),geom_line,None)}

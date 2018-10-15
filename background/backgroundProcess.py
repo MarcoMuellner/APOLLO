@@ -34,12 +34,12 @@ class BackgroundProcess:
         self._dummyObject = self._dummyProcessObject()
         self.testErrorMode = "NoError"
 
-        models = {strFitModeFullBackground:(strDiamondsModeFull,strDiamondsExecFull)
-            ,strFitModeNoiseBackground:(strDiamondsModeNoise,strDiamondsExecNoise)}
+        models = {strFitModeFullBackground:(strDiamondsModeFull, strInternalDiamondsModelFull, strDiamondsExec)
+            , strFitModeNoiseBackground:(strDiamondsModeNoise, strInternalDiamondsModelNoise, strDiamondsExec)}
 
-        for fitModel,(runID,binary) in models.items():
+        for fitModel,(runID,model,binary) in models.items():
             if self.diamondsModel in [fitModel,strFitModeBayesianComparison]:
-                self._binaryDictToExecute[runID] = (binary, True)
+                self._binaryDictToExecute[runID] = (model,binary, True)
 
         self.kicID = kicID
         return
@@ -71,11 +71,12 @@ class BackgroundProcess:
         '''
         self.logger.debug("Starting background process(es).")
 
-        for runID,(binary,statusFlag) in self._binaryDictToExecute.items():
+        for runID,(model,binary,statusFlag) in self._binaryDictToExecute.items():
 
             self.logger.debug("RunID is : '"+runID+"'")
             self.logger.debug("Binary path: '"+self.diamondsBinaryPath+"'")
             self.logger.debug("Binary used: '"+binary+"'")
+            self.logger.debug("Model used : '"+model+"'")
             self.logger.debug("KicID: '"+self.kicID+"'")
 
             path = self._getFullPath(self.diamondsBinaryPath + binary)
@@ -87,7 +88,7 @@ class BackgroundProcess:
 
             self.logger.debug("Results directory '" + resultsPath + "'")
 
-            cmd = [path,self.kicID,runID]
+            cmd = [path,self.kicID,runID,model]
             self.logger.debug("Full Command: '"+str(cmd)+"'")
 
             finished = False
@@ -95,11 +96,11 @@ class BackgroundProcess:
             for errorCount in range(1,3):
                 self._status[runID] = strDiamondsStatusRunning
                 if Settings.Instance().getSetting(strDiamondsSettings,strSectDiamondsRunMode).value == strPythonMode:
-                    if binary == strDiamondsExecNoise:
-                        model = WhiteNoiseOnlyModel
-                    elif binary == strDiamondsExecFull:
-                        model = WhiteNoiseOscillationModel
-                    finished = self._runPyDIAMONDS(runID,model)
+                    if model == strInternalDiamondsModelNoise:
+                        pyModel = WhiteNoiseOnlyModel
+                    elif model == strInternalDiamondsModelFull:
+                        pyModel = WhiteNoiseOscillationModel
+                    finished = self._runPyDIAMONDS(runID,pyModel)
                 else:
                     finished = self._runDiamondsBinaries(runID,cmd)
                 if finished:
