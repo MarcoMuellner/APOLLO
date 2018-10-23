@@ -109,9 +109,9 @@ class InputDataEvaluator:
         f = f[1:]
 
 
-        if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
-            psd = psd[f > 30]
-            f = f[f > 30]
+#        if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
+#            psd = psd[f > 30]
+#            f = f[f > 30]
         return np.array((f,psd))
 
     def __butter_lowpass_filtfilt(self,data,order=5):

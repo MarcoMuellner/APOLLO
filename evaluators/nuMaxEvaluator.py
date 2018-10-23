@@ -104,97 +104,59 @@ class NuMaxEvaluator:
         :return: Float value representing nuMax
         '''
         self.lastFilter = 0
-        self.marker["First Filter"] = (self._iterativeFilter(self._init_nu_filter), 'g')
-        if Settings.Instance().getSetting(strDataSettings, strSectIterativeRun).value == "True":
-            self.marker["Second Filter"] = (self._iterativeFilter(self.lastFilter), 'b')
+        tauInitFilter = self._iterativeFilter(self._init_nu_filter)
+        itFilter = self._computeFilterFrequency(tauInitFilter)
+        tauTwo = self._iterativeFilter(itFilter)
+        itFilter2 = self._computeFilterFrequency(tauTwo)
+        tauFinal = self._iterativeFilter(itFilter2)
+        nu_final = self._computeFinalFrequency(tauFinal)
+
+        self.marker["Initial Filter"] = (self._init_nu_filter,'r')
+        self.marker["Second Filter"] = (itFilter,'g')
+        self.marker["Third Filter"] = (itFilter2, 'c')
+        self.marker["Final nuMax"] = (nu_final,'b')
+
+        self.lastFilter = nu_final
 
         return self.lastFilter
 
+    def _computeFilterFrequency(self,tau):
+        """
+        Computes second filter frequency
+        :param tau: tau in minutes
+        :return: filterfrequency in uHz
+        """
+        log_y = 3.098 - 0.932 * np.log10(tau) - 0.025 * (np.log10(tau)) ** 2
+        return 10 ** log_y
+
+    def _computeFinalFrequency(self,tau):
+        """
+        Computes the final nuMax
+        :param tau: Tau in minutes
+        :return: frequency in uHz
+        """
+        return 10 ** 6 /(tau*60)
+
     def _iterativeFilter(self,filterFrequency):
-        '''
-        This method is called within computeNuMax 2 times, and will, using an ACF, compute the
-        proper Numax. For this the signal is filtered at the input filterFrequency using a custom
-        IDL-like Trismooth method, and then autocorrelated.
-        :rtype: 1-D numpy array
-        :type filterFrequency: float
-        :param filterFrequency: This frequency is used for filtering the intial signal contained in self._lightcurve
-        :return: The smoothed lightcurve. More importantly, it sets self.lastFilter
-        '''
-        #sanity check
         if not isinstance(filterFrequency,float) and not isinstance(filterFrequency,int):
             raise TypeError("Filter frequency has wrong type! Type: "+str(type(filterFrequency)))
 
         if filterFrequency == 0:
             raise ValueError("Filter frequency cannot be 0")
 
-        self.figAppendix = str("1st_Fit_" if self.lastFilter == 0 else "2nd_Fit_")  # needed for figure saving
+        self.logger.info(f"Running filter for {filterFrequency}")
+        self.fitAppendix = filterFrequency
 
-        tauFilter = 10**6/filterFrequency
+        tau = 10 ** 6 / filterFrequency
+        normalizedBinSize = int(np.round(tau / self.t_step))
+        filteredLightCurve = self._lightCurve[1] - trismooth(self._lightCurve[1], normalizedBinSize)
 
-        self.logger.debug("Filterfrequency for iterative filter is '" + str(filterFrequency) + "'")
-        self.logger.debug("Tau Filter is '"+str(tauFilter)+"'")
+        corr = self._calculateAutocorrelation(filteredLightCurve)
 
-        #calculates Bin size from the filter and the step
-        normalizedBinSize = int(np.round(tauFilter / self.t_step))
+        fitData = np.array((self._lightCurve[0][1:]/60,corr[1:])) #lightCurve x in minutes, as well as remove firstpoint
 
-        #filteredArray -> rest of array that should be significant
-        filteredArray = self._lightCurve[1]-trismooth(self._lightCurve[1],normalizedBinSize)
-
-
-        #FIXME this is a hack probably!
-        length = 1.5*tauFilter*4/self.t_step
-        if length > self.elements:
-            length = 1.5 * 4 / (10 ** -7 * self.t_step) - 1
-        if length > self.elements:
-            length = self.elements - 1
-
-        #gets the autocorrelation for the whole length squared
-        autocor = self._calculateAutocorrelation(filteredArray)[1:int(length)]**2
-
-        guess = tauFilter/2
-
-        try:
-            popt = self._iterativeFit((self._lightCurve[0][1:int(length)]/4,autocor),guess)
-        except RuntimeError as e:
-            self.logger.error("Failed to fit Autocorrelation, tau guess is "+str(guess))
-            self.logger.error(str(e))
-
-            dataList = {'Autocorrelation': ((self._lightCurve[0][1:int(length)]/4,autocor),geom_line,None),
-                        'Fit':((np.linspace(0, 20000, num=50000),self._fit(np.linspace(0, 20000, num=50000))),geom_line,None)}
-
-
-            plotCustom(self.kicID,"Failed fit result",dataList,r'Time','Autocorrelation'
-                       ,self.figAppendix + "Sinc_Fit_error.png")
-            show()
-            raise e
-        except BaseException as e:
-            self.logger.error("Scipy fit failed!")
-            self.logger.error(str(e))
-            raise e
-
-
-        dataList = {}
-        dataList['Autocorrelation'] = ((self._lightCurve[0][1:int(length)]/4,autocor),geom_point,None)
-        dataList['Initial Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),max(autocor),max(autocor)/20,guess)),geom_line,None)
-        dataList['Corrected Fit'] = ((np.linspace(0,20000,num=50000),self._fit(np.linspace(0,20000,num=50000),*popt)),geom_line,None)
-        plotCustom(self.kicID,"Final Fit",dataList,r'Time','Autocorrelation',self.figAppendix+"Final_fit_.png",2)
-
-        tau_first_fit = popt[2]/60
-        #this is total hack. FIXME
-        if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
-            tau_first_fit /=9
-
-        self.logger.debug("Tau fit is "+str(tau_first_fit))
-
-        self.compFilter = 10**(3.098)*1/(tau_first_fit**0.932)*1/(tau_first_fit**0.05)
-
-        if Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
-            self.lastFilter = self.compFilter if (filterFrequency == self._init_nu_filter) else (10 ** 6 / popt[2])
-        elif Settings.Instance().getSetting(strDataSettings, strSectStarType).value == strStarTypeRedGiant:
-            self.lastFilter = self.compFilter if (filterFrequency == self._init_nu_filter) else (10 ** 6 * 1.5 / popt[2]) #This shouldn't be necessary FIXME
-
-        self.logger.info("New Filter Frequency is '"+str(self.lastFilter)+"'(mu Hz)")
-        return self.lastFilter
+        tau_fit = self._iterativeFit(fitData, tau / 60)
+        return tau_fit
 
     def _calculateAutocorrelation(self,oscillatingData):
         '''
@@ -205,82 +167,48 @@ class NuMaxEvaluator:
         :param oscillatingData:The data that should be correlated (in our case the y function)
         :return: The correlation of oscillatingData
         '''
-        corrs2 = np.correlate(oscillatingData, oscillatingData, mode='same')
-        N = len(corrs2)
-        corrs2 = corrs2[N // 2:]
-        lengths = range(N, N // 2, -1)
-        corrs2 /= lengths
-        corrs2 /= corrs2[0]
-        maxcorr = np.argmax(corrs2)
-        corrs2 = corrs2 / corrs2[maxcorr]
-        return corrs2
+        corr = np.correlate(oscillatingData, oscillatingData, mode='full')
+        corr = corr[corr.size // 2:]
+        corr /= max(corr)
+        corr = corr ** 2
+        return corr
 
     def _iterativeFit(self,data,tauGuess):
-        '''
-        The iterative Fit approach. Fitting the sinc first, then the sin, subtracting the sin from the original signal and
-        fitting the sinc again. Result is then returned
-        :rtype: List containing 3 elements
-        :type tauGuess: float
-        :type data: 2-D numpy array
-        :param data:[0] -> temporal axis in seconds, [1] -> normalized flux
-        :param tauGuess: Initial Guess for Tau. The rest is fixed
-        :return: Values for a,b, tau_acf
-        '''
-        minima = argrelextrema(data[1],np.less)[0][0]
-        counter = 0
-        minimaFactor = int(30*np.exp(-minima/3) + minima) #kinda arbitrary, just need enough points
-        y = data[1][counter:minimaFactor]
-        x = data[0][counter:minimaFactor]
-        x -= data[0][0]
-        plotX = np.linspace(0, max(x), num=max(x)*5)
+        minima = argrelextrema(data[1], np.less)[0][0]
+        minimaFactor = int(30 * np.exp(-minima / 3) + minima)  # kinda arbitrary, just need enough points
+        y = data[1][:minimaFactor]
+        x = data[0][:minimaFactor] - data[0][0]
+        plotX = np.linspace(0, max(x), num=max(x) * 5)
 
-        self.logger.debug("Initial Guess is "+str(tauGuess))
+        x = x[int(np.where(y == max(y))[0]):]
+        y = y[int(np.where(y == max(y))[0]):]
 
-        sincArr = [max(y),tauGuess]
+        p0SincOne = [1, tauGuess]
+        bounds = (
+            [0, 0], [1, np.inf]
+        )
 
-        dataList = {'Data':((x,y),geom_point,None),
-                    'Initial Guess':((plotX,self._fit(plotX,max(y),max(y)/20,tauGuess)),geom_line,None)}
+        sincPopt, pcov = optimize.curve_fit(sinc, x, y, p0=p0SincOne, bounds=bounds)
 
-        plotCustom(self.kicID,'Initial Guess Fit',dataList,r'Time','Autocorrelation',self.figAppendix+"InitGuess.png",4)
-        popt, pcov = optimize.curve_fit(sinc,x,y,p0=sincArr)
-        sincArr = popt
+        residuals = y - sinc(x, *sincPopt)
 
-        #compute residuals
+        p0 = [max(residuals), sincPopt[1]]
 
-        dataList = {'Data': ((x, y),geom_point,None),
-                    "Fit": ((plotX, sinc(plotX,*popt)),geom_line,None)}
-        plotCustom(self.kicID,'Initial Sinc fit',dataList, r'Time','Autocorrelation',self.figAppendix+"InitSincFit.png",4)
+        sinPopt, pcov = optimize.curve_fit(sin, x, residuals, p0=p0)
 
-        plotMaxValue = popt[1]
+        sinResiduals = y - sin(x, *sinPopt)
 
-        residuals = y-sinc(x,*popt)
-        cut = x[x<=plotMaxValue]
-        residuals = residuals[x<=plotMaxValue]
+        p0 = [1, sincPopt[1]]
 
-        self.logger.debug("Initial Sinc fit yields " + str(popt[1]))
+        lastSincPopt, pcov = optimize.curve_fit(sinc, x, sinResiduals, p0=p0, bounds=bounds)
 
-        #fit sin to residual!
-        arr = [max(residuals),popt[1]]
+        dataList = {"Autocorrelation": ((x, y), geom_point, None),
+                    "Initial Data": ((plotX, sinc(plotX, *p0SincOne)), geom_line, None),
+                    "Final Sinc Fit": ((plotX, sinc(plotX, *lastSincPopt)), geom_line, None)}
 
-        popt,pcov = optimize.curve_fit(sin,cut,residuals,p0=arr)
-        b = popt[0]
+        plotCustom(self.kicID, 'Sinc fit', dataList, r"Time", "Autocorrelation", f"{self.fitAppendix}  SincFit.png", 4)
 
-        dataList = {"Residual data": ((cut, residuals),geom_point,None),
-                    "Initial Data":((plotX,sin(plotX,*arr)),geom_line,None),
-                    "Sin Fit": ((plotX,sin(plotX,*popt)),geom_line,None)}
-        plotCustom(self.kicID,'Sin fit',dataList,r"Time","Autocorrelation",self.figAppendix + "SinFit.png",4)
-
-        y =  y[x<=plotMaxValue] - sin(cut,*popt)
-
-        popt, pcov = optimize.curve_fit(sinc,cut,y,p0=sincArr)
-
-        dataList = {"data": ((cut, y),geom_point,None),
-                    "Sinc fit": ((plotX,sinc(plotX,*popt)),geom_line,None)}
-        plotCustom(self.kicID,'Second Sinc fit',dataList,r"Time","Autocorrelation",self.figAppendix + "SecondSinc.png",4)
-
-        returnList = [popt[0],b,popt[1]]
-
-        return returnList
+        return lastSincPopt[1]
 
     def _fit(self,x,a,b,tau_acf):
         return sinc(x,a,tau_acf) + sin(x,b,tau_acf)

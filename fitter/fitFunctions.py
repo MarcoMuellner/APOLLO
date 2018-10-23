@@ -70,7 +70,7 @@ def sinc(x, a, tau_acf):
     :return: the functional value for the array x
     :rtype: 1-D numpy array
     '''
-    return a * np.sinc((4* np.pi*x / tau_acf))**2
+    return a * np.sinc(4 * x / tau_acf)**2
 
 def trismooth(x,window_width):
     '''

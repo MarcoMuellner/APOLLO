@@ -94,7 +94,7 @@ class InputFileReader:
 
         (cen,wid) = (popt[1],popt[2])
 
-        lin = np.linspace(np.min(bins),np.max(bins),len(bins)*100)
+        lin = np.linspace(np.min(bins),np.max(bins),len(bins)*5)
 
         histogramPlotData = {"Histogramm":(np.array((bins,hist)),geom_line,'solid'),
                              "Initial Fit":(np.array((lin,gaussian(lin,*p0))),geom_line,'solid'),
@@ -116,6 +116,28 @@ class InputFileReader:
 
         y -= cen
 
+        pl.rc('font', family='serif')
+        #pl.rc('text', usetex=True)
+        pl.rc('xtick', labelsize='x-small')
+        pl.rc('ytick', labelsize='x-small')
+        fig = pl.figure(figsize=(10, 6))
+        ax = fig.add_subplot(111)
+        ax.set_title(f"KIC{self.kicID}")
+        rect = [0.7, 0.08, 0.3, 0.3]
+        ax1 = add_subplot_axes(ax, rect)
+        ax.plot(x, y, 'o', color='k', markersize=2)
+        ax.set_facecolor('white')
+        ax1.plot(bins, hist, 'x', color='k', markersize=4)
+        ax1.plot(lin,gaussian(lin,*popt),color='k')
+        ax1.axvline(cen - sigma * wid,ls='dashed',color='k')
+        ax1.axvline(cen + sigma * wid, ls='dashed',color='k')
+        ax.set_xlabel("Time (days)")
+        ax.set_ylabel("Flux")
+        ax1.set_xlabel('Delta F')
+        ax1.set_ylabel(r'N')
+        ax1.set_xlim((cen - sigma * wid*1.2),(cen +sigma * wid*1.2))
+        ResultsWriter.getInstance(self.kicID).addImage(self.kicID,f"Lightcurve_KIC_{self.kicID}",fig)
+
         return np.array((x, y))
 
     def _readData(self, filename):
@@ -132,6 +154,9 @@ class InputFileReader:
         if ".fits" in filename:
             hdulist = fits.open(filename)
             rawData = hdulist[0].data
+            if rawData is None:
+                rawData = hdulist[1].data
+                rawData = np.array((rawData['TIME'],rawData['SAP_FLUX']))
             self._mode = "fits"
         elif ".dat.txt" in filename:
             rawData = np.loadtxt(filename, skiprows=1, usecols=(0, 10))
@@ -149,12 +174,20 @@ class InputFileReader:
         rawData = rawData.T
         (gapIDs, mostCommon, rawData) = self._prepareRawAndSearchGaps(rawData)
 
-        if not gapIDs.size or gapIDs is None:
+        if gapIDs is None or not gapIDs.size :
             return rawData
 
 
         for i in gapIDs:
             rawData[0][i:] += rawData[0][i]-rawData[0][i+1]+ mostCommon
+
+        x = rawData[0]
+        y = rawData[1]
+
+        y = y[x>0]
+        x = x[x>0]
+
+        rawData = np.array((x,y))
 
         return rawData
 
@@ -162,13 +195,21 @@ class InputFileReader:
         rawData = rawData.T
         (gapIDs, mostCommon, rawData) = self._prepareRawAndSearchGaps(rawData)
 
-        if not gapIDs.size or gapIDs is None:
+        if gapIDs is None or not gapIDs.size:
             return rawData
 
         diffGap = gapIDs[1:len(gapIDs)] - gapIDs[0:len(gapIDs) - 1]
         idMaxDiff = np.argmax(diffGap)
 
-        return np.array((rawData[0][gapIDs[idMaxDiff]:gapIDs[idMaxDiff+1]],rawData[1][gapIDs[idMaxDiff]:gapIDs[idMaxDiff+1]]))
+        xArr = rawData[0][gapIDs[idMaxDiff]:gapIDs[idMaxDiff+1]]
+        yArr = rawData[1][gapIDs[idMaxDiff]:gapIDs[idMaxDiff+1]]
+        xArr = xArr[1:]
+        yArr = yArr[1:]
+        xArr -=xArr[0]
+
+        arr =  np.array((xArr,yArr))
+        return arr
+
 
     def _refineDataInterpolation(self,rawData):
 

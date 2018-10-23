@@ -1,6 +1,9 @@
 import os
 import json
 import logging.config
+import logging
+
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 def setup_logging(
     default_path='loghandler/logsettings.json', 
