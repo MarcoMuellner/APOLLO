@@ -94,11 +94,13 @@ class StandardRunner():
         finally:
             if self.resInst.diamondsRunNeeded:
                 try:
-                    self._computeResults()
+                    resDict = self._computeResults()
                 except Exception as e:
                     self.logger.warning(f"Failed to write results for {self.kicID}")
+                    resDict = None
             ResultsWriter.removeInstance(self.kicID)
             self.logger.info("Result created")
+            return resDict
 
 
 
@@ -280,7 +282,7 @@ class StandardRunner():
                 show(2)
 
         self.resInst.collectDiamondsResult()
-        self.resInst.performAnalysis()
+        return self.resInst.performAnalysis()
 
     @property
     def result(self):

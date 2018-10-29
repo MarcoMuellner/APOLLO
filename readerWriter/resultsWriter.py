@@ -235,7 +235,7 @@ class ResultsWriter:
         analyserResultsPath = os.path.abspath(Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value)
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
         imagePath = os.path.abspath(analyserResultsPath) + "/images/"
-        resultDict = OrderedDict()
+        self.resultDict = OrderedDict()
 
         paths = [analyserResultsPath, imagePath]
         for i in paths:
@@ -246,21 +246,22 @@ class ResultsWriter:
             with cd(analyserResultsPath):
                 self._saveRawData(analyserResultsPath)
 
-                resultDict = self._createSectionsInMap(resultDict)
+                self.resultDict = self._createSectionsInMap(self.resultDict)
 
-                resultDict = self._saveMetaFrequencies(resultDict)
+                self.resultDict = self._saveMetaFrequencies(self.resultDict)
 
-                resultDict = self._savePriorStuff(resultDict)
+                self.resultDict = self._savePriorStuff(self.resultDict)
 
-                resultDict = self._saveStatus(resultDict)
+                self.resultDict = self._saveStatus(self.resultDict)
 
                 self._saveImages(imagePath)
 
-                resultDict = self._saveBayesValue(resultDict)
+                self.resultDict = self._saveBayesValue(self.resultDict)
 
-                self.logger.debug(resultDict)
+                self.logger.debug(self.resultDict)
                 with open("results.json", 'w') as f:
-                    json.dump(resultDict, f)
+                    json.dump(self.resultDict, f)
+                return self.resultDict,self.powerSpectraCalculator.lightCurve,self.powerSpectraCalculator.powerSpectralDensity
         except Exception as e:
             self.logger.warning("Writing results failed")
             trace = traceback.format_exc()

@@ -216,6 +216,10 @@ class InputDataEvaluator:
             self.logger.error("Powerspectra should have 2 dimensions (frequency,power) and should be a numpy array")
             raise TypeError("Type is "+str(type(data)))
 
+    def computeWeights(self,x):
+        run = 10 ** (100 * x / x[len(x) - 1])
+        return run / max(run)
+
     @property
     def photonNoise(self):
         '''
@@ -229,27 +233,8 @@ class InputDataEvaluator:
         :rtype: float
         '''
         if self._photonNoise == None and self.powerSpectralDensity is not None:
-            bins = np.linspace(np.amin(self.powerSpectralDensity), np.amax(self.powerSpectralDensity),
-                               int((np.amax(self.powerSpectralDensity) - np.amin(self.powerSpectralDensity)) / 20))
-            hist = np.histogram(self.powerSpectralDensity, bins=bins)[0]
-            bins = bins[0:len(bins) - 1]
-
-            p0 = [0, hist[0], 0]
-            boundaries = ([- 0.1, -np.inf, -np.inf], [+ 0.1, np.inf, np.inf])
-
-            popt, __ = scipyFit(bins, hist, exponentialDistribution, p0, boundaries)
-            self._photonNoise = 1/popt[2]
-
-            self.logger.info("Expected value for photon noise is " + str(1 / popt[2]))
-
-            lin = np.linspace(np.min(bins), np.max(bins), len(bins))
-            histogramPlotData = {"Histogramm": (np.array((bins, hist)), geom_line, 'solid'),
-                                 "Initial Fit": (np.array((lin, exponentialDistribution(lin, *p0))), geom_line, 'solid'),
-                                 "Fit": (np.array((lin, exponentialDistribution(lin, *popt))), geom_line, 'solid'),
-                                 "Photon Noise": (np.array(([self.photonNoise])), geom_vline, 'dashed')}
-
-            plotCustom(self.kicID, self.kicID + "_psd_histogramm", histogramPlotData
-                       , "bins", "counts", self.kicID + "_psd_histogramm", 5)
+            weights = self.computeWeights(self.powerSpectralDensity[0])
+            self.photonNoise = np.average(self.powerSpectralDensity[1], weights=weights)
 
         return self._photonNoise
 
