@@ -29,7 +29,7 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         self._id = id
         self._name = name
         self._unit = unit
-        self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        self._dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
 
         if (kicID is not None and runID is not None and id is not None):
             self._readData()

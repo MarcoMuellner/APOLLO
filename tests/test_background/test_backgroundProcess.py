@@ -38,11 +38,11 @@ def testStart(defaultObject,errorModes):
         defaultObject.start()
     except ValueError:
         print("No problem")
-    assert defaultObject.status[strDiamondsModeFull] == errorModes[1]
-    assert defaultObject.status[strDiamondsModeNoise] == errorModes[1]
+    assert defaultObject.status[strDiModeFull] == errorModes[1]
+    assert defaultObject.status[strDiModeNoise] == errorModes[1]
 
 
-@pytest.mark.parametrize("texts",[("Fine text",strDiamondsStatusRunning),
+@pytest.mark.parametrize("texts",[("Fine text", strDiStatRunning),
                                   (strDiamondsErrBetterLikelihood,strDiamondsStatusLikelihood),
                                   (strDiamondsErrCovarianceFailed,strDiamondsStatusCovariance),
                                   (strDiamondsErrAssertionFailed,strDiamondsStatusAssertion)])
@@ -54,17 +54,17 @@ def testCheckDiamondsStdOut(defaultObject,texts):
     :param texts: Texts that are checked
     :type texts: tuple
     """
-    defaultStatus = strDiamondsStatusRunning
+    defaultStatus = strDiStatRunning
     assert texts [1] == defaultObject._checkDiamondsStdOut(defaultStatus,texts[0])
 
-@pytest.mark.parametrize("testDicts",[({strDiamondsModeFull:("",True),strDiamondsModeNoise:("",False)},False),
-                                      ({strDiamondsModeFull:("",False),strDiamondsModeNoise:("",True)},False),
-                                      ({strDiamondsModeFull:("",False),strDiamondsModeNoise:("",False)},False),
-                                      ({strDiamondsModeFull:("",True),strDiamondsModeNoise:("",True)},True),
-                                      ({strDiamondsModeFull:("",False)},False),
-                                      ({strDiamondsModeNoise:("",False)},False),
-                                      ({strDiamondsModeNoise: ("", True)}, True),
-                                      ({strDiamondsModeFull: ("", True)}, True),
+@pytest.mark.parametrize("testDicts",[({strDiModeFull:("", True), strDiModeNoise:("", False)}, False),
+                                      ({strDiModeFull:("", False), strDiModeNoise:("", True)}, False),
+                                      ({strDiModeFull:("", False), strDiModeNoise:("", False)}, False),
+                                      ({strDiModeFull:("", True), strDiModeNoise:("", True)}, True),
+                                      ({strDiModeFull:("", False)}, False),
+                                      ({strDiModeNoise:("", False)}, False),
+                                      ({strDiModeNoise: ("", True)}, True),
+                                      ({strDiModeFull: ("", True)}, True),
                                       ])
 def testEvaluateRun(defaultObject,testDicts):
     """

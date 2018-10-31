@@ -42,6 +42,7 @@ class StandardRunner():
         self.filePath =filePath
         self.fileName = fileName
         self.resInst : ResultsWriter = None
+        self.interrupt = False
 
     def run(self):
         self._internalRun()
@@ -105,13 +106,15 @@ class StandardRunner():
 
 
     def sigInterrupt(self,sig,frame):
-        self.logger.info("Run interrrupted, saving data")
-        try:
-            if self.resInst.diamondsRunNeeded:
-                self._computeResults()
-        except:
-            pass
-        sys.exit()
+        if not self.interrupt:
+            self.interrupt = True
+            self.logger.info("Run interrrupted, saving data")
+            try:
+                if self.resInst.diamondsRunNeeded:
+                    self._computeResults()
+            except:
+                pass
+            sys.exit()
 
     def _lookForFile(self,kicID,filePath):
         '''
@@ -259,10 +262,10 @@ class StandardRunner():
         BackgroundFileCreator(self.kicID, powerCalc.powerSpectralDensity, powerCalc.nyqFreq, priors)
 
         proc = BackgroundProcess(self.kicID)
-        try:
-            proc.start()
-        except ValueError:
-            self.logger.error("Background Process failed for kicID "+self.kicID)
+        #try:
+        proc.run()
+        #except ValueError:
+        #    self.logger.error("Background Process failed for kicID "+self.kicID)
         self.resInst.diamondsRunner = proc
 
     def _computeResults(self):
@@ -271,11 +274,11 @@ class StandardRunner():
         :return: The imageMap and resultMap contained in a tuple
         :rtype: tuple
         '''
-        diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
-        models = {strFitModeFullBackground:strDiamondsModeFull,strFitModeNoiseBackground:strDiamondsModeNoise}
+        diamondsModel = Settings.ins().getSetting(strDiamondsSettings, strSectFittingMode).value
+        models = {strRunIDFull:strDiModeFull, strRunIDNoise:strDiModeNoise}
 
         for fitMode,binary in models.items():
-            if diamondsModel in [strFitModeBayesianComparison,fitMode]:
+            if diamondsModel in [strRunIDBoth, fitMode]:
                 result = BackgroundResults(kicID=self.kicID,runID=binary)
                 plotPSD(result, False, visibilityLevel=1, fileName="PSD_"+binary+"_fit.png")
                 plotParameterTrend(result, fileName=binary+"_Parametertrend.png")

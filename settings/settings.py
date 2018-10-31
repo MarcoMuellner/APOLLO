@@ -15,9 +15,9 @@ class Settings:
     changed and write it to the file if a setting in the program changed. Assumes the settings file at the head of
     your user dir.
     To access settings:
-    Settings.Instance().getSetting(strSect,strOpt).value
+    Settings.ins().getSetting(strSect,strOpt).value
     To write settings:
-    Settings.Instance().setSetting(setting). See method for docu
+    Settings.ins().setSetting(setting). See method for docu
     """
     def __init__(self,*args):
         """

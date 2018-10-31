@@ -166,7 +166,7 @@ class PriorEvaluator:
         :return: Min-Max value for the photon noise in ppm^2
         :rtype: tuple, 2 values as float
         '''
-        if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
+        if Settings.ins().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
             return (0.5 * self._photonNoise, 3 * self._photonNoise)
         else:
             return (0.1 * self._photonNoise, 1.5 * self._photonNoise)

@@ -11,17 +11,17 @@ from background.fileModels.backgroundPriorFileModel import BackgroundPriorFileMo
 from res.strings import *
 
 
-@pytest.fixture(params=[strDiamondsModeFull,strDiamondsModeNoise],scope="module")
+@pytest.fixture(params=[strDiModeFull, strDiModeNoise], scope="module")
 def fullObject(request):
     return (BackgroundResults("123456789",request.param),request.param)
 
 @pytest.fixture(scope='module')
 def fullBackgroundObject():
-    return BackgroundResults("123456789",strDiamondsModeFull)
+    return BackgroundResults("123456789", strDiModeFull)
 
 @pytest.fixture(scope='module')
 def noiseOnlyObject():
-    return BackgroundResults("123456789",strDiamondsModeNoise)
+    return BackgroundResults("123456789", strDiModeNoise)
 
 
 testNoiseOnlyNames = [strPriorFlatNoise,
@@ -40,7 +40,7 @@ testFullBackgroundNames = testNoiseOnlyNames + [
 
 def testFullParameters(fullObject: (BackgroundResults,str)):
     params = fullObject[0].getBackgroundParameters()
-    if fullObject[1] == strDiamondsModeFull:
+    if fullObject[1] == strDiModeFull:
         assert len(params) == 10
         for i in params:
             assert i.name in testFullBackgroundNames
@@ -74,7 +74,7 @@ def testHasSummary(fullObject:(BackgroundResults,str)):
 
 def testFullSummaryParameter(fullObject:(BackgroundResults,str)):
     summaryValues = fullObject[0]._getSummaryParameter()
-    if fullObject[1] == strDiamondsModeFull:
+    if fullObject[1] == strDiModeFull:
         assert len(summaryValues) == 10
         assert strPriorNuMax in summaryValues.keys()
     else:
@@ -101,7 +101,7 @@ def testCreateBackgroundModel(fullObject:(BackgroundResults,str)):
     
 def testFullMarginalDistribution(fullObject:(BackgroundResults,str)):
     margDistrValues = fullObject[0].getMarginalDistribution()
-    if fullObject[1] == strDiamondsModeFull:
+    if fullObject[1] == strDiModeFull:
         assert len(margDistrValues) == 10
         for i in margDistrValues:
             assert i.name in testFullBackgroundNames

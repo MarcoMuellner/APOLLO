@@ -41,7 +41,7 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
         '''
         Internal reader function. Reads the file according to the settings
         '''
-        dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+        dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
         file = dataFolder+"KIC"+self.kicID+".txt"
         try:
             self._psd = np.loadtxt(file).T

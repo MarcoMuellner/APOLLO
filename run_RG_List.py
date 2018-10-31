@@ -30,7 +30,7 @@ starList.append("012008916_19")
 
 setup_logging()
 logger = logging.getLogger(__name__)
-Settings.Instance().getSetting(strDataSettings,strSectStarType).value = strStarTypeRedGiant
+Settings.ins().getSetting(strDataSettings,strSectStarType).value = strStarTypeRedGiant
 
 for i in starList:
     logger.info("************************************")

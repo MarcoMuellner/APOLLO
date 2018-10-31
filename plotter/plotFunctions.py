@@ -78,7 +78,7 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
     :return:
     :rtype:
     '''
-    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
+    debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
     psd = data.powerSpectralDensity
 
     if not psdOnly or forceGauss:
@@ -186,7 +186,7 @@ def plotLightCurve(data, visibilityLevel=0, fileName=""):
     :param fileName:The filename with which you want to save the plot. If it is empty, the plot will not be saved
     :type fileName:str
     """
-    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
+    debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
     lightCurve = data.lightCurve
     title = "Lightcurve " + data.kicID
     dataList = {}
@@ -235,7 +235,7 @@ def plotCustom(kicID, title, data, xLabel="", yLabel="", fileName ="", visibilit
     :return:
     """
     p = ggplot()
-    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
+    debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
     for name,(data,linestyle,linetype) in data.items():
         logger.debug("Plotting "+name)
         linetype = 'solid' if linetype is None else linetype
@@ -266,7 +266,7 @@ def show(visibilityLevel=0):
     be shown
     :type visibilityLevel:int
     """
-    debugLevel = int(Settings.Instance().getSetting(strMiscSettings, strSectDevMode).value)
+    debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
     if visibilityLevel <= debugLevel:
         pl.show()
     else:

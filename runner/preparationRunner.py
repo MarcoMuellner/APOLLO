@@ -149,25 +149,25 @@ logger.info("kicList is "+str(kicList))
 fitMode = ""
 
 if args.mode == "FB":
-    fitMode = strFitModeFullBackground
+    fitMode = strRunIDFull
 elif args.mode == "NO":
-    fitMode = strFitModeNoiseBackground
+    fitMode = strRunIDNoise
 elif args.mode == "BC":
-    fitMode = strFitModeBayesianComparison
+    fitMode = strRunIDBoth
 
 logger.info("Mode is " + fitMode)
-Settings.Instance().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
+Settings.ins().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
 starMode = ""
 
 if args.starType == "RG":
     starMode = strStarTypeRedGiant
 elif args.starType == "YS":
     starMode = strStarTypeYoungStar
-    Settings.Instance().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
+    Settings.ins().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
 else:
     raise IOError("Startype must be either YS or RG")
 
-Settings.Instance().getSetting(strDataSettings,strSectStarType).value = starMode
+Settings.ins().getSetting(strDataSettings,strSectStarType).value = starMode
 
 if args.verbose:
     logging.getLogger().setLevel(level=logging.DEBUG)

@@ -88,7 +88,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         the background model. If something fails in reading, the raw values and the
         background model will be set empty.
         '''
-        dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
+        dataFolder = Settings.ins().getSetting(strDiamondsSettings,
                                                            strSectBackgroundResPath).value
 
         file = dataFolder+"KIC"+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"

@@ -52,7 +52,7 @@ class InputFileReader:
         :return: Refined lightCurve
         :rtype: 2-D numpy array
         """
-        splitMode = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
+        splitMode = Settings.ins().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
 
         if splitMode == strLightCombining:
             lightCurve = self._refineDataCombiningMethod(rawData)
@@ -63,7 +63,12 @@ class InputFileReader:
         else:
             raise ValueError("Failed to find refine data method with: '" + splitMode + "'")
 
-        return self._removeStray(lightCurve[0],lightCurve[1])
+        lightCurve = self._removeStray(lightCurve[0],lightCurve[1])
+
+        if Settings.ins().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
+            lightCurve = self._cutoffDataAtFrequency(30,lightCurve)
+
+        return lightCurve
 
     def _removeStray(self,x,y):
         """
@@ -259,6 +264,15 @@ class InputFileReader:
             gapIDs = gapIDs[0]
 
         return (gapIDs,mostCommon,rawData)
+
+    def _cutoffDataAtFrequency(self,f,lightCurve):
+        tau = (10 ** 6 / f)/3600/24
+        elements = len(lightCurve[0])
+        t_step = np.mean(lightCurve[0][1:elements] - lightCurve[0][0:elements - 1])
+        normalizedBinSize = int(np.round(tau / t_step))
+        filteredLightCurve = lightCurve[1] - trismooth(lightCurve[1], normalizedBinSize)
+
+        return np.array((lightCurve[0],filteredLightCurve))
 
     @property
     def lightCurve(self):

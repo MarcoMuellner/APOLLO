@@ -7,4 +7,4 @@ if os.environ.get('DISPLAY','') == '':
     mpl.use('Agg')
 
 setup_logging()
-Settings.Instance().customPath = "tests/testFiles/lightCurveAnalyzer.json"
+Settings.ins().customPath = "tests/testFiles/lightCurveAnalyzer.json"

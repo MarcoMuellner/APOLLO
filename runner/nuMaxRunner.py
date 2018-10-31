@@ -62,7 +62,7 @@ def _iterativeFit(data,tau,ax):
 
     residuals = y-sinc(x,*sincPopt)
 
-    p0 = [max(residuals),sincPopt[1]]
+    p0 = [max(residuals),sincPopt[1]*4]
 
     sinPopt,pcov = optimize.curve_fit(sin,x,residuals,p0=p0)
 
@@ -111,10 +111,15 @@ def debugRun(kic,filePath):
     runner.resInst = resInst
     filePath = runner._lookForFile(kic,filePath)
     fileObj = runner._readAndConvertLightCurve(filePath)
+
     nuMaxObj = NuMaxEvaluator(kic,fileObj.lightCurve)
+
     logger.info(f"Initial filter {nuMaxObj._init_nu_filter}")
     fig,axes = pl.subplots(2,2,figsize=(20,10))
     fig.suptitle(f"KIC {kic}")
+
+
+
     tau_1 = _iterativeFilter(fileObj,nuMaxObj._init_nu_filter,nuMaxObj.lightCurve,nuMaxObj.t_step,nuMaxObj.elements,axes[0,0])
     filter_1 = computeFilterFrequency(tau_1)
     logger.info(f"Second filter {filter_1} with tau {tau_1}")
@@ -127,11 +132,13 @@ def debugRun(kic,filePath):
 
     axes[1,0].set_title(f"Normal PSD")
     axes[1, 0].loglog(fileObj.powerSpectralDensity[0], fileObj.powerSpectralDensity[1], label='Data', color='black')
-    axes[1, 0].axvline(x=nuMaxObj._init_nu_filter,color='r')
-    axes[1, 0].axvline(x=filter_1, color='g')
-    axes[1, 0].axvline(x=filter_2, color='c')
-    axes[1, 0].axvline(x=final_mu, color='b')
+    axes[1, 0].axvline(x=nuMaxObj._init_nu_filter,color='r',label='init')
+    axes[1, 0].axvline(x=filter_1, color='g',label='first')
+    axes[1, 0].axvline(x=filter_2, color='c',label='second')
+    axes[1, 0].axvline(x=final_mu, color='b',label='final')
+    axes[1, 0].legend()
     fig.savefig(f"debugResults/KIC{kic}.png",dpi=fig.dpi)
+    #pl.show()
 
 
     ResultsWriter.removeInstance(i)
@@ -182,25 +189,25 @@ logger.info("kicList is "+str(kicList))
 fitMode = ""
 
 if args.mode == "FB":
-    fitMode = strFitModeFullBackground
+    fitMode = strRunIDFull
 elif args.mode == "NO":
-    fitMode = strFitModeNoiseBackground
+    fitMode = strRunIDNoise
 elif args.mode == "BC":
-    fitMode = strFitModeBayesianComparison
+    fitMode = strRunIDBoth
 
 logger.info("Mode is " + fitMode)
-Settings.Instance().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
+Settings.ins().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
 starMode = ""
 
 if args.starType == "RG":
     starMode = strStarTypeRedGiant
 elif args.starType == "YS":
     starMode = strStarTypeYoungStar
-    Settings.Instance().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
+    Settings.ins().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
 else:
     raise IOError("Startype must be either YS or RG")
 
-Settings.Instance().getSetting(strDataSettings,strSectStarType).value = starMode
+Settings.ins().getSetting(strDataSettings,strSectStarType).value = starMode
 
 if args.verbose:
     logging.getLogger().setLevel(level=logging.DEBUG)
@@ -211,7 +218,10 @@ for i in kicList:
     logger.info("************************************")
     logger.info("Debug Run " + i)
     logger.info("************************************")
-    debugRun(i,filePath)
+    try:
+        debugRun(i,filePath)
+    except:
+        pass
 
     logger.info("************************************")
     logger.info("Debug Run " + i +" FINISHED")

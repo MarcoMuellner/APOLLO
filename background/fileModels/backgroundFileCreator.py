@@ -27,8 +27,8 @@ class BackgroundFileCreator:
         :type priors:9-D numpy array
         '''
         self.logger = logging.getLogger(__name__)
-        self.dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
-        self.resultsFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        self.dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+        self.resultsFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
 
         self._kicID = kicID
         self._powerSpectrum = powerspectrum

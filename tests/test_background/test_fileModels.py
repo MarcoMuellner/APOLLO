@@ -16,14 +16,14 @@ def settings(request):
     """
     Changes the settings to the testSettings. Also provides some cleaning up of files.
     """
-    resultPath = Settings.Instance().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
+    resultPath = Settings.ins().getSetting(strDiamondsSettings,strSectBackgroundResPath).value
     def cleanup():
         print("Performing cleanup")
         for i in os.listdir(resultPath+"KICtestKIC"):
             if "runID" not in i and "FullBackground" not in i and "NoiseOnly" not in i:
                 os.remove(resultPath + "KICtestKIC/"+i)
     request.addfinalizer(cleanup)
-    return Settings.Instance()
+    return Settings.ins()
 
 def testDataFile(settings):
     """
@@ -41,7 +41,7 @@ def testFileCreater(settings):
     into the BackgroundFileCreator. It then checks if all the Files needed for a DIAMONDS run are created.
     """
     print(settings.customPath)
-    resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+    resultPath = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
     psd = np.loadtxt("tests/testFiles/PSD.txt")
     priors = np.loadtxt(resultPath+"KICtestKIC/runID/background_hyperParametersUniform.txt",skiprows=4)
     BackgroundFileCreator("testKIC", psd, 283.5425, priors)

@@ -58,7 +58,7 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
         :return: Dict containing the values in the evidence file
         :rtype:dict{string:float}
         '''
-        self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings,
+        self._dataFolder = Settings.ins().getSetting(strDiamondsSettings,
                                                           strSectBackgroundResPath).value
         file = self._dataFolder + "KIC" + self.kicID + "/" + self.runID + "/background_evidenceInformation.txt"
         try:

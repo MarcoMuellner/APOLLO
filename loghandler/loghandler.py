@@ -1,7 +1,7 @@
 import os
 import json
 import logging.config
-import logging
+import coloredlogs,logging
 
 logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
@@ -19,3 +19,5 @@ def setup_logging(
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=default_level)
+
+    coloredlogs.install()

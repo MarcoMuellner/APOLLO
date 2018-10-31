@@ -9,9 +9,9 @@ from support.directoryManager import cd
 
 @pytest.fixture(scope="function")
 def defaultSetup(request):
-    defaultRefineSettting = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
+    defaultRefineSettting = Settings.ins().getSetting(strDataSettings, strSectLightCurveAlgorithm).value
     def cleanup():
-        sett = Settings.Instance().getSetting(strDataSettings, strSectLightCurveAlgorithm)
+        sett = Settings.ins().getSetting(strDataSettings, strSectLightCurveAlgorithm)
         sett.value = defaultRefineSettting
 
     request.addfinalizer(cleanup)
@@ -20,7 +20,7 @@ def defaultSetup(request):
 
 @pytest.mark.parametrize("value", [strLightInterpolating,strLightCombining,strLightCutting])
 def testRefineData(defaultSetup:InputFileReader,value):
-    refineSetting = Settings.Instance().getSetting(strDataSettings,strSectLightCurveAlgorithm)
+    refineSetting = Settings.ins().getSetting(strDataSettings,strSectLightCurveAlgorithm)
     refineSetting.value = value
 
     defaultSetup._refineData(defaultSetup._rawData)

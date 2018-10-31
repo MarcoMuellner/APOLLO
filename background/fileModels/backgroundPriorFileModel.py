@@ -1,6 +1,6 @@
 import glob
 import logging
-
+from typing import List,Tuple,Dict
 import numpy as np
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
@@ -40,7 +40,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                                 strPriorSigma]
         self.logger = logging.getLogger(__name__)
 
-    def getData(self,key=None,mode=strDiamondsModeFull):
+    def getData(self, key=None, mode=strDiModeFull):
         '''
         Returns the dataset accordingly to the set runID, mode and key. If the runID is None, it will return the
         map/tuple according to the mode. If it is not none, it will look indepently, even if you provide a wrong mode.
@@ -53,13 +53,13 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         '''
         self.logger.debug("Retrieving data with key "+str(key) + " and mode "+mode)
 
-        dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
+        dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
         self.logger.debug("Data is ")
         self.logger.debug(dict)
         if any(dict) is False and (self.runID is None or
                                     (any(self._fullPriors) is False and any(self._noisePriors) is False)):
             self._readData()
-            dict = self._fullPriors if mode == strDiamondsModeFull else self._noisePriors
+            dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
 
         if any(dict) is False and self.runID is not None:
             if any(self._fullPriors) is True:
@@ -80,7 +80,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         '''
         filesToLoad = []
         values = []
-        dataFolder = self._getFullPath(Settings.Instance().getSetting(strDiamondsSettings,
+        dataFolder = self._getFullPath(Settings.ins().getSetting(strDiamondsSettings,
                                                                             strSectBackgroundResPath).value)
         basePath = dataFolder + "KIC" + self.kicID + "/"
         if self.runID is not None:
@@ -105,6 +105,24 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                     self._fullPriors[self._parameterNames[it]] = (priorMin,priorMax)
                 else:
                     self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
+
+    def rewritePriors(self,priors : Dict[str,Tuple[float,float]]):
+        dataFolder = self._getFullPath(Settings.ins().getSetting(strDiamondsSettings,
+                                                                 strSectBackgroundResPath).value)
+        basePath = dataFolder + "KIC" + self.kicID + "/"
+
+        if len(priors) == 10:
+            file = basePath + "background_hyperParameters.txt"
+        else:
+            file = basePath + "background_hyperParameters_noise.txt"
+
+        dataList = []
+        for name in self._parameterNames[0:len(priors)]:
+            dataList.append(priors[name])
+
+        data = np.array(dataList)
+
+        np.savetxt(file, data, fmt='%10.14f')
 
     def _getFullPath(self,path):
         '''

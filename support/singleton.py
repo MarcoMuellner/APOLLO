@@ -14,7 +14,7 @@ class Singleton:
     '''
     def __init__(self,decorated):
         self.__decorated = decorated
-    def Instance(self,*args):
+    def ins(self,*args):
         '''
         Returns the singleton instance. Upon its firsct call, it creates a new
         instance of the decorated class and calls its '__init__' method.

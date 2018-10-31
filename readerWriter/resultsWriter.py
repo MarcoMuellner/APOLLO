@@ -16,7 +16,7 @@ import traceback
 class ResultsWriter:
     '''
     This class gathers all results from the DIAMONDS run and the ACF function. After calling the constructor, which is
-    done by calling AnalyserResults.Instance() for the first time, you can easily set the results from everywhere in
+    done by calling AnalyserResults.ins() for the first time, you can easily set the results from everywhere in
     the code by calling the different methods (see documentation of the methods). This class is only accessible via
     Singleton pattern.
 
@@ -94,7 +94,7 @@ class ResultsWriter:
         self.diamondsRunner = None
         self.nuMaxCalculator = None
         self._diamondsResults = OrderedDict()
-        self._diamondsModel = Settings.Instance().getSetting(strDiamondsSettings, strSectFittingMode).value
+        self._diamondsModel = Settings.ins().getSetting(strDiamondsSettings, strSectFittingMode).value
         self._images = OrderedDict()
 
         #try to read old values and set flag accordingly
@@ -110,11 +110,11 @@ class ResultsWriter:
         :return: A boolean which describes if the run is needed. True --> run needs to be done.
         :rtype:bool
         '''
-        starType = "YS" if Settings.Instance().getSetting(strDataSettings,
+        starType = "YS" if Settings.ins().getSetting(strDataSettings,
                                                           strSectStarType).value == strStarTypeYoungStar else "RG"
-        analyserResultsPath = Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value
-        forceDiamondsRun = ("True" == Settings.Instance().getSetting(strMiscSettings, strSectForceDiamondsRun).value)
-        onlyResultsNeeded = ("True" == Settings.Instance().getSetting(strMiscSettings, strSectOnlyResultsNeeded).value)
+        analyserResultsPath = Settings.ins().getSetting(strMiscSettings, strSectAnalyzerResults).value
+        forceDiamondsRun = ("True" == Settings.ins().getSetting(strMiscSettings, strSectForceDiamondsRun).value)
+        onlyResultsNeeded = ("True" == Settings.ins().getSetting(strMiscSettings, strSectOnlyResultsNeeded).value)
 
         analyserResultsPath += "/" + starType + "_" + self._kicID + "/results.json"
 
@@ -172,10 +172,10 @@ class ResultsWriter:
         :return:True if content is valid, False if not
         :rtype:bool
         '''
-        modes = {strDiamondsModeNoise:7+numberOffset,strDiamondsModeFull:10+numberOffset}
+        modes = {strDiModeNoise: 7 + numberOffset, strDiModeFull: 10 + numberOffset}
 
         for mode,number in modes.items():
-            if self._diamondsModel in [mode, strFitModeBayesianComparison] and len(resultDict[sectName][mode]) not in [7,10]:
+            if self._diamondsModel in [mode, strRunIDBoth] and len(resultDict[sectName][mode]) not in [7, 10]:
                 self.logger.info("Sector name: " + sectName)
                 self.logger.info("Mode "+mode+" not in results, run full programm")
                 return True
@@ -191,11 +191,11 @@ class ResultsWriter:
             self.logger.error("You need to set the KicID before you can access the results!")
             raise ValueError
 
-        modeDict = {strFitModeFullBackground:strDiamondsModeFull,
-                    strFitModeNoiseBackground:strDiamondsModeNoise}
+        modeDict = {strRunIDFull:strDiModeFull,
+                    strRunIDNoise:strDiModeNoise}
 
         for fitMode,runID in modeDict.items():
-            if self._diamondsModel in [fitMode, strFitModeBayesianComparison]:
+            if self._diamondsModel in [fitMode, strRunIDBoth]:
                 self._diamondsResults[runID] = BackgroundResults(kicID=self._kicID, runID=runID)
             else:
                 self._diamondsResults[runID] = None
@@ -231,8 +231,8 @@ class ResultsWriter:
         --Strength of evidence:
 
         '''
-        starType = "YS" if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
-        analyserResultsPath = os.path.abspath(Settings.Instance().getSetting(strMiscSettings, strSectAnalyzerResults).value)
+        starType = "YS" if Settings.ins().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar else "RG"
+        analyserResultsPath = os.path.abspath(Settings.ins().getSetting(strMiscSettings, strSectAnalyzerResults).value)
         analyserResultsPath += "/" + starType + "_" +self._kicID + "/"
         imagePath = os.path.abspath(analyserResultsPath) + "/images/"
         self.resultDict = OrderedDict()
@@ -303,8 +303,8 @@ class ResultsWriter:
 
     def _getBayesFactorEvidence(self,resultDict):
         backgroundEvidence = ufloat_fromstr(
-            resultDict[strAnalyseSectDiamonds][strDiamondsModeFull][strEvidSkillLog])
-        noiseBackground = ufloat_fromstr(resultDict[strAnalyseSectDiamonds][strDiamondsModeNoise][strEvidSkillLog])
+            resultDict[strAnalyseSectDiamonds][strDiModeFull][strEvidSkillLog])
+        noiseBackground = ufloat_fromstr(resultDict[strAnalyseSectDiamonds][strDiModeNoise][strEvidSkillLog])
 
         evidence = backgroundEvidence - noiseBackground
         resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValBayes] = format(evidence)
@@ -423,7 +423,7 @@ value.evidence.getData(strEvidSkillLogWithErr))
         self._images.clear()
 
     def _saveBayesValue(self,resultDict):
-        if self._diamondsModel == strFitModeBayesianComparison:
+        if self._diamondsModel == strRunIDBoth:
             resultDict[strAnalyzerResSectAnalysis][strAnalyzerResValStrength] = self._getBayesFactorEvidence(resultDict)
         return resultDict
 

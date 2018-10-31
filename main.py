@@ -24,6 +24,7 @@ parser.add_argument("-v","--verbose",help="If this is true, more logging is prin
 
 args = parser.parse_args()
 
+
 setup_logging()
 logger = logging.getLogger(__name__)
 
@@ -54,25 +55,25 @@ logger.info("kicList is "+str(kicList))
 fitMode = ""
 
 if args.mode == "FB":
-    fitMode = strFitModeFullBackground
+    fitMode = strRunIDFull
 elif args.mode == "NO":
-    fitMode = strFitModeNoiseBackground
+    fitMode = strRunIDNoise
 elif args.mode == "BC":
-    fitMode = strFitModeBayesianComparison
+    fitMode = strRunIDBoth
 
 logger.info("Mode is " + fitMode)
-Settings.Instance().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
+Settings.ins().getSetting(strDiamondsSettings,strSectFittingMode).value = fitMode
 starMode = ""
 
 if args.starType == "RG":
     starMode = strStarTypeRedGiant
 elif args.starType == "YS":
     starMode = strStarTypeYoungStar
-    Settings.Instance().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
+    Settings.ins().getSetting(strDataSettings, strSectDataRefinement).value = strRefineStray
 else:
     raise IOError("Startype must be either YS or RG")
 
-Settings.Instance().getSetting(strDataSettings,strSectStarType).value = starMode
+Settings.ins().getSetting(strDataSettings,strSectStarType).value = starMode
 
 if args.verbose:
     logging.getLogger().setLevel(level=logging.DEBUG)
@@ -86,6 +87,9 @@ for i in kicList:
     runner = StandardRunner(i,filePath)
     try:
         runner._internalRun()
+    except SystemExit:
+        logger.info("Goodbye!")
+        sys.exit()
     except Exception as e:
         trace = traceback.format_exc()
         logger.warning("Run for "+i +"failed")

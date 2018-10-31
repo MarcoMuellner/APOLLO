@@ -49,9 +49,9 @@ strLightInterpolating = 'interpolating'
 strStarTypeYoungStar = 'Young Star'
 strStarTypeRedGiant = 'Red Giant'
 #Fit Mode values
-strFitModeFullBackground = ' Full Background Model'
-strFitModeNoiseBackground = 'Noise Background Model'
-strFitModeBayesianComparison = 'Bayesian Evidence mode (both models and comparison)'
+strRunIDFull = ' Full Background Model'
+strRunIDNoise = 'Noise Background Model'
+strRunIDBoth = 'Bayesian Evidence mode (both models and comparison)'
 #strSectDiamondsRunMode
 strPythonMode = 'Python'
 strCppMode = 'C++'
@@ -91,24 +91,25 @@ strPriorUnitHeight = "ppm$^2$/$\mu$Hz"
 strPriorUnitNuMax = "$\mu$Hz"
 strPriorUnitSigma = "$\mu$Hz"
 #DiamondsModes
-strDiamondsModeNoise = "NoiseOnly"
-strDiamondsModeFull = "FullBackground"
+strDiModeNoise = "NoiseOnly"
+strDiModeFull = "FullBackground"
 #Models used for Diamonds
-strInternalDiamondsModelNoise = "noise"
-strInternalDiamondsModelFull = "standard"
+strDiIntModeNoise = "noise"
+strDiIntModeFull = "standard"
 #DiamondsBinaryNames
-strDiamondsExec = "background"
+strDiBinary = "background"
 #DiamondsErrorStrings
 strDiamondsErrBetterLikelihood = "Can't find point with a better Likelihood"
 strDiamondsErrCovarianceFailed = "Covariance Matrix decomposition failed"
 strDiamondsErrAssertionFailed = "Assertion failed"
 #DiamondsStatus
-strDiamondsStatusRunning = "Running ..."
+strDiStatRunning = "Running ..."
 strDiamondsStatusGood = "Good"
 strDiamondsStatusLikelihood = "Failed/Couldn't find point with better likelihood"
 strDiamondsStatusCovariance = "Failed/Covariance decomposition failed"
 strDiamondsStatusAssertion = "Failed/Assertion failed"
 strDiamondsStatusTooManyRuns = "Failed/Too many runs"
+strDiamondsStatusPriorsChanged = "Priors changed"
 #ResultsStringsPrefix
 strAnalyzerResTypeYoungStar = "YS"
 strAnalyzerResTypeRedGiant = "RG"

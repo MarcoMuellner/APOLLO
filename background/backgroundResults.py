@@ -45,7 +45,7 @@ class BackgroundResults:
         self._backgroundPriors = BackgroundPriorFileModel(kicID, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
-        self._dataFolder = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        self._dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
         self._nyq = float(np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]))
         self._names = priorNames
         self._units = priorUnits
@@ -281,7 +281,7 @@ class BackgroundResults:
         '''
         freq, psd = self._dataFile.powerSpectralDensity
         par_median = self.summary.getRawData(strSummaryMedian)  # median values
-        runGauss = (self._runID is strDiamondsModeFull)
+        runGauss = (self._runID is strDiModeFull)
         if runGauss:
             self.logger.debug("Height is '" + str(self.oscillationAmplitude) + "'")
             self.logger.debug("Numax is '" + str(self.nuMax) + "'")

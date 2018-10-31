@@ -36,8 +36,8 @@ def defaultSetup(request):
 @pytest.fixture(scope='function')
 def fullRunner(request):
     shutil.copy2("tests/testFiles/fitsLightcurve.fits", "tests/testFiles/playground/fits_123456789.fits")
-    resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
-    dataPath = resultPath = Settings.Instance().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+    resultPath = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+    dataPath = resultPath = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
     def cleanup():
         try:
             os.remove(resultPath+"KIC123456789/")

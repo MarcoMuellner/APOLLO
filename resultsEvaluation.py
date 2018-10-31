@@ -13,11 +13,11 @@ strongEvidenceList = []
 
 def checkValues(analyzeSection):
     valuesOk = True
-    for key, value in analyzeSection[strDiamondsModeFull].items():
+    for key, value in analyzeSection[strDiModeFull].items():
         if value != "Okay":
             valuesOk = False
 
-    for key, value in analyzeSection[strDiamondsModeNoise].items():
+    for key, value in analyzeSection[strDiModeNoise].items():
         if value != "Okay":
             valuesOk = False
 

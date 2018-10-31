@@ -21,8 +21,8 @@ for subdir, dirs, files in os.walk("noiseResults"):
 
 
                 bayes = ufloat_fromstr(data[strAnalyzerResSectAnalysis][strAnalyzerResValBayes])
-                signal = data[strAnalyseSectDiamonds][strDiamondsModeFull][strPriorHeight]
-                noise = data[strAnalyseSectDiamonds][strDiamondsModeFull][strPriorFlatNoise]
+                signal = data[strAnalyseSectDiamonds][strDiModeFull][strPriorHeight]
+                noise = data[strAnalyseSectDiamonds][strDiModeFull][strPriorFlatNoise]
 
                 snr = ufloat_fromstr(signal)/ufloat_fromstr(noise)
                 print(i,bayes)

@@ -47,7 +47,7 @@ class InputDataEvaluator:
         self.kicID = kicID
         self._smoothedData = None
 
-        self._powerSpectrumMode = Settings.Instance().getSetting(strCalcSettings, strSectPowerMode).value
+        self._powerSpectrumMode = Settings.ins().getSetting(strCalcSettings, strSectPowerMode).value
 
         if self.lightCurve is not None and self.powerSpectralDensity is None:
             self.powerSpectralDensity = self.lightCurveToPowerspectra(self.lightCurve)
@@ -109,7 +109,7 @@ class InputDataEvaluator:
         f = f[1:]
 
 
-#        if Settings.Instance().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
+#        if Settings.ins().getSetting(strDataSettings,strSectStarType).value == strStarTypeYoungStar:
 #            psd = psd[f > 30]
 #            f = f[f > 30]
         return np.array((f,psd))
