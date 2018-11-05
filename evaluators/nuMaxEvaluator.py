@@ -202,9 +202,9 @@ class NuMaxEvaluator:
 
         lastSincPopt, pcov = optimize.curve_fit(sinc, x, sinResiduals, p0=p0, bounds=bounds)
 
-        dataList = {"Autocorrelation": ((x, y), geom_point, None),
-                    "Initial Data": ((plotX, sinc(plotX, *p0SincOne)), geom_line, None),
-                    "Final Sinc Fit": ((plotX, sinc(plotX, *lastSincPopt)), geom_line, None)}
+        dataList = {"Autocorrelation": ((x, y), 'o'),
+                    "Initial Data": ((plotX, sinc(plotX, *p0SincOne)), '-'),
+                    "Final Sinc Fit": ((plotX, sinc(plotX, *lastSincPopt)), '-')}
 
         plotCustom(self.kicID, 'Sinc fit', dataList, r"Time", "Autocorrelation", f"{self.fitAppendix}  SincFit.png", 4)
 

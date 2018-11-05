@@ -31,9 +31,12 @@ class ResultsWriter:
 
     @staticmethod
     def getInstance(kicID):
-        inst = ResultsWriter(kicID)
-        ResultsWriter.instanceMap[kicID] = inst
-        return inst
+        if kicID in ResultsWriter.instanceMap.keys():
+            return ResultsWriter.instanceMap[kicID]
+        else:
+            inst = ResultsWriter(kicID)
+            ResultsWriter.instanceMap[kicID] = inst
+            return inst
 
     @staticmethod
     def removeInstance(kicID):

@@ -1,32 +1,31 @@
 import logging
 
 import pandas as pd
-import pylab as pl
-from plotnine import *
+from matplotlib import pyplot as pl
+from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 
 import numpy as np
 from readerWriter.resultsWriter import ResultsWriter
 from res.strings import *
 from settings.settings import Settings
-from sys import platform
-
-#apparently this is necessary for Linux, i don't know why.
-#if platform == "linux" or platform == "linux2":
-#    pl.switch_backend('Agg')
 
 import warnings
 warnings.filterwarnings("ignore")
 
-#pl.style.use('ggplot')
 logger = logging.getLogger(__name__)
 
-yAxisAnnotation = {'color': 'grey', 'linetype': 'solid'}
-smoothingAnnotation = {'color': 'green', 'linetype': 'solid'}
-harveyAnnotation = {'color': 'blue', 'linetype': 'dashed'}
-backgroundAnnotation = {'color': 'yellow', 'linetype': 'dotted'}
-powerExcessAnnotation = {'color': 'blue', 'linetype': 'dotted'}
-withoutGaussAnnotation = {'color': 'red', 'linetype': 'solid'}
-fullBackgroundAnnotation = {'color': 'cyan', 'linetype': 'dashed'}
+pl.rc('font', family='serif')
+pl.rc('xtick', labelsize='x-small')
+pl.rc('ytick', labelsize='x-small')
+
+yAxisAnnotation = {'color': 'k', 'linetype': ':'}
+smoothingAnnotation = {'color': 'g', 'linetype': '-'}
+harveyAnnotation = {'color': 'b', 'linetype': '--'}
+backgroundAnnotation = {'color': 'y', 'linetype': ':'}
+powerExcessAnnotation = {'color': 'c', 'linetype': ':'}
+withoutGaussAnnotation = {'color': 'r', 'linetype': '-'}
+fullBackgroundAnnotation = {'color': 'm', 'linetype': '--'}
 
 def add_subplot_axes(ax,rect,axisbg='w'):
     fig = pl.gcf()
@@ -103,12 +102,6 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
                       }
     dataDescriptor = annotateDataDescriptor(dataDescriptor,backgroundModel,psdOnly)
 
-    if smooth:
-        try:
-            dataDescriptor['Smoothed'] = (smoothingAnnotation, data.smoothedData)
-        except AttributeError:
-            logger.warning("No smoothing available for object type " + str(type(data)))
-
     if runGauss:
         dataDescriptor['Poweraccess'] = (powerExcessAnnotation, backgroundModel[4])
 
@@ -117,38 +110,44 @@ def plotPSD(data, psdOnly, markerList=None, smooth=True, visibilityLevel=0, file
         if annotation is not None:
             annotationList[name] = annotation
 
-    dfData = pd.DataFrame.from_dict(dataList)
+    fig : Figure = pl.figure()
+    ax : Axes= fig.add_subplot(111)
+    ax.loglog(psd[0],psd[1],color='k')
+    ax.set_title(title)
+    ax.set_ylabel(r'PSD [ppm$^2$/$\mu$Hz]')
+    ax.set_xlabel(r'Frequency [$\mu$Hz]')
 
-    p = ggplot(dfData, aes(x=r'Frequency [$\mu$Hz]'))
-    p = p + geom_line(aes(y=r'PSD [ppm$^2$/$\mu$Hz]'), color=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['color'],
-                      linetype=annotationList[r'PSD [ppm$^2$/$\mu$Hz]']['linetype'])
+    if smooth:
+        try:
+            ax.loglog(psd[0],data.smoothedData,color=smoothingAnnotation['color'],linestyle=smoothingAnnotation['linetype'])
+            dataDescriptor['Smoothed'] = (smoothingAnnotation, data.smoothedData)
+        except AttributeError:
+            logger.warning("No smoothing available for object type " + str(type(data)))
 
     for i in dataList.keys():
-        logger.debug("Key '" + i + "' will be plotted")
         if i != r'Frequency [$\mu$Hz]' and i != r'PSD [ppm$^2$/$\mu$Hz]':
             if i in annotationList.keys():
                 logger.debug(i)
                 logger.debug(annotationList[i])
-                p = p + geom_line(aes(y=i), color=annotationList[i]['color'],
-                                  linetype=annotationList[i]['linetype'])
+                ax.loglog(psd[0],dataList[i],color=annotationList[i]['color'],linestyle=annotationList[i]['linetype'])
             else:
-                p = p + geom_line(aes(y=i))
+                ax.loglog(psd[0], i)
     if markerList is not None:
         try:
             for name,(value,color) in markerList.items():
                 idx = (np.abs(psd[0] - value)).argmin()
-                p = p + geom_vline(xintercept=psd[0][idx], color=color,linetype="dashed")
+                ax.axvline(x=psd[0][idx],color=color,linestyle='--')
         except:
             logger.error("MarkerList needs to be a dict with name,(tuple)")
 
-    p = p + ggtitle(title) + ylab(r'PSD [ppm$^2$/$\mu$Hz]') + \
-        scale_x_log10(limits=(min(psd[0]), max(psd[0]))) + scale_y_log10(limits=(min(psd[1] * 0.95), max(psd[1]) * 1.2))
+    ax.set_xlim(min(psd[0]), max(psd[0]))
+    ax.set_ylim(min(psd[1] * 0.95), max(psd[1]) * 1.2)
 
     if visibilityLevel <= debugLevel:
-        print(p)
+        fig.show()
 
     if fileName != "":
-        saveFigToResults(data.kicID, fileName, p)
+        saveFigToResults(data.kicID, fileName, fig)
 
 
 def plotParameterTrend(data,fileName):
@@ -165,8 +164,6 @@ def plotParameterTrend(data,fileName):
         pl.subplot(2, 5, iii + 1)
         pl.plot(par, linewidth=2, c='k')
         pl.xlabel(backgroundParameters[iii].name + ' (' + backgroundParameters[iii].unit + ')', fontsize=16)
-
-
 
     if fileName != "":
         saveFigToResults(data.kicID, fileName, fig)
@@ -189,25 +186,22 @@ def plotLightCurve(data, visibilityLevel=0, fileName=""):
     debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
     lightCurve = data.lightCurve
     title = "Lightcurve " + data.kicID
-    dataList = {}
-    annotationList = {}
-    dataList[r'Observation Time [d]'] = lightCurve[0]
-    dataList[r'Flux'] = lightCurve[1]
-    annotation = {'color': 'grey', 'linetype': 'solid'}
-    annotationList[r'Flux'] = annotation
-    dfData = pd.DataFrame.from_dict(dataList)
-    p = ggplot(dfData, aes(x=r'Observation Time [d]'))
-    p = p + geom_point(aes(y=r'Flux'), color=annotationList[r'Flux']['color'])
-    p = p + ylab(r'Flux')
-    p = p + xlab(r'Observation Time [d]')
-    p = p + ylim(1.1 * min(lightCurve[1]), 1.1 * max(lightCurve[1]))
-    p = p + xlim(min(lightCurve[0]), max(lightCurve[0]))
-    p = p + ggtitle(title)
+
+    fig : Figure = pl.figure()
+    ax : Axes = fig.add_subplot(111)
+
+    ax.plot(lightCurve[0],lightCurve[1],'o',color='k')
+    ax.set_title(title)
+    ax.set_xlabel(r'Observation Time [d]')
+    ax.set_ylabel(r'Flux')
+    ax.set_xlim(min(lightCurve[0]), max(lightCurve[0]))
+    ax.set_ylim(1.1 * min(lightCurve[1]), 1.1 * max(lightCurve[1]))
+
     if visibilityLevel <= debugLevel:
-        print(p)
+        fig.show()
 
     if fileName != "":
-        saveFigToResults(data.kicID, fileName, p)
+        saveFigToResults(data.kicID, fileName, fig)
 
 def plotCustom(kicID, title, data, xLabel="", yLabel="", fileName ="", visibilityLevel = 0):
     """
@@ -218,8 +212,7 @@ def plotCustom(kicID, title, data, xLabel="", yLabel="", fileName ="", visibilit
                     {name:(data,linestyle,linetype)}
                     name:Name of the dataset
                     data:Dataset to plot. First axis is x-Axis, Second is y-Axis
-                    linestyle: The linestyle used, i.e geom_line, geom_point, etc.
-                    linetype: dashed, solid etc. Can be None
+                    linestyle: The linestyle used, i.e '-','x', whatever
     :type data: dict
     :param title: The title of the plot
     :type title: str
@@ -234,29 +227,38 @@ def plotCustom(kicID, title, data, xLabel="", yLabel="", fileName ="", visibilit
     :type visibilityLevel:int
     :return:
     """
-    p = ggplot()
-    debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
-    for name,(data,linestyle,linetype) in data.items():
-        logger.debug("Plotting "+name)
-        linetype = 'solid' if linetype is None else linetype
-        try:
-            plotData = pd.DataFrame({'x':data[0],'y':data[1],'Legend':[name]*len(data[0])})
-        except IndexError:
-            plotData = pd.DataFrame({'x': data, 'Legend': [name]})
-        if linestyle == geom_point:
-            p = p+linestyle(aes(x='x',y='y',color='Legend'),data=plotData)
-        elif linestyle == geom_vline:
-            p = p+linestyle(aes(xintercept='x',color='Legend'),data=plotData)
-        else:
-            p = p + linestyle(aes(x='x', y='y', color='Legend'), data=plotData,linetype=linetype)
 
-    p = p+ggtitle(title)+xlab(xLabel)+ylab(yLabel)
+    debugLevel = int(Settings.ins().getSetting(strMiscSettings, strSectDevMode).value)
+
+    fig :Figure = pl.figure()
+    ax : Axes = fig.add_subplot(111)
+
+    dotList = ['x','o']
+    lineStyleList = ['-','--','-.',':']
+
+    for name,(data,linestyle) in data.items():
+        logger.debug("Plotting "+name)
+
+        if linestyle in dotList:
+            ax.plot(data[0], data[1],linestyle,label=name)
+        elif linestyle in lineStyleList:
+            ax.plot(data[0], data[1], linestyle = linestyle, label=name)
+        elif linestyle == '|':
+            ax.axvline(x=data,linestyle='--',label=name)
+        elif linestyle == '/':
+            ax.axhline(y=data,linestyle='--',label=name)
+        else:
+            ax.plot(data[0],data[1],label=name)
+
+    ax.set_title(title)
+    ax.set_xlabel(xLabel)
+    ax.set_ylabel(yLabel)
 
     if visibilityLevel <= debugLevel:
-        print(p)
+        fig.show()
 
     if fileName != "":
-        saveFigToResults(kicID, fileName, p)
+        saveFigToResults(kicID, fileName, fig)
 
 def show(visibilityLevel=0):
     """

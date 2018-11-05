@@ -81,7 +81,7 @@ class InputFileReader:
         :return:2-D numpy array without the strays
         :rtype:2-D numpy array
         """
-        plotData = {"Before Reduction":(np.array((x,y)), geom_point,None)}
+        plotData = {"Before Reduction":(np.array((x,y)), 'x')}
         sigma = 5
 
         bins = np.linspace(np.amin(y),np.amax(y),int((np.amax(y)-np.amin(y))/20))
@@ -101,11 +101,11 @@ class InputFileReader:
 
         lin = np.linspace(np.min(bins),np.max(bins),len(bins)*5)
 
-        histogramPlotData = {"Histogramm":(np.array((bins,hist)),geom_line,'solid'),
-                             "Initial Fit":(np.array((lin,gaussian(lin,*p0))),geom_line,'solid'),
-                             "Fit":(np.array((lin,gaussian(lin,*popt))),geom_line,'solid'),
-                             "Negative Boundary": (np.array(([cen - sigma * wid])), geom_vline, 'dashed'),
-                             "Positive Boundary": (np.array(([cen + sigma * wid])), geom_vline, 'dashed')}
+        histogramPlotData = {"Histogramm":(np.array((bins,hist)),'-'),
+                             "Initial Fit":(np.array((lin,gaussian(lin,*p0))),'-'),
+                             "Fit":(np.array((lin,gaussian(lin,*popt))),'-'),
+                             "Negative Boundary": (np.array(([cen - sigma * wid])), '|'),
+                             "Positive Boundary": (np.array(([cen + sigma * wid])), '|')}
 
         plotCustom(self.kicID,self.kicID+"_histogramm",histogramPlotData ,"bins","counts",self.kicID+"_histogramm",5)
 
@@ -116,7 +116,7 @@ class InputFileReader:
         x = data[0]
         y = data[1]
 
-        plotData["After Reduction"] = (np.array((x, y)), geom_point, None)
+        plotData["After Reduction"] = (np.array((x, y)), 'x')
         plotCustom(self.kicID,self.kicID+"_reduction",plotData,"Time (d)","Flux (ppm)",self.kicID+"_reduction",5)
 
         y -= cen

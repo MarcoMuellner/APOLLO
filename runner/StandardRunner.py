@@ -282,7 +282,6 @@ class StandardRunner():
                 result = BackgroundResults(kicID=self.kicID,runID=binary)
                 plotPSD(result, False, visibilityLevel=1, fileName="PSD_"+binary+"_fit.png")
                 plotParameterTrend(result, fileName=binary+"_Parametertrend.png")
-                show(2)
 
         self.resInst.collectDiamondsResult()
         return self.resInst.performAnalysis()
