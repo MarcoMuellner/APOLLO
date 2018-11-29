@@ -6,7 +6,7 @@ import numpy as np
 
 # local imports
 from plotter.plotFunctions import *
-from fitter.fitFunctions import *
+from fitter.fit_functions import *
 from plotnine import *
 
 
@@ -106,14 +106,17 @@ class NuMaxEvaluator:
         self.lastFilter = 0
         tauInitFilter = self._iterativeFilter(self._init_nu_filter)
         itFilter = self._computeFilterFrequency(tauInitFilter)
+
         tauTwo = self._iterativeFilter(itFilter)
         itFilter2 = self._computeFilterFrequency(tauTwo)
+
         tauFinal = self._iterativeFilter(itFilter2)
         nu_final = self._computeFinalFrequency(tauFinal)
 
         self.marker["Initial Filter"] = (self._init_nu_filter,'r')
         self.marker["Second Filter"] = (itFilter,'g')
         self.marker["Third Filter"] = (itFilter2, 'c')
+
         self.marker["Final nuMax"] = (nu_final,'b')
 
         self.lastFilter = nu_final

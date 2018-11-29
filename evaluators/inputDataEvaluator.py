@@ -6,7 +6,7 @@ from plotnine import *
 
 from res.strings import *
 from settings.settings import Settings
-from fitter.fitFunctions import *
+from fitter.fit_functions import *
 from plotter.plotFunctions import *
 
 

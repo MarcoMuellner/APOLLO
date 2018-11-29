@@ -3,7 +3,7 @@ from scipy import optimize
 from scipy.signal import butter, filtfilt
 import logging
 from uncertainties import ufloat
-from fitter.fitFunctions import *
+from fitter.fit_functions import *
 
 
 class DeltaNuEvaluator:

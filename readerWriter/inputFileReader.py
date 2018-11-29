@@ -6,7 +6,7 @@ from astropy.io import fits
 from res.strings import *
 from settings.settings import Settings
 import pylab as pl
-from fitter.fitFunctions import *
+from fitter.fit_functions import *
 from plotter.plotFunctions import *
 from plotnine import *
 

@@ -8,7 +8,7 @@ from background.fileModels.backgroundFileCreator import BackgroundFileCreator
 from readerWriter.inputFileReader import InputFileReader
 from plotter.plotFunctions import *
 from support.directoryManager import cd
-from fitter.fitFunctions import *
+from fitter.fit_functions import *
 import signal
 import sys
 import traceback
