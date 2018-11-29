@@ -184,7 +184,7 @@ class BackgroundProcess:
                 self._logRatio(runID,line,10,r)
 
                 self.status[runID] = self._checkDiamondsStdOut(self.status[runID], line)
-                if self.status[runID] == strDiStatRunning and self._checkResults(runID,runCounter):
+                if self.status[runID] == strDiStatRunning: #and self._checkResults(runID,runCounter):
                     self.status[runID] = strDiamondsStatusGood
                     self.logger.info(f"{runID}: Finished!")
                     return True

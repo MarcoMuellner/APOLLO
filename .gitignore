@@ -49,3 +49,4 @@ info\.log\.1
 *.png
 
 *noiseResults*
+tempfile\.txt
