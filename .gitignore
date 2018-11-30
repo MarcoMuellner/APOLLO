@@ -50,3 +50,5 @@ info\.log\.1
 
 *noiseResults*
 tempfile\.txt
+
+\.coverage

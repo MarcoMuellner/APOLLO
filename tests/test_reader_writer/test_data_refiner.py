@@ -57,7 +57,7 @@ def test_remove_stray():
     arr_noise = np.array((x,y_noise))
     data = remove_stray(arr_noise)
 
-    assert np.abs(np.mean(data[1])) < 0.5
+    assert np.abs(np.mean(data[1])) < 1
 
 def test_interpolate():
     gap = [i for i in range(3000,4001)]

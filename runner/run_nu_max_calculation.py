@@ -14,7 +14,7 @@ test_file_dir = f"{pre_path}tests/testFiles/"
 
 file = f"{test_file_dir}Lightcurve.txt"
 
-data = load_file(file,{ascii_skiprows: 1, ascii_use_cols: (0, 1)})
+data = load_file(file,{ascii_skiprows: 1, ascii_use_cols: None})
 data = refine_data(data)
 sigma_ampl = calculate_flicker_amplitude(data)
 f_ampl = flicker_amplitude_to_frequency(sigma_ampl)
