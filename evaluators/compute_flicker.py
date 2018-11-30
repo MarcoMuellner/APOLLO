@@ -1,5 +1,5 @@
 #standard imports
-from typing import Tuple
+from typing import Tuple,Union
 #scientific imports
 import numpy as np
 from sympy.ntheory import factorint
@@ -94,12 +94,17 @@ def get_index_shift(points_left : int) -> Tuple[int,int]:
     return index_shift,cols
 
 
-def get_flicker_arrays(data : np.ndarray, elements : int, cols : int, index_shift : int, box_size : int
+def get_flicker_arrays(data : np.ndarray, elements : Union[int,Tuple[int,]], cols : int, index_shift : int, box_size : int
                        , filter_time :float) -> Tuple[float,np.ndarray]:
     """
     This method, depending on the indexshift, boxsize and filtertime creates the appropiate arrays, for which the
     flicker amplitude is calculated. It calculates the mean of every box for the boxsize
     """
+    if isinstance(elements,tuple) and len(elements) > 1:
+        raise ValueError("Elements is not allowed to be a tuple longer than 1!")
+    else:
+        elements = elements[0]
+
     bin_count = int(elements / box_size)
     points_left = elements - box_size * bin_count
 
@@ -116,7 +121,7 @@ def get_flicker_arrays(data : np.ndarray, elements : int, cols : int, index_shif
             timetime_referenceeference = i
             count = 1
 
-            while i < (elements-1) and (data[0][i] - data[0][timetime_referenceeference])/(3600*24) < filter_time:
+            while i < (int(elements)-1) and (data[0][i] - data[0][timetime_referenceeference])/(3600*24) < filter_time:
                 mean_bin +=data[1][i]
                 if data[1][i] != 0:
                     count +=1
