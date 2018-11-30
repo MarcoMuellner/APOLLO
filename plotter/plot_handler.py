@@ -1,5 +1,5 @@
 #standard imports
-from typing import Dict,List
+from typing import Dict,List,Tuple
 import os
 #scientific imports
 import numpy as np
@@ -9,6 +9,7 @@ from matplotlib.axes import Axes
 #project imports
 from res.conf_file_str import general_kic,plot_show,plot_save
 from fitter.fit_functions import gaussian
+from readerWriter.signal_features import compute_periodogram,boxcar_smoothing
 
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
@@ -98,10 +99,84 @@ def plot_sigma_clipping(data: np.ndarray,bins : np.ndarray, hist: np.ndarray, po
 
     ax1.set_xlim((cen - sigma * wid * 1.2), (cen + sigma * wid * 1.2))
 
-    if plot_show in kwargs.keys() and plot_show:
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
         pl.show(fig)
 
-    if plot_save in kwargs.keys() and plot_save:
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
         save_fig(fig,"Lightcurve_sigma_clipping")
 
     pl.close(fig)
+
+def plot_f_space(f_data : np.ndarray, kwargs : dict, add_smoothing : bool = False, f_list : List[Tuple[float,str]] = None):
+    """
+    Plots the psd.
+    :param f_data: Frequency domain data
+    :param kwargs: Run configuration
+    :param add_smoothing: Show smoothing
+    :param f_list: List of frequency markers
+    """
+    fig: Figure = pl.figure(figsize=(10,6))
+    ax: Axes = fig.add_subplot(111)
+    ax.loglog(f_data[0],f_data[1],linewidth=1,color='k')
+
+    name = "PSD"
+
+    if general_kic in kwargs.keys():
+        ax.set_title(f"KIC{kwargs[general_kic]}")
+
+    ax.set_ylabel(r'PSD [ppm$^2$/$\mu$Hz]')
+    ax.set_xlabel(r'Frequency [$\mu$Hz]')
+
+    if add_smoothing:
+        name += "_smoothed"
+        smoothed_data = boxcar_smoothing(f_data,700)
+        ax.loglog(smoothed_data[0], smoothed_data[1], linewidth=1, color='green',alpha=0.5)
+
+    color = iter(pl.cm.rainbow(np.linspace(0, 1, 10)))
+    if f_list is not None:
+        for f,f_name in f_list:
+            name += f"_f{f}_n_{len(f_list)}"
+            ax.axvline(x=f,linestyle='--',linewidth=1,label=f_name,color=next(color))
+
+    pl.legend()
+    ax.set_xlim(min(f_data[0]), max(f_data[0]))
+    ax.set_ylim(min(f_data[1] * 0.95), max(f_data[1]) * 1.2)
+
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig,name)
+
+def plot_peridogramm_from_timeseries(data : np.ndarray, kwargs : dict, add_smoothing : bool = False, f_list : List[Tuple[float,str]] = None):
+    """
+    Directly converts a timeseries and plots it in frequency space
+    :param data: Timeseries
+    :param kwargs: Run configuration
+    :param add_smoothing: Show smoothing
+    :param f_list: List of frequency markers
+    """
+    f_space = compute_periodogram(data)
+    plot_f_space(f_space,kwargs,add_smoothing,f_list)
+
+
+def plot_acf_fit(acf : np.ndarray, fit : np.ndarray,tau : float,kwargs : Dict, guess : np.ndarray = None):
+    fig :Figure = pl.figure(figsize=(10,6))
+    ax : Axes = fig.add_subplot(111)
+
+    if general_kic in kwargs.keys():
+        ax.set_title(f"KIC{kwargs[general_kic]}")
+
+    pl.plot(acf[0],acf[1],'x',color='k',markersize=2)
+    pl.plot(fit[0],fit[1],color='red',linewidth =1.5,label="Fit")
+    if guess is not None:
+        pl.plot(guess[0],guess[1],color='green',linewidth=1.5,label='Guess')
+
+    pl.xlabel("Time(min)")
+    pl.ylabel("ACF")
+    pl.legend()
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig,f"Fit_{10 ** 6 / tau}")

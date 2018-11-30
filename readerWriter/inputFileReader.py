@@ -218,7 +218,7 @@ class InputFileReader:
 
     def _refineDataInterpolation(self,rawData):
 
-        rawData = rawData.T
+        rawData = rawData
 
         (gapIDs,mostCommon,rawData) = self._prepareRawAndSearchGaps(rawData)
 

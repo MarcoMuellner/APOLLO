@@ -10,3 +10,6 @@ plot_show = "Show plots"
 plot_save = "Save plots"
 #general conf
 general_kic = "KIC ID"
+general_binary_path = "Binary path"
+general_background_result_path = "Background result path"
+general_background_data_path = "Background data path"
