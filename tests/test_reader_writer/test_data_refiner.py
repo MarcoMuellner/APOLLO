@@ -3,7 +3,7 @@ import re
 # scientific imports
 import numpy as np
 # project imports
-from readerWriter.data_refiner import refine_data,set_time_from_zero,get_gaps,remove_stray,interpolate
+from data_handler.data_refiner import refine_data,set_time_from_zero,get_gaps,remove_stray,interpolate
 
 try:
     pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]

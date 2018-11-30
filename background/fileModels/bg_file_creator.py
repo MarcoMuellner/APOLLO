@@ -5,7 +5,7 @@ import os
 import numpy as np
 # project imports
 from res.conf_file_str import general_background_result_path, general_kic, general_background_data_path
-from readerWriter.signal_features import compute_periodogram
+from data_handler.signal_features import compute_periodogram
 from support.directoryManager import cd
 
 

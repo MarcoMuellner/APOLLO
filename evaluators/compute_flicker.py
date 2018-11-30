@@ -4,7 +4,7 @@ from typing import Tuple,Union,Dict
 import numpy as np
 from sympy.ntheory import factorint
 #project imports
-from readerWriter.signal_features import get_time_step
+from data_handler.signal_features import get_time_step
 
 def calculate_flicker_amplitude(data:np.ndarray) -> float:
     """

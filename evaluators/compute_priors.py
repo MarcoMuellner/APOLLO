@@ -3,8 +3,8 @@ from typing import List
 # scientific imports
 import numpy as np
 # project imports
-from readerWriter.signal_features import noise
-from readerWriter.signal_features import compute_periodogram
+from data_handler.signal_features import noise
+from data_handler.signal_features import compute_periodogram
 
 '''
 The prior calculator computes initial guesses for the priors, which then can be used as Priors for DIAMONDS.

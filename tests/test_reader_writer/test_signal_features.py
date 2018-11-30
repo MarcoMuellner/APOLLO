@@ -3,7 +3,7 @@ import re
 # scientific imports
 import numpy as np
 # project imports
-from readerWriter.signal_features import compute_periodogram,get_time_step,nyqFreq,noise
+from data_handler.signal_features import compute_periodogram,get_time_step,nyqFreq,noise
 
 x = np.linspace(0,100,5000)
 y = np.sin(x)

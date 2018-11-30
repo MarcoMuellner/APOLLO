@@ -11,8 +11,6 @@ from background.fileModels.backgroundMarginalDistrFileModel import BackgroundMar
 from background.fileModels.backgroundParamSummaryModel import BackgroundParamSummaryModel
 from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
 from background.fileModels.backgroundPriorFileModel import BackgroundPriorFileModel
-from evaluators.bcEvaluator import BCEvaluator
-from evaluators.deltaNuEvaluator import DeltaNuEvaluator
 from res.strings import *
 
 from res.conf_file_str import general_kic, general_background_result_path
@@ -28,7 +26,7 @@ class BackgroundResults:
      need to instantiate this class twice with a different runID
     '''
 
-    def __init__(self, kwargs: Dict, runID: str, tEff: float = None):
+    def __init__(self, kwargs: Dict, runID: str):
         '''
         The constructor of the class. It sets up all classes that provide an interface to the lower laying files
         from DIAMONDS. It also sets up some other things like names
@@ -56,11 +54,6 @@ class BackgroundResults:
         self._psdOnlyFlag = False
 
         self._readBackgroundParameter()
-
-        if tEff is not None:
-            self._tEff = ufloat(tEff, 200)
-            self._bolometricCorrCalculator = BCEvaluator(tEff)
-            self._bolometricCorrection = self._bolometricCorrCalculator.BC
 
     def getBackgroundParameters(self, key: str = None):
         '''
@@ -261,19 +254,6 @@ class BackgroundResults:
             self.logger.error("Content of dict is")
             self.logger.error(self.summary.getData())
             raise ValueError
-
-    def calculateDeltaNu(self):
-        '''
-        Computes delta nu using the deltaNuCalculator
-        '''
-        backgroundModel = self.createBackgroundModel()
-        backGroundData = np.vstack((self.summary.getRawData(strSummaryMedian),
-                                    self.summary.getRawData(strSummaryLowCredLim),
-                                    self.summary.getRawData(strSummaryUpCredLim)))
-
-        self._deltaNuCalculator = DeltaNuEvaluator(self.nuMax[0], self.sigma[0],
-                                                   self._dataFile.powerSpectralDensity,
-                                                   self._nyq, backGroundData, backgroundModel)
 
     def createBackgroundModel(self):
         '''

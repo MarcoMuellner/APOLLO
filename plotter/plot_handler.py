@@ -9,7 +9,7 @@ from matplotlib.axes import Axes
 #project imports
 from res.conf_file_str import general_kic,plot_show,plot_save
 from fitter.fit_functions import gaussian
-from readerWriter.signal_features import compute_periodogram,boxcar_smoothing
+from data_handler.signal_features import compute_periodogram,boxcar_smoothing
 
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')

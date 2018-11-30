@@ -6,7 +6,7 @@ import re
 import numpy as np
 # project imports
 from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols
-from readerWriter.file_reader import load_file, check_file_exists, load_fits_file, load_ascii_file, \
+from data_handler.file_reader import load_file, check_file_exists, load_fits_file, load_ascii_file, \
     transpose_if_necessary
 
 try:

@@ -3,15 +3,15 @@ import os
 import re
 # scientific imports
 # project imports
-from readerWriter.file_reader import load_file
-from readerWriter.data_refiner import refine_data
-from readerWriter.signal_features import compute_periodogram, nyqFreq
+from data_handler.file_reader import load_file
+from data_handler.data_refiner import refine_data
+from data_handler.signal_features import compute_periodogram, nyqFreq
 from evaluators.compute_flicker import calculate_flicker_amplitude, flicker_amplitude_to_frequency
 from evaluators.compute_nu_max import compute_nu_max
 from evaluators.compute_priors import priors
 from background.fileModels.bg_file_creator import create_files
 from background.backgroundProcess import BackgroundProcess
-from readerWriter.write_results import save_results
+from data_handler.write_results import save_results
 from res.conf_file_str import ascii_use_cols, ascii_skiprows, plot_show, general_kic, fits_hdulist_column, \
     general_background_result_path, general_binary_path, general_background_data_path
 

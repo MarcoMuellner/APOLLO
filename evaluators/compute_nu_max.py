@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 # project imports
 from fitter.fit_functions import trismooth, sinc, sin
-from readerWriter.signal_features import get_time_step
+from data_handler.signal_features import get_time_step
 from plotter.plot_handler import plot_peridogramm_from_timeseries, plot_acf_fit
 
 

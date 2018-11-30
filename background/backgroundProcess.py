@@ -1,43 +1,12 @@
 from logging import getLogger
-import os
 import re
 import subprocess
 from multiprocessing import Process
-import numpy as np
 
 from res.strings import *
 from support.directoryManager import cd
-from background.backgroundResults import BackgroundResults
 import time
 from res.conf_file_str import general_background_result_path,general_binary_path,general_kic
-
-
-
-class _dummyProcessObject:
-    def __init__(self):
-        self._dummyPollCounter = 0
-        self.stderr = self.out()
-        self.stderr.testErrorMode = "NoError"
-
-    def poll(self):
-        if self._dummyPollCounter == 10:
-            return "Finished"
-        self.stderr._dummyPollCounter = self._dummyPollCounter
-        self._dummyPollCounter += 1
-        return None
-
-    class out:
-        def __init__(self):
-            self._dummyPollCounter = 0
-            self.testErrorMode = "NoError"
-
-        def readline(self):
-            if self._dummyPollCounter == 5 and self.testErrorMode != "NoError":
-                return self.testErrorMode
-            return "NoError"
-
-        def read(self):
-            return ("DUMMY OBJECT DONE")
 
 class BackgroundProcess:
     """
@@ -57,7 +26,6 @@ class BackgroundProcess:
 
         self.status = {}
         self.priorChanges = {}
-        self._dummyObject = _dummyProcessObject()
 
     def _getFullPath(self,path):
         '''
@@ -110,56 +78,6 @@ class BackgroundProcess:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return p
 
-    def _checkResults(self,runID,runNo):
-        result = BackgroundResults(self.kicID,runID)
-        prior = result.prior
-        priorData = prior.getData(runID)
-        values = result.summary.getData()
-        triggerSave = False
-        for name,value in values.items():
-            if name not in self.priorChanges.keys():
-                self.priorChanges[runID][name] = 0
-
-            lowerBound,upperBound = priorData[name]
-
-            lowValue = value/lowerBound < 1.05
-            highValue = upperBound/value < 1.05
-
-            if Settings.ins().getSetting(strDataSettings, strSectStarType).value == strStarTypeYoungStar:
-                k = -0.1
-                d = 0.6
-            else:
-                k = - 0.0875
-                d = 0.4875
-
-            if lowValue or highValue:
-                changeValue = k*runNo + d
-
-                if lowValue:
-                    self.logger.warning(f"Prior {name} to low! Value reaches lower bound. Lower bound: {lowerBound},"
-                                        f"Value: {value}, Ratio {value/lowerBound}")
-                    multiplier = 1-changeValue
-                    priorData[name] = (multiplier*priorData[name][0],multiplier*priorData[name][1])
-                    self.priorChanges[runID][name] -= changeValue
-                elif highValue:
-                    self.logger.warning(f"Prior {name} to high! Value reaches upper bound. Upper bound: {upperBound}, "
-                                        f"Value: {value}, Ratio {upperBound/value}")
-                    multiplier = 1 + changeValue
-                    priorData[name] = (multiplier * priorData[name][0], multiplier * priorData[name][1])
-                    self.priorChanges[runID][name] += changeValue
-
-                self.logger.info(f"Prior {name}: Setting to {priorData[name]}")
-                triggerSave = True
-
-        if triggerSave:
-            self.logger.info(f"Rerunning {runID} due to change of priors")
-            prior.rewritePriors(priorData)
-            self.status[runID] = strDiamondsStatusPriorsChanged
-            return False
-        else:
-            return True
-
-
     def _runCmd(self,runID, cmd):
         for runCounter in range(1,6):
             self.logger.info(f"Starting {runID}:no {runCounter}")
@@ -179,7 +97,7 @@ class BackgroundProcess:
                 self._logRatio(runID,line,10,r)
 
                 self.status[runID] = self._checkDiamondsStdOut(self.status[runID], line)
-                if self.status[runID] == strDiStatRunning: #and self._checkResults(runID,runCounter):
+                if self.status[runID] == strDiStatRunning:
                     self.status[runID] = strDiamondsStatusGood
                     self.logger.info(f"{runID}: Finished!")
                     return True
