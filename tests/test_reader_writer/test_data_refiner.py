@@ -88,4 +88,4 @@ def test_refine_data():
     data = refine_data(np.array((x_gap,y_gap)))
     assert np.abs(np.mean(data[1])) < 3
     assert np.abs(np.mean(data[0][3000:4000]) - mean_compare_x) < 10 ** -7
-    assert np.abs(np.mean(data[1][3000:4000]) - mean_compare_y) < 5
+    assert np.abs(np.mean(data[1][3000:4000]) - mean_compare_y) < 10
