@@ -115,7 +115,7 @@ def single_step_procedure(data : np.ndarray, tau : float) -> float:
     _,_,tau_acf = fit_acf(acf,tau/60)
     return tau_acf
 
-def full_procedure(data : np.ndarray, f_flicker : float) -> float:
+def compute_nu_max(data : np.ndarray, f_flicker : float) -> float:
     """
     Performs the full procedure introduced by Kallinger (2016)
     :param data: Full dataset from the lightcurve
