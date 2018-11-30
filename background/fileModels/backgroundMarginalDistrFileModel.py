@@ -5,12 +5,12 @@ import numpy as np
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from settings.settings import Settings
+from res.conf_file_str import general_background_result_path,general_kic
 
 
 class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
 
-    def __init__(self,name, unit, kickId=None,runID = 00,id = None):
+    def __init__(self,name, unit, kwargs,runID = 00,id = None):
         '''
         Constructs an object containing the content of one backgroundparameter file.
         :param name: The name of the parameter, i.e. H
@@ -24,13 +24,13 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         :param id: Id used between 0 and 9 (last three digits of Filename)
         :type id: int
         '''
-        BackgroundBaseFileModel.__init__(self, kickId, runID)
+        BackgroundBaseFileModel.__init__(self, kwargs, runID)
         self.logger = logging.getLogger(__name__)
         self._id = id
         self._name = name
         self._unit = unit
-        self.dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
-        if (kickId is not None and runID is not None and id is not None):
+        self.dataFolder = kwargs[general_background_result_path]
+        if (runID is not None and id is not None):
             self._readData()
         return
 

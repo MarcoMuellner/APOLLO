@@ -68,3 +68,6 @@ def noise(data : np.ndarray) -> float:
     """
     median = np.median(data[1][-100:-1])
     return median*(1-2/18)**3 #relationship between mean and median for Chi^2 distribution
+
+def compute_background():
+    pass

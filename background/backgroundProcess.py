@@ -5,11 +5,11 @@ import subprocess
 from multiprocessing import Process
 import numpy as np
 
-from settings.settings import Settings
 from res.strings import *
 from support.directoryManager import cd
 from background.backgroundResults import BackgroundResults
 import time
+from res.conf_file_str import general_background_result_path,general_binary_path,general_kic
 
 
 
@@ -44,13 +44,13 @@ class BackgroundProcess:
     Background Process allows for concurrent runs of diamonds for both modes. Use run() to get it started
     """
 
-    def __init__(self,kicID):
+    def __init__(self,kwargs):
         self.logger = getLogger(__name__)
-        self.kicID = kicID
-        self.binaryPath = Settings.ins().getSetting(strDiamondsSettings, strSectDiamondsBinaryPath).value
-        self.model = Settings.ins().getSetting(strDiamondsSettings, strSectFittingMode).value
+        self.kicID = kwargs[general_kic]
+        self.binaryPath = kwargs[general_binary_path]
+        self.model = strRunIDBoth
 
-        self.resultsPath = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        self.resultsPath = kwargs[general_background_result_path]
 
         self.modes = {strDiModeFull: strDiIntModeFull
             ,strDiModeNoise :  strDiIntModeNoise}
@@ -107,12 +107,7 @@ class BackgroundProcess:
 
 
     def _runBinary(self,cmd):
-        if Settings.ins().getSetting(strMiscSettings,strSectRunBinaries).value == "True":
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        else:
-            self._dummyObject._dummyPollCounter = 0
-            self._dummyObject.stderr._dummyPollCounter = 0
-            p = self._dummyObject
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return p
 
     def _checkResults(self,runID,runNo):
@@ -201,11 +196,11 @@ class BackgroundProcess:
         match = r.findall(line)
         if len(match) > 0 and counter >= 10:
             for it,ratio in match:
-                self.logger.info(f"{runID} --> {it},{ratio}")
+                print(f"{runID} --> {it},{ratio}")
 
             counter = 0
         elif len(match) == 0 and counter >= 10:
-            self.logger.info(f"{line}")
+            print(f"{line}")
             counter = 0
         return counter
 

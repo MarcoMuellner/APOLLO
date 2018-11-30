@@ -1,12 +1,13 @@
 import logging
 import numpy as np
+from res.conf_file_str import general_kic
 
 class BackgroundBaseFileModel:
     '''
     Base class for the background filereaders. Creates some properties for the kicIDs, units and provides an interface
     for some methods that have to be implemented
     '''
-    def __init__(self,kicID = None,runID = None):
+    def __init__(self,kwargs,runID = None):
         '''
         Constructor of the Baseclass
         :param kicID: KICId of the star
@@ -15,13 +16,16 @@ class BackgroundBaseFileModel:
         :type runID: string
         '''
         self.logger = logging.getLogger(__name__)
-        self._kicID = kicID
+        try:
+            self._kicID = kwargs[general_kic]
+        except:
+            pass
         self._runID = runID
 
     def getData(self,*args):
         raise NotImplementedError
 
-    def _readData(self):
+    def _readData(self,kwargs):
         raise NotImplementedError
 
     @property

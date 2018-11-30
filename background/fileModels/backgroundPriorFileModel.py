@@ -5,7 +5,6 @@ import numpy as np
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from settings.settings import Settings
 
 
 class BackgroundPriorFileModel(BackgroundBaseFileModel):
@@ -16,7 +15,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
     return the correct priors independently of the mode set.
     '''
 
-    def __init__(self,kicID = None,runID = None):
+    def __init__(self,kwargs,runID = None):
         '''
         Constructor for the PriorSetup. KicID and runID are set via the BaseBackgroundFile class.
         :param kicID: KicID of the star. Optional, but should be set here. If not set via property setter
@@ -24,7 +23,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :param runID: RunID of the star. Optional. If None it will read the ones in the parent directory of the results
         :type runID: string
         '''
-        BackgroundBaseFileModel.__init__(self, kicID, runID)
+        BackgroundBaseFileModel.__init__(self, kwargs, runID)
 
         self._fullPriors = {}
         self._noisePriors = {}

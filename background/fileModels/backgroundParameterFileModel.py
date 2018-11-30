@@ -4,12 +4,12 @@ import numpy as np
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from settings.settings import Settings
+from res.conf_file_str import general_background_result_path
 
 
 class BackgroundParameterFileModel(BackgroundBaseFileModel):
 
-    def __init__(self, name, unit, kicID=None, runID = 00, id = None):
+    def __init__(self, name, unit, kwargs, runID = 00, id = None):
         '''
         Constructs an object containing the content of one backgroundparameter file. Needs
         to be called for every single parameter in DIAMONDS (i.e. 6 or 9 times)
@@ -24,14 +24,14 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         :param id: Id used between 0 and 9 (last three digits of Filename)
         :type id:int
         '''
-        BackgroundBaseFileModel.__init__(self, kicID, runID)
+        BackgroundBaseFileModel.__init__(self, kwargs, runID)
         self.logger = logging.getLogger(__name__)
         self._id = id
         self._name = name
         self._unit = unit
-        self._dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
+        self._dataFolder = kwargs[general_background_result_path]
 
-        if (kicID is not None and runID is not None and id is not None):
+        if (runID is not None and id is not None):
             self._readData()
 
     @property

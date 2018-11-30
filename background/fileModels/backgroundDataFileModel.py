@@ -1,10 +1,11 @@
 import glob
 import logging
+from typing import Dict
 
 import numpy as np
 
 from res.strings import *
-from settings.settings import Settings
+from res.conf_file_str import general_background_data_path
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 
@@ -16,17 +17,16 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
     have been created using the powerspectraCalculator. The file should contain in its
     first axis the frequencies in uHz and in its second axis the power in ppm^2
     '''
-    def __init__(self,kicID = None):
+    def __init__(self,kwargs):
         '''
         Constructor for the DataFile class. Sets the KicID and kicks of reading of the file.
         :param kicID: The KICID of the star
         :type kicID: string
         '''
         self.logger = logging.getLogger(__name__)
-        BackgroundBaseFileModel.__init__(self,kicID)
+        BackgroundBaseFileModel.__init__(self,kwargs)
 
-        if kicID is not None:
-            self._readData()
+        self._readData(kwargs)
 
     @property
     def powerSpectralDensity(self):
@@ -37,11 +37,11 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
         '''
         return self._psd
 
-    def _readData(self):
+    def _readData(self,kwargs : Dict):
         '''
         Internal reader function. Reads the file according to the settings
         '''
-        dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundDataPath).value
+        dataFolder = kwargs[general_background_data_path]
         file = dataFolder+"KIC"+self.kicID+".txt"
         try:
             self._psd = np.loadtxt(file).T
