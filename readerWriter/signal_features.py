@@ -5,7 +5,6 @@ import numpy as np
 from scipy.signal import periodogram,butter,filtfilt
 from astropy.convolution import convolve, Box1DKernel
 # project imports
-from evaluators.compute_flicker import get_time_step
 
 def compute_periodogram(data : np.ndarray) -> np.ndarray:
     """
@@ -67,5 +66,5 @@ def noise(data : np.ndarray) -> float:
     :param data: Periodogramm data.
     :return: noise value
     """
-    median = np.median(data[1][-100:-1])[0]
+    median = np.median(data[1][-100:-1])
     return median*(1-2/18)**3 #relationship between mean and median for Chi^2 distribution
