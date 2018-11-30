@@ -14,4 +14,4 @@ install:
 script:
   coverage run -m pytest -s tests/ && coverage xml
 after_script:
- - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t coverage.py --prefix
+ - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t coverage.py --prefix /home/travis/build/muma7490/LCA
