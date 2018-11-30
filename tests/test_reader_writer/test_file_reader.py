@@ -9,8 +9,11 @@ from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_c
 from readerWriter.file_reader import load_file, check_file_exists, load_fits_file, load_ascii_file, \
     transpose_if_necessary
 
-pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
-test_file_dir = f"{pre_path}tests/testFiles/"
+try:
+    pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
+    test_file_dir = f"{pre_path}tests/testFiles/"
+except IndexError:
+    test_file_dir = f"tests/testFiles/"
 
 
 def test_transpose_if_necessary():
