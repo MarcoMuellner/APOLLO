@@ -54,3 +54,5 @@ tempfile\.txt
 \.coverage
 
 cc-test-reporter
+
+coverage\.xml

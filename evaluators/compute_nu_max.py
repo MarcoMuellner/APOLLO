@@ -65,7 +65,7 @@ def fit_acf(data: np.ndarray, tau_guess: float) -> Tuple[float, float, float]:
 
     # restrict your fit range to be able to fit better!
     minima = argrelextrema(data[1], np.less)[0][0]
-    minima_factor = np.round(30 * np.exp(-minima / 3) + minima)
+    minima_factor = int(np.round(30 * np.exp(-minima / 3) + minima))
     x = data[0][:minima_factor]
     y = data[1][:minima_factor]
 
