@@ -5,8 +5,11 @@ import numpy as np
 # project imports
 from readerWriter.data_refiner import refine_data,set_time_from_zero,get_gaps,remove_stray,interpolate
 
-pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
-test_file_dir = f"{pre_path}tests/testFiles/"
+try:
+    pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
+    test_file_dir = f"{pre_path}tests/testFiles/"
+except IndexError:
+    test_file_dir = f"tests/testFiles/"
 
 x = np.linspace(0,100,5000)
 y = np.sin(x)
