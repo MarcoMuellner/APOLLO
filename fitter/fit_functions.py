@@ -88,7 +88,7 @@ def trismooth(x,window_width):
 
     lend = len(x)-1
     if (lend+1) < window_width:
-        raise ValueError
+        raise ValueError("Window_width cannot be bigger than length -1")
 
     halfWeights = np.arange(window_width/2)
     weights = np.append(halfWeights,[window_width/2])

@@ -31,7 +31,7 @@ def filter_lightcurve(data: np.ndarray, tau: float) -> np.ndarray:
     """
     Filters a given lightcurve with frequency f using trismooth.
     :param data: Lightcurve dataset
-    :param tau: Tau in seconds
+    :param tau: Tau in minutes
     :return: Filtered dataset
     """
     t = tau / (60*24)
@@ -108,7 +108,7 @@ def single_step_procedure(data : np.ndarray, tau : float) -> float:
     :return: Improved Tau
     """
     #filter lightcurve
-    filtered_data = filter_lightcurve(data,tau*60)
+    filtered_data = filter_lightcurve(data,tau)
     #compute acf
     acf = compute_acf(filtered_data)
     #fit acf

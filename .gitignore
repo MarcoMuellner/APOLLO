@@ -52,3 +52,5 @@ info\.log\.1
 tempfile\.txt
 
 \.coverage
+
+cc-test-reporter
