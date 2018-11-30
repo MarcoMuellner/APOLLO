@@ -14,4 +14,4 @@ install:
 script:
   python -m pytest -s tests/
 after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
+ - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
