@@ -86,7 +86,7 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         :rtype: 5-D tuple
         '''
         if self._backgroundData is None:
-            self.logger.error("BackgroundData is not set, returning")
+            print_int("BackgroundData is not set, returning",kwargs)
             raise ValueError("BackgroundData is not set, returning")
 
         par_median, par_le, par_ue = self._backgroundData

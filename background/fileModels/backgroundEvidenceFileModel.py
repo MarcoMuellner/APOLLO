@@ -48,7 +48,7 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
             try:
                 return self._evidence[key]
             except:
-                self.logger.warning("No value for key '"+key+"', returning full dict")
+                print_int("No value for key '"+key+"', returning full dict",kwargs)
                 return self._evidence
 
     def _readData(self,kwargs):
@@ -68,6 +68,6 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
             self._evidence[strEvidSkillInfLog] = values[2]
             self._evidence[strEvidSkillLogWithErr] = ufloat(values[0], values[1])
         except Exception as e:
-            self.logger.error("Failed to open File '" +file)
-            self.logger.error(e)
+            print_int("Failed to open File '" +file,kwargs)
+            print_int(e,kwargs)
             raise IOError

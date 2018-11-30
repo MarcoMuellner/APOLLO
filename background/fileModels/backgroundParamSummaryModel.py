@@ -100,8 +100,8 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
 
             self._createBackgroundModel()
         except Exception as e:
-            self.logger.error("Failed to open File " + file)
-            self.logger.error(e)
+            print_int("Failed to open File " + file,kwargs)
+            print_int(e,kwargs)
             self._rawValues[strSummaryMedian] = np.array([0,0,0,0,0,0,0,0,0,0])
             self._rawValues[strSummaryLowCredLim] = np.array([0,0,0,0,0,0,0,0,0,0])
             self._rawValues[strSummaryUpCredLim] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])

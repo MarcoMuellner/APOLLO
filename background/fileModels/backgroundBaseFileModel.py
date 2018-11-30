@@ -33,7 +33,7 @@ class BackgroundBaseFileModel:
         try:
             return self._unit
         except NameError or AttributeError:
-            self.logger.warning("Unit not set, setting to empty")
+            print_int("Unit not set, setting to empty",kwargs)
             self._unit = ""
             return self._unit
 
@@ -44,7 +44,7 @@ class BackgroundBaseFileModel:
             try:
                 return dict[key]
             except:
-                self.logger.warning("No value for key '"+key+"',returning full dict")
+                print_int("No value for key '"+key+"',returning full dict",kwargs)
                 return dict
 
 
@@ -80,8 +80,8 @@ class BackgroundBaseFileModel:
         try:
             data = np.loadtxt(file).T
         except FileNotFoundError as e:
-            self.logger.error("Failed to open File "+file)
-            self.logger.error(e)
+            print_int("Failed to open File "+file,kwargs)
+            print_int(e,kwargs)
             raise IOError("Failed to open file. "+file)
         return data
 

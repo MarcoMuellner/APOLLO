@@ -88,8 +88,8 @@ class BackgroundResults:
                 if i.name == key:
                     return i
 
-            self.logger.warning("Found no object for '" + key + "'")
-            self.logger.warning("Returning full list")
+            print_int("Found no object for '" + key + "'",kwargs)
+            print_int("Returning full list",kwargs)
             return dict
 
     @property
@@ -248,11 +248,11 @@ class BackgroundResults:
         elif key is None:
             return self.summary.getData()
         else:
-            self.logger.error(key + " is not in Summary -> did DIAMONDS run correctly?")
+            print_int(key + " is not in Summary -> did DIAMONDS run correctly?",kwargs)
             if key in (strPriorNuMax, strPriorHeight, strPriorSigma):
-                self.logger.error("Check if you used the correct runID. runID is " + self._runID)
-            self.logger.error("Content of dict is")
-            self.logger.error(self.summary.getData())
+                print_int("Check if you used the correct runID. runID is " + self._runID,kwargs)
+            print_int("Content of dict is",kwargs)
+            print_int(self.summary.getData(),kwargs)
             raise ValueError
 
     def createBackgroundModel(self):
@@ -264,9 +264,9 @@ class BackgroundResults:
         par_median = self.summary.getRawData(strSummaryMedian)  # median values
         runGauss = (self._runID is strDiModeFull)
         if runGauss:
-            self.logger.debug("Height is '" + str(self.oscillationAmplitude) + "'")
-            self.logger.debug("Numax is '" + str(self.nuMax) + "'")
-            self.logger.debug("Sigma is '" + str(self.sigma) + "'")
+            print_int("Height is '" + str(self.oscillationAmplitude) + "'",kwargs)
+            print_int("Numax is '" + str(self.nuMax) + "'",kwargs)
+            print_int("Sigma is '" + str(self.sigma) + "'",kwargs)
             g = self.oscillationAmplitude.n * np.exp(
                 -(self.nuMax.n - freq) ** 2 / (2. * self.sigma.n ** 2))  ## Gaussian envelope
         else:
@@ -307,8 +307,8 @@ class BackgroundResults:
                 self._backgroundParameter.append(
                     BackgroundParameterFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
             except IOError as e:
-                self.logger.error("Failed to find backgroundparameter for " + self._names[i])
-                self.logger.error(e)
+                print_int("Failed to find backgroundparameter for " + self._names[i],kwargs)
+                print_int(e,kwargs)
             try:
                 self._marginalDistributions.append(
                     BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
@@ -319,5 +319,5 @@ class BackgroundResults:
                 if self._backgroundParameter[i].getData() is None:
                     self._psdOnlyFlag = True
             except IOError as e:
-                self.logger.error("Failed to find marginal distribution for " + self._names[i])
-                self.logger.error(e)
+                print_int("Failed to find marginal distribution for " + self._names[i],kwargs)
+                print_int(e,kwargs)

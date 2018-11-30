@@ -1,22 +1,27 @@
 # standard imports
 from typing import Dict
-from os.path import isfile
+from os.path import isfile,splitext
+from os import listdir
 # scientific imports
 import numpy as np
 from astropy.io import fits
 # project imports
 from res.file_load_str import fits_type
-from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols
+from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols, \
+    analysis_file_path, general_kic
+from support.directoryManager import cd
+from support.printer import print_int
 
 
-def load_file(file_name: str, kwargs: Dict) -> np.ndarray:
+def load_file(kwargs: Dict) -> np.ndarray:
     """
     Loads the dataset into the memory and returns it accordingly
     :param file_name: Name of the file including the path
     :param kwargs: Content of conf file.
     :return: 2D numpy array
     """
-    check_file_exists(file_name)
+    file_name = look_for_file(kwargs)
+    print_int(f"Loading file {file_name}",kwargs)
 
     if file_name.endswith(fits_type):
         data = load_fits_file(file_name, kwargs)
@@ -100,3 +105,39 @@ def transpose_if_necessary(data: np.ndarray) -> np.ndarray:
         return data.T
     else:
         return data
+
+
+def look_for_file(kwargs):
+    files = list_available_files_in_path(kwargs[analysis_file_path])
+    for file in files:
+        if str(kwargs[general_kic]) in file:
+            try:
+                lightCurveCandidates.append(file)
+            except UnboundLocalError:
+                lightCurveCandidates = [file]
+
+    try:
+        if len(lightCurveCandidates) > 1:
+            for candidate in lightCurveCandidates:
+                if "PSD" in candidate:
+                    lightCurveCandidates.remove(candidate)
+    except UnboundLocalError:
+        raise IOError("No valid files found")
+
+    if len(lightCurveCandidates) != 1:
+        raise IOError("Too many files found")
+
+    return kwargs[analysis_file_path] + lightCurveCandidates[0]
+
+def list_available_files_in_path(filePath, filter=[".txt", ".fits"]):
+    resultList = []
+    with cd(filePath):
+        for file in listdir("."):
+            _,file_extension = splitext(file)
+            if file_extension in filter:
+                resultList.append(file)
+
+    if resultList == []:
+        raise IOError("No files found")
+
+    return resultList

@@ -1,0 +1,20 @@
+{
+  "General": {
+    "Binary path": "",
+    "Background result path": "",
+    "Background data path": "",
+    "Path for results": "",
+    "Number of cores used": ""
+  },
+  "Files": {
+    "Flux column": "",
+    "Time column": "",
+    "Data column for hdulist": "",
+    "Skipped rows in ascii file": "",
+    "Used columns in ascii file": ""
+  },
+  "Analysis": {
+    "Paths to lightcurves": "",
+    "List of IDs":
+  }
+}

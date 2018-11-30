@@ -7,6 +7,7 @@ from res.strings import *
 from support.directoryManager import cd
 import time
 from res.conf_file_str import general_background_result_path,general_binary_path,general_kic
+from support.printer import print_int
 
 class BackgroundProcess:
     """
@@ -14,10 +15,10 @@ class BackgroundProcess:
     """
 
     def __init__(self,kwargs):
-        self.logger = getLogger(__name__)
         self.kicID = kwargs[general_kic]
         self.binaryPath = kwargs[general_binary_path]
         self.model = strRunIDBoth
+        self.kwargs = kwargs
 
         self.resultsPath = kwargs[general_background_result_path]
 
@@ -44,7 +45,7 @@ class BackgroundProcess:
         cmdStrings = {}
         for runID,diIntMode in self.modes.items():
             if self.model not in [runID, strRunIDBoth]:
-                self.logger.info(f"Skipping {runID}")
+                print_int(f"Skipping {runID}",self.kwargs)
                 continue
 
             self.priorChanges[runID] = {}
@@ -52,12 +53,12 @@ class BackgroundProcess:
             binPath = self._getFullPath(self.binaryPath + strDiBinary)
             runResPath = f"{self.resultsPath}KIC{self.kicID}/{runID}/"
             if not os.path.exists(runResPath):
-                self.logger.debug(f"Directory {runResPath} does not exist. Creating ...")
+                print_int(f"Directory {runResPath} does not exist. Creating ...",self.kwargs)
                 os.makedirs(runResPath)
 
-            self.logger.info(f"{runID}: Results path {runResPath}")
+            print_int(f"{runID}: Results path {runResPath}",self.kwargs)
             cmdStrings[runID] = [binPath,self.kicID,runID,diIntMode]
-            self.logger.info(f"{runID}: Command --> {cmdStrings[runID]}")
+            print_int(f"{runID}: Command --> {cmdStrings[runID]}",self.kwargs)
 
         return cmdStrings
 
@@ -80,7 +81,7 @@ class BackgroundProcess:
 
     def _runCmd(self,runID, cmd):
         for runCounter in range(1,6):
-            self.logger.info(f"Starting {runID}:no {runCounter}")
+            print_int(f"Starting {runID}:no {runCounter}",self.kwargs)
             with cd(self.binaryPath):
                 self.status[runID] = strDiStatRunning
                 p = self._runBinary(cmd)
@@ -99,13 +100,13 @@ class BackgroundProcess:
                 self.status[runID] = self._checkDiamondsStdOut(self.status[runID], line)
                 if self.status[runID] == strDiStatRunning:
                     self.status[runID] = strDiamondsStatusGood
-                    self.logger.info(f"{runID}: Finished!")
+                    print_int(f"{runID}: Finished!",self.kwargs)
                     return True
 
                 else:
-                    self.logger.warning(f"{runID}: Run {runCounter} --> Repeating run, due to failure due to {self.status[runID]}")
+                    print_int(f"{runID}: Run {runCounter} --> Repeating run, due to failure due to {self.status[runID]}",self.kwargs)
 
-        self.logger.error(f"{runID}: FAILED! Tried 5 runs, failed to find result")
+        print_int(f"{runID}: FAILED! Tried 5 runs, failed to find result",self.kwargs)
         return False
 
 
@@ -132,14 +133,14 @@ class BackgroundProcess:
         """
         status = oldStatus
         if strDiamondsErrBetterLikelihood in str(text):
-            self.logger.warning("Diamonds cannot find point with better likelihood. Repeat!")
+            print_int("Diamonds cannot find point with better likelihood. Repeat!",self.kwargs)
             status = strDiamondsStatusLikelihood
 
         elif strDiamondsErrCovarianceFailed in str(text):
-            self.logger.warning("Diamonds cannot decompose covariance. Repeat!")
+            print_int("Diamonds cannot decompose covariance. Repeat!",self.kwargs)
             status = strDiamondsStatusCovariance
 
         elif strDiamondsErrAssertionFailed in str(text):
-            self.logger.warning("Diamonds assertion failed. Repeat!")
+            print_int("Diamonds assertion failed. Repeat!",self.kwargs)
             status = strDiamondsStatusAssertion
         return status

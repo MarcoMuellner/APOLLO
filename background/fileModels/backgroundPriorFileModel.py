@@ -50,11 +50,11 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :return:Dataset
         :rtype:dict/2-D tuple
         '''
-        self.logger.debug("Retrieving data with key "+str(key) + " and mode "+mode)
+        print_int("Retrieving data with key "+str(key) + " and mode "+mode,kwargs)
 
         dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
-        self.logger.debug("Data is ")
-        self.logger.debug(dict)
+        print_int("Data is ",kwargs)
+        print_int(dict,kwargs)
         if any(dict) is False and (self.runID is None or
                                     (any(self._fullPriors) is False and any(self._noisePriors) is False)):
             self._readData()
@@ -94,8 +94,8 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
             for files in filesToLoad:
                 values.append(np.loadtxt(files).T)
         except FileNotFoundError as e:
-            self.logger.error("Failed to open Prior file")
-            self.logger.error(e)
+            print_int("Failed to open Prior file",kwargs)
+            print_int(e,kwargs)
             raise IOError("Failed to open Prior file")
 
         for priorList in values:
@@ -132,11 +132,11 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :rtype: str
         '''
         if path[0] not in ["~", "/", "\\"]:
-            self.logger.debug("Setting priors to full path")
-            self.logger.debug("Prepending" + ROOT_PATH)
+            print_int("Setting priors to full path",kwargs)
+            print_int("Prepending" + ROOT_PATH,kwargs)
             path = ROOT_PATH + "/" + path
-            self.logger.debug("New path: "+path)
+            print_int("New path: "+path,kwargs)
         else:
-            self.logger.debug("Path is already absolute path")
+            print_int("Path is already absolute path",kwargs)
 
         return path

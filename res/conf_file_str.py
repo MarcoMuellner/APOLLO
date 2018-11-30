@@ -13,3 +13,9 @@ general_kic = "KIC ID"
 general_binary_path = "Binary path"
 general_background_result_path = "Background result path"
 general_background_data_path = "Background data path"
+general_analysis_result_path = "Path for results"
+general_nr_of_cores = "Number of cores used"
+#analysis conf
+analysis_file_path = "Paths to lightcurves"
+analysis_list_of_ids = "List of IDs"
+

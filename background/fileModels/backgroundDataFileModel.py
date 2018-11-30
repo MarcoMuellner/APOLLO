@@ -46,9 +46,9 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
         try:
             self._psd = np.loadtxt(file).T
         except FileNotFoundError as e:
-            self.logger.error("Cannot read PSD file, setting PSD to none")
-            self.logger.error("File is "+file)
-            self.logger.error(e)
+            print_int("Cannot read PSD file, setting PSD to none",kwargs)
+            print_int("File is "+file,kwargs)
+            print_int(e,kwargs)
             raise IOError("Cannot read PSD file, setting PSD to none")
 
 
