@@ -1,18 +1,20 @@
 #standard imports
-from typing import Tuple,List
+from typing import Tuple,List,Dict
 #scientific imports
 import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
+from plotter.plot_handler import plot_sigma_clipping
 
-def refine_data(data : np.ndarray) -> np.ndarray:
+def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
     Refines the dataset and returns it
     :param data: Dataset that needs refining
+    :param kwargs: Run configuration
     :return: Good dataset
     """
     data = set_time_from_zero(data)
-    data = remove_stray(data)
+    data = remove_stray(data,kwargs)
     data = interpolate(data)
     return data
 
@@ -48,10 +50,11 @@ def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
 
     return gap_ids, most_common
 
-def remove_stray(data:np.ndarray) -> np.ndarray:
+def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
     """
     Removes stray values from the dataset (values bigger than 5 sigma of the distribution of datapoints)
     :param data: dataset
+    :param kwargs: Run configuration
     :return: dataset with removed strays
     """
     binsize = int((np.amax(data[1]) - np.amin(data[1])))
@@ -78,6 +81,9 @@ def remove_stray(data:np.ndarray) -> np.ndarray:
     data = np.array(list_data)
 
     data[1] -=cen
+
+    plot_sigma_clipping(data,bins,hist,popt,kwargs)
+
     return data
 
 def interpolate(data : np.ndarray)->np.ndarray:
@@ -111,5 +117,7 @@ def interpolate(data : np.ndarray)->np.ndarray:
 
         data = np.array((data[0], data[1]))
         incrementer += count - 1
+
+
 
     return data

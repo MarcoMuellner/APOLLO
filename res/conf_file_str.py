@@ -5,3 +5,8 @@ fits_hdulist_column = "Data column for hdulist"
 #ascii conf
 ascii_skiprows = "Skipped rows in ascii file"
 ascii_use_cols = "Used columns in ascii file"
+#plot conf
+plot_show = "Show plots"
+plot_save = "Save plots"
+#general conf
+general_kic = "KIC ID"

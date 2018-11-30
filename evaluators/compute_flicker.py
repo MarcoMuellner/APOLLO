@@ -1,20 +1,10 @@
 #standard imports
-from typing import Tuple,Union
+from typing import Tuple,Union,Dict
 #scientific imports
 import numpy as np
 from sympy.ntheory import factorint
 #project imports
-
-def get_time_step(data:np.ndarray) ->float:
-    """
-    Returns the most common time steps in the datapoints.
-    :param data: Dataset of the lightcurve
-    :return: Most common time diff
-    """
-    real_diff = data[0][1:len(data[0])] - data[0][0:len(data[0]) - 1]
-    (values, counts) = np.unique(real_diff, return_counts=True)
-    most_common = values[np.argmax(counts)]
-    return most_common
+from readerWriter.signal_features import get_time_step
 
 def calculate_flicker_amplitude(data:np.ndarray) -> float:
     """

@@ -1,13 +1,12 @@
 # standard imports
-from typing import Tuple
+from typing import Tuple,Dict
 # scientific imports
 import numpy as np
 from scipy.signal import argrelextrema
 from scipy.optimize import curve_fit
 # project imports
 from fitter.fit_functions import trismooth, sinc, sin
-from evaluators.compute_flicker import get_time_step
-
+from readerWriter.signal_features import get_time_step
 
 def f_to_t(f: float) -> float:
     """
@@ -27,7 +26,7 @@ def t_to_f(t: float) -> float:
     return 10 ** 6 / t
 
 
-def filter_lightcurve(data: np.ndarray, tau: float) -> np.ndarray:
+def filter_lightcurve(data: np.ndarray, tau: float, kwargs : Dict) -> np.ndarray:
     """
     Filters a given lightcurve with frequency f using trismooth.
     :param data: Lightcurve dataset
@@ -55,7 +54,7 @@ def compute_acf(data: np.ndarray) -> np.ndarray:
     return np.array((data[0][1:] * 24 * 60, corr))
 
 
-def fit_acf(data: np.ndarray, tau_guess: float) -> Tuple[float, float, float]:
+def fit_acf(data: np.ndarray, tau_guess: float, kwargs : Dict) -> Tuple[float, float, float]:
     """
     Tries to fit a*sinc^2(4*tau/tau_acf) + a_s*sin(2*pi*4*tau/tau_acf)
     :param data: Autocorrelated signal, t in minutes
@@ -89,7 +88,7 @@ def fit_acf(data: np.ndarray, tau_guess: float) -> Tuple[float, float, float]:
     p0_sinc_final = [1, p0_sinc_initial[1]]
     sinc_final_popt, _ = curve_fit(sinc, x, sin_residuals, p0=p0_sinc_final, bounds=bounds)
 
-    return sinc_final_popt[0],sin_popt[0],sinc_final_popt[2]
+    return sinc_final_popt[0],sin_popt[0],sinc_final_popt[1]
 
 def f_from_tau(tau : float) -> float:
     """
@@ -100,7 +99,7 @@ def f_from_tau(tau : float) -> float:
     log_y = 3.098 - 0.932 * np.log10(tau) - 0.025 * (np.log10(tau)) ** 2
     return 10** log_y
 
-def single_step_procedure(data : np.ndarray, tau : float) -> float:
+def single_step_procedure(data : np.ndarray, tau : float, kwargs : Dict) -> float:
     """
     Performs a single step from the iterative procedure described in Kallinger (2016)
     :param data: Dataset of the lightcurve.
@@ -108,26 +107,26 @@ def single_step_procedure(data : np.ndarray, tau : float) -> float:
     :return: Improved Tau
     """
     #filter lightcurve
-    filtered_data = filter_lightcurve(data,tau)
+    filtered_data = filter_lightcurve(data,tau,kwargs)
     #compute acf
     acf = compute_acf(filtered_data)
     #fit acf
-    _,_,tau_acf = fit_acf(acf,tau/60)
+    _,_,tau_acf = fit_acf(acf,tau/60,kwargs)
     return tau_acf
 
-def compute_nu_max(data : np.ndarray, f_flicker : float) -> float:
+def compute_nu_max(data : np.ndarray, f_flicker : float,kwargs : Dict) -> float:
     """
     Performs the full procedure introduced by Kallinger (2016)
     :param data: Full dataset from the lightcurve
     :param f_flicker: flicker frequency from the flicker amplitude. In uHz
     :return: guess for nu_max. In uHz
     """
-    tau = single_step_procedure(data,f_to_t(f_flicker)/60)
+    tau = single_step_procedure(data,f_to_t(f_flicker)/60,kwargs)
     f = f_from_tau(tau)
 
     #repeat process twice
     for _ in range(0,2):
-        tau = single_step_procedure(data,f_to_t(f)/60)
+        tau = single_step_procedure(data,f_to_t(f)/60,kwargs)
         f = f_from_tau(tau)
 
     return f

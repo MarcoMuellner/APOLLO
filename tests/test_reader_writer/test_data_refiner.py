@@ -55,7 +55,7 @@ def test_remove_stray():
     y_noise = np.random.normal(5, 8, 5000)
 
     arr_noise = np.array((x,y_noise))
-    data = remove_stray(arr_noise)
+    data = remove_stray(arr_noise,{})
 
     assert np.abs(np.mean(data[1])) < 1
 
@@ -85,7 +85,7 @@ def test_refine_data():
     x_gap = np.delete(x,gap)
     y_gap = np.delete(y_noise,gap)
 
-    data = refine_data(np.array((x_gap,y_gap)))
+    data = refine_data(np.array((x_gap,y_gap)),{})
     assert np.abs(np.mean(data[1])) < 3
     assert np.abs(np.mean(data[0][3000:4000]) - mean_compare_x) < 10 ** -7
     assert np.abs(np.mean(data[1][3000:4000]) - mean_compare_y) < 10
