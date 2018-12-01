@@ -1,5 +1,5 @@
 # library imports
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count,Process
 from multiprocessing.pool import ThreadPool
 import time
 import platform
@@ -20,7 +20,7 @@ from background.backgroundProcess import BackgroundProcess
 from data_handler.write_results import save_results
 from res.conf_file_str import general_analysis_result_path
 from support.directoryManager import cd
-from support.printer import print_int
+from support.printer import print_int,Printer
 from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general_kic, cat_analysis, cat_files, \
     cat_general, cat_plot, analysis_file_path,analysis_folder_prefix
 
@@ -46,23 +46,29 @@ def run_star(kwargs: Dict):
         data = refine_data(data, kwargs)
 
         # compute nu_max
+        print_int("Comuting flicker", kwargs)
         sigma_ampl = calculate_flicker_amplitude(data)
         f_ampl = flicker_amplitude_to_frequency(sigma_ampl)
+        print_int("Comuting nu_max", kwargs)
         nu_max = compute_nu_max(data, f_ampl, kwargs)
         print_int(f"Nu max guess: {'%.2f' % nu_max}", kwargs)
 
         # create files for diamonds and run
-        create_files(data, nyqFreq(data), priors(nu_max, data), kwargs)
+        prior = priors(nu_max, data,kwargs)
+        print_int(f"Priors: {prior}", kwargs)
+
+        create_files(data, nyqFreq(data), prior, kwargs)
         proc = BackgroundProcess(kwargs)
         proc.run()
 
         print_int("Saving results", kwargs)
         # save results
-        save_results(priors(nu_max, data), data, kwargs)
+        save_results(prior, data, kwargs)
         print_int("Done", kwargs)
 
 
-def run(file: str):
+def run(screen,file: str):
+    Printer.set_screen(screen)
     with open(file, 'r') as f:
         kwargs = json.load(f)
 
@@ -105,5 +111,10 @@ def run(file: str):
         for i in kwarg_list:
             run_star(i)
     else:
+        p = Process(target=Printer.run)
+        p.start()
         pool = Pool(processes=nr_of_cores)
         pool.map(run_star,kwarg_list)
+        Printer.kill_printer()
+        p.join()
+

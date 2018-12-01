@@ -12,6 +12,8 @@ from background.fileModels.backgroundParamSummaryModel import BackgroundParamSum
 from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
 from background.fileModels.backgroundPriorFileModel import BackgroundPriorFileModel
 from res.strings import *
+from support.printer import print_int
+from data_handler.signal_features import background_model
 
 from res.conf_file_str import general_kic, general_background_result_path
 
@@ -88,8 +90,8 @@ class BackgroundResults:
                 if i.name == key:
                     return i
 
-            print_int("Found no object for '" + key + "'",kwargs)
-            print_int("Returning full list",kwargs)
+            print_int("Found no object for '" + key + "'", kwargs)
+            print_int("Returning full list", kwargs)
             return dict
 
     @property
@@ -248,11 +250,11 @@ class BackgroundResults:
         elif key is None:
             return self.summary.getData()
         else:
-            print_int(key + " is not in Summary -> did DIAMONDS run correctly?",kwargs)
+            print_int(key + " is not in Summary -> did DIAMONDS run correctly?", self.kwargs)
             if key in (strPriorNuMax, strPriorHeight, strPriorSigma):
-                print_int("Check if you used the correct runID. runID is " + self._runID,kwargs)
-            print_int("Content of dict is",kwargs)
-            print_int(self.summary.getData(),kwargs)
+                print_int("Check if you used the correct runID. runID is " + self._runID, self.kwargs)
+            print_int("Content of dict is", self.kwargs)
+            print_int(self.summary.getData(), self.kwargs)
             raise ValueError
 
     def createBackgroundModel(self):
@@ -260,46 +262,29 @@ class BackgroundResults:
         Creates a full Background model
         :return: Background Model
         '''
-        freq, psd = self._dataFile.powerSpectralDensity
+        psd = self._dataFile.powerSpectralDensity.T
         par_median = self.summary.getRawData(strSummaryMedian)  # median values
-        runGauss = (self._runID is strDiModeFull)
-        if runGauss:
-            print_int("Height is '" + str(self.oscillationAmplitude) + "'",kwargs)
-            print_int("Numax is '" + str(self.nuMax) + "'",kwargs)
-            print_int("Sigma is '" + str(self.sigma) + "'",kwargs)
-            g = self.oscillationAmplitude.n * np.exp(
-                -(self.nuMax.n - freq) ** 2 / (2. * self.sigma.n ** 2))  ## Gaussian envelope
-        else:
-            g = 0
 
-        zeta = 2. * np.sqrt(2.) / np.pi  # !DPI is the pigreca value in double precision
-        r = (np.sin(np.pi / 2. * freq / self._nyq) / (
-                np.pi / 2. * freq / self._nyq)) ** 2  # ; responsivity (apodization) as a sinc^2
         w = par_median[0]  # White noise component
-
-        ## Long-trend variations
         sigma_long = par_median[1]
         freq_long = par_median[2]
-        h_long = (sigma_long ** 2 / freq_long) / (1. + (freq / freq_long) ** 4)
-
-        ## First granulation component
         sigma_gran1 = par_median[3]
         freq_gran1 = par_median[4]
-        h_gran1 = (sigma_gran1 ** 2 / freq_gran1) / (1. + (freq / freq_gran1) ** 4)
-
-        ## Second granulation component
         sigma_gran2 = par_median[5]
         freq_gran2 = par_median[6]
-        h_gran2 = (sigma_gran2 ** 2 / freq_gran2) / (1. + (freq / freq_gran2) ** 4)
 
-        ## Global background model
-        w = np.zeros_like(freq) + w
+        runGauss = (self._runID is strDiModeFull)
         if runGauss:
-            retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
+            nu_max = self.nuMax.n
+            amp = self.oscillationAmplitude.n
+            sigma = self.sigma.n
         else:
-            retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
+            nu_max = None
+            amp = None
+            sigma = None
 
-        return retVal
+        return background_model(psd, self._nyq, w, sigma_long, freq_long, sigma_gran1, freq_gran1, sigma_gran2,
+                                freq_gran2, nu_max, amp, sigma)
 
     def _readBackgroundParameter(self):
         for i in range(0, self.summary.dataLength()):
@@ -307,8 +292,7 @@ class BackgroundResults:
                 self._backgroundParameter.append(
                     BackgroundParameterFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
             except IOError as e:
-                print_int("Failed to find backgroundparameter for " + self._names[i],kwargs)
-                print_int(e,kwargs)
+                print_int("Failed to find backgroundparameter for " + self._names[i], self.kwargs)
             try:
                 self._marginalDistributions.append(
                     BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
@@ -319,5 +303,4 @@ class BackgroundResults:
                 if self._backgroundParameter[i].getData() is None:
                     self._psdOnlyFlag = True
             except IOError as e:
-                print_int("Failed to find marginal distribution for " + self._names[i],kwargs)
-                print_int(e,kwargs)
+                print_int("Failed to find marginal distribution for " + self._names[i], self.kwargs)

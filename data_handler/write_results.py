@@ -6,6 +6,7 @@ import json
 import numpy as np
 # project imports
 from background.backgroundResults import BackgroundResults
+from plotter.plot_handler import plot_f_space
 
 
 def save_results(priors: List[List[float]], data : np.ndarray, kwargs: Dict):
@@ -21,6 +22,7 @@ def save_results(priors: List[List[float]], data : np.ndarray, kwargs: Dict):
 def compose_results(priors: List[List[float]], kwargs: Dict)->Tuple[od,np.ndarray]:
     result_full = BackgroundResults(kwargs, runID="FullBackground")
     result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
+
 
     full_res_set = od()
 
@@ -38,6 +40,9 @@ def compose_results(priors: List[List[float]], kwargs: Dict)->Tuple[od,np.ndarra
     full_res_set["Conclusion"] = conc
 
     psd = result_full.powerSpectralDensity
+
+    plot_f_space(psd.T, kwargs, bg_model=result_full.createBackgroundModel())
+    plot_f_space(psd.T, kwargs, bg_model=result_noise.createBackgroundModel())
 
     return full_res_set,psd
 

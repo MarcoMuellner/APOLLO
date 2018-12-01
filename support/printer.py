@@ -1,38 +1,61 @@
 from typing import Dict
-from support.singleton import Singleton
 from collections import OrderedDict as od
-from multiprocessing import Lock
+from multiprocessing import Queue
 from res.conf_file_str import general_kic
 import time
-import sys
-from subprocess import call
-import os
+import platform
 
-def print_int(msg : str, kwargs : Dict):
-    Printer.ins().change_message(msg,kwargs)
 
-# define clear function
-def clear():
-    # check and make call for specific operating system
-    _ = call('clear' if os.name =='posix' else 'cls')
+def print_int(msg: str, kwargs: Dict):
+    if platform.system() == 'Darwin':
+        Printer.change_message(msg, kwargs)
+    else:
+        Printer.queue.put((msg, kwargs))
 
-@Singleton
+
 class Printer:
-    def __init__(self):
-        self._objMap = od()
-        self.lock = Lock()
+    objMap = od()
+    screen = None
+    kill = False
+    queue = Queue()
 
-    def change_message(self,msg : str,kwargs : Dict):
-        self.lock.acquire()
-        self._objMap[kwargs[general_kic]] = msg
-        self.print_map()
-        if not self.lock.acquire(False):
-            self.lock.release()
+    @staticmethod
+    def run():
+        while not Printer.kill:
+            while not Printer.queue.empty():
+                val = Printer.queue.get()
+                Printer.change_message(val[0], val[1])
 
-    def print_map(self):
-        msg = ""
-        for key,value in self._objMap.items():
-            msg += f"{key}:{value}\n"
+            time.sleep(1)
 
-        clear()
-        print(msg)
+    @staticmethod
+    def change_message(msg, kwargs):
+
+        Printer.objMap[kwargs[general_kic]] = msg
+        Printer.print_map()
+
+    @staticmethod
+    def print_map():
+
+        n = 0
+
+        Printer.screen.clear()
+        for key, value in Printer.objMap.items():
+            if "Done" in value:
+                color = Printer.screen.COLOUR_GREEN
+            else:
+                color = Printer.screen.COLOUR_YELLOW
+
+            Printer.screen.print_at(f"{key}:{value}\n", 0, n,colour=color)
+            n += 1
+        Printer.screen.print_at(f"Current ids: {Printer.objMap.keys()}", 0, Printer.screen.height - 1,
+                                colour=Printer.screen.COLOUR_CYAN)
+        Printer.screen.refresh()
+
+    @staticmethod
+    def set_screen(screen):
+        Printer.screen = screen
+
+    @staticmethod
+    def kill_printer():
+        Printer.kill = True

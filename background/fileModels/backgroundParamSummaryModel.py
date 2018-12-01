@@ -7,6 +7,7 @@ from uncertainties import ufloat
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
 from res.conf_file_str import general_background_result_path
+from support.printer import print_int
 
 
 class BackgroundParamSummaryModel(BackgroundBaseFileModel):
@@ -101,7 +102,6 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
             self._createBackgroundModel()
         except Exception as e:
             print_int("Failed to open File " + file,kwargs)
-            print_int(e,kwargs)
             self._rawValues[strSummaryMedian] = np.array([0,0,0,0,0,0,0,0,0,0])
             self._rawValues[strSummaryLowCredLim] = np.array([0,0,0,0,0,0,0,0,0,0])
             self._rawValues[strSummaryUpCredLim] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])

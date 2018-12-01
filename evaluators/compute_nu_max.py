@@ -9,6 +9,7 @@ from scipy.signal import find_peaks
 from fitter.fit_functions import trismooth, sinc, sin
 from data_handler.signal_features import get_time_step
 from plotter.plot_handler import plot_peridogramm_from_timeseries, plot_acf_fit
+from support.printer import print_int
 
 
 def f_to_t(f: float) -> float:
@@ -160,8 +161,12 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
     f_list = []
     f_list.append((f_flicker, rf"F_flicker_{'%.2f' % f_flicker}$\mu Hz$"))
     plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
+    print_int(f"Flicker frequency {'%.2f' %f_flicker}", kwargs)
+
     tau = single_step_procedure(data, f_to_t(f_flicker) / 60, kwargs)
     f = f_from_tau(tau)
+    print_int(f"1. frequency {'%.2f' % f}", kwargs)
+
     f_list.append((f, rf"F_filter_0_{'%.2f' % f}$\mu Hz$"))
     plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
 
@@ -170,8 +175,10 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
         tau = single_step_procedure(data, f_to_t(f) / 60, kwargs)
         f = f_from_tau(tau)
 
+        print_int(f"{i+1}. frequency {'%.2f' % f}", kwargs)
+
         f_list.append((f, rf"F_filter_{i + 1}_{'%.2f' % f}$\mu Hz$"))
         plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
 
-    print(f)
+    print_int(f"Nu_max: {'%.2f' % f}", kwargs)
     return f
