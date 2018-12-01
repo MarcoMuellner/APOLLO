@@ -18,4 +18,10 @@ general_nr_of_cores = "Number of cores used"
 #analysis conf
 analysis_file_path = "Paths to lightcurves"
 analysis_list_of_ids = "List of IDs"
+analysis_folder_prefix = "Prefix of folder"
+#categories
+cat_general = "General"
+cat_files = "Files"
+cat_analysis = "Analysis"
+cat_plot = "Plot"
 

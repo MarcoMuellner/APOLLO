@@ -14,33 +14,19 @@ class Singleton:
     '''
     def __init__(self,decorated):
         self.__decorated = decorated
-    def ins(self,*args):
+    def ins(self):
         '''
         Returns the singleton instance. Upon its firsct call, it creates a new
         instance of the decorated class and calls its '__init__' method.
         On all subsequent calls, the already created instance is returned
         '''
-        if not hasattr(self,"_instanceList"):
-            self._instanceList = {}
         try:
-            return self._instanceList[args]
-        except KeyError:
-            self._instanceList[args] = self.__decorated(args)
-
-            return self._instanceList[args]
-
-    def deleteItem(self,*args):
-        if not hasattr(self,"_instanceList"):
-            return
-
-        try:
-            item =  self._instanceList[args]
-        except KeyError:
-            return
-
-        del item
+            return self.__instance
+        except AttributeError:
+            self.__instance = self.__decorated()
+            return self.__instance
 
     def __call__(self):
-        raise TypeError("Singletons must be accessed through 'Instance()'.")
+        raise TypeError("Singletons must be accessed through 'ins()'.")
     def __instancecheck__(self,inst):
         return isinstance(inst,self.__decorated)

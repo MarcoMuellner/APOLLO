@@ -1,7 +1,7 @@
 from logging import getLogger
 import re
 import subprocess
-from multiprocessing import Process
+from multiprocessing.pool import ThreadPool
 
 from res.strings import *
 from support.directoryManager import cd
@@ -15,7 +15,7 @@ class BackgroundProcess:
     """
 
     def __init__(self,kwargs):
-        self.kicID = kwargs[general_kic]
+        self.kicID = str(kwargs[general_kic])
         self.binaryPath = kwargs[general_binary_path]
         self.model = strRunIDBoth
         self.kwargs = kwargs
@@ -65,13 +65,11 @@ class BackgroundProcess:
     def run(self):
         cmdStrings = self._getCommandStrings()
         pList = []
-        for runID,cmd in cmdStrings.items():
-            p = Process(target=self._runCmd,args =(runID,cmd,))
-            p.start()
-            pList.append(p)
 
-        for i in pList:
-            i.join()
+        pool = ThreadPool(processes=2)
+
+        for runID, cmd in cmdStrings.items():
+            pool.apply(self._runCmd, args=(runID,cmd,))
 
 
 
@@ -115,11 +113,11 @@ class BackgroundProcess:
         match = r.findall(line)
         if len(match) > 0 and counter >= 10:
             for it,ratio in match:
-                print(f"{runID} --> {it},{ratio}")
+                print_int(f"{runID} --> {it},{ratio}",self.kwargs)
 
             counter = 0
         elif len(match) == 0 and counter >= 10:
-            print(f"{line}")
+            print_int(f"{line}",self.kwargs)
             counter = 0
         return counter
 

@@ -31,8 +31,11 @@ def compose_results(priors: List[List[float]], kwargs: Dict)->Tuple[od,np.ndarra
 
     full_res_set["Evidence Full Background"] = f"{result_full.evidence._evidence['Skillings log with Error']}"
     full_res_set["Evidence Noise Background"] = f"{result_noise.evidence._evidence['Skillings log with Error']}"
-    full_res_set["Conclusion"] = bayes_factor(result_full.evidence._evidence["Skillings log with Error"],
+
+    conc,factor = bayes_factor(result_full.evidence._evidence["Skillings log with Error"],
                                               result_noise.evidence._evidence["Skillings log with Error"])
+    full_res_set["Bayes factor"] = factor
+    full_res_set["Conclusion"] = conc
 
     psd = result_full.powerSpectralDensity
 
@@ -51,7 +54,7 @@ def bayes_factor(evidence_full_background: float, evidence_noise_background: flo
     else:
         conclusion = "Strong evidence"
 
-    return conclusion
+    return conclusion,str(evidence)
 
 
 def get_priors(priors: List[List[float]], res_set: BackgroundResults):

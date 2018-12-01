@@ -4,17 +4,21 @@
     "Background result path": "",
     "Background data path": "",
     "Path for results": "",
-    "Number of cores used": ""
+    "Number of cores used": 1
   },
   "Files": {
     "Flux column": "",
     "Time column": "",
-    "Data column for hdulist": "",
-    "Skipped rows in ascii file": "",
-    "Used columns in ascii file": ""
+    "Data column for hdulist": 1,
+    "Skipped rows in ascii file": 1,
+    "Used columns in ascii file": null
   },
   "Analysis": {
     "Paths to lightcurves": "",
-    "List of IDs":
+    "List of IDs":[]
+  },
+  "Plot": {
+    "Show plots": true,
+    "Save plots": true
   }
 }

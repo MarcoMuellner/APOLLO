@@ -138,7 +138,8 @@ def plot_f_space(f_data : np.ndarray, kwargs : dict, add_smoothing : bool = Fals
             name += f"_f{f}_n_{len(f_list)}"
             ax.axvline(x=f,linestyle='--',linewidth=1,label=f_name,color=next(color))
 
-    pl.legend()
+    if f_list is not None:
+        pl.legend()
     ax.set_xlim(min(f_data[0]), max(f_data[0]))
     ax.set_ylim(min(f_data[1] * 0.95), max(f_data[1]) * 1.2)
 
@@ -147,6 +148,7 @@ def plot_f_space(f_data : np.ndarray, kwargs : dict, add_smoothing : bool = Fals
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
         save_fig(fig,name)
+    pl.close(fig)
 
 def plot_peridogramm_from_timeseries(data : np.ndarray, kwargs : dict, add_smoothing : bool = False, f_list : List[Tuple[float,str]] = None):
     """
@@ -180,3 +182,4 @@ def plot_acf_fit(acf : np.ndarray, fit : np.ndarray,tau : float,kwargs : Dict, g
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
         save_fig(fig,f"Fit_{10 ** 6 / tau}")
+    pl.close(fig)

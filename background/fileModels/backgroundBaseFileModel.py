@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from res.conf_file_str import general_kic
+from support.printer import print_int
 
 class BackgroundBaseFileModel:
     '''
@@ -17,7 +18,7 @@ class BackgroundBaseFileModel:
         '''
         self.logger = logging.getLogger(__name__)
         try:
-            self._kicID = kwargs[general_kic]
+            self._kicID = str(kwargs[general_kic])
         except:
             pass
         self._runID = runID
@@ -33,7 +34,7 @@ class BackgroundBaseFileModel:
         try:
             return self._unit
         except NameError or AttributeError:
-            print_int("Unit not set, setting to empty",kwargs)
+            print_int("Unit not set, setting to empty",self.kwargs)
             self._unit = ""
             return self._unit
 
