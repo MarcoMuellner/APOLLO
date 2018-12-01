@@ -4,7 +4,7 @@ from typing import Tuple,List,Dict
 import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
-from plotter.plot_handler import plot_sigma_clipping
+from plotter.plot_handler import plot_sigma_clipping,plot_interpolation
 
 def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
@@ -15,7 +15,7 @@ def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
     data = set_time_from_zero(data)
     data = remove_stray(data,kwargs)
-    data = interpolate(data)
+    data = interpolate(data,kwargs)
     return data
 
 
@@ -57,9 +57,8 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
     :param kwargs: Run configuration
     :return: dataset with removed strays
     """
-    binsize = int((np.amax(data[1]) - np.amin(data[1])))
-    if binsize > 100:
-        binsize = 100
+    binsize = int((np.amax(data[1]) - np.amin(data[1]))/10)
+
     bins = np.linspace(np.amin(data[1]), np.amax(data[1]), binsize)
     hist = np.histogram(data[1], bins=bins, density=True)[0]
 
@@ -76,7 +75,7 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
 
     list_data = []
     for i in [0,1]:
-        list_data.append(data[i][np.logical_and(data[1] > cen - 5 * wid, data[1] < cen + 5 * wid)])
+        list_data.append(data[i][np.logical_and(data[1] > cen - 4 * wid, data[1] < cen + 4 * wid)])
 
     data = np.array(list_data)
 
@@ -86,7 +85,7 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
 
     return data
 
-def interpolate(data : np.ndarray)->np.ndarray:
+def interpolate(data : np.ndarray,kwargs : Dict)->np.ndarray:
     """
     Interpolates the dataset within the gaps
     :param data: dataset
@@ -98,7 +97,12 @@ def interpolate(data : np.ndarray)->np.ndarray:
     if gap_ids is None or not gap_ids.size:
         return data
 
+
+    ids_interpolated = []
+
     incrementer = 0
+
+    gap_arr_ids = []
 
     for i in gap_ids:
         #ident moves the ID after each
@@ -114,10 +118,14 @@ def interpolate(data : np.ndarray)->np.ndarray:
         for (id,raw,adder) in lister:
             insert = np.linspace(raw[ident]+adder,raw[ident+1]-adder,num=count-1)
             data.append(np.insert(raw, ident + 1, insert))
+            added_arr = np.searchsorted(data[-1],insert).tolist()
+            for i in added_arr:
+                if i not in gap_arr_ids and i != 0:
+                    gap_arr_ids.append(i-1)
 
         data = np.array((data[0], data[1]))
         incrementer += count - 1
 
-
+    plot_interpolation(data,gap_arr_ids,kwargs)
 
     return data

@@ -64,6 +64,34 @@ def save_fig(fig: Figure, name: str):
 
     fig.savefig(f"images/{name}.pdf")
 
+def plot_interpolation(data : np.ndarray, gap_list : List[int],kwargs : Dict):
+    """
+    Plots the interpolated points in a lightcurve
+    :param data: dataset
+    :param gap_list: list of gap ids that were filled
+    :param kwargs: Run conf
+    """
+    fig: Figure = pl.figure(figsize=(10, 6))
+    ax: Axes = fig.add_subplot(111)
+
+    if general_kic in kwargs.keys():
+        ax.set_title(f"KIC{kwargs[general_kic]}")
+
+    ax.plot(data[0], data[1], 'o', color='k', markersize=2,label = "Datapoints")  # plot data
+    ax.plot(data[0][gap_list], data[1][gap_list], 'o', color='red', markersize=2,label = "Interpolation")
+    ax.set_xlabel("Time (days)")
+    ax.set_ylabel("Flux")
+    ax.legend()
+
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, "Lightcurve_interpolation")
+
+    pl.close(fig)
+    # plot data
+
 
 def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, popt: List[float], kwargs: Dict):
     """
@@ -92,7 +120,7 @@ def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, po
     ax1.plot(lin, gaussian(lin, *popt))
 
     (cen, wid) = (popt[1], popt[2])
-    sigma = 5  # used by the fit!
+    sigma = 4  # used by the fit!
     ax1.axvline(cen - sigma * wid, ls='dashed', color='k')
     ax1.axvline(cen + sigma * wid, ls='dashed', color='k')
 
@@ -156,8 +184,8 @@ def plot_f_space(f_data: np.ndarray, kwargs: dict, add_smoothing: bool = False, 
 
     color = iter(pl.cm.rainbow(np.linspace(0, 1, 10)))
     if f_list is not None:
+        name += f"_n_{len(f_list)}"
         for f, f_name in f_list:
-            name += f"_f{'%.2f' % f}_n_{len(f_list)}"
             ax.axvline(x=f, linestyle='--', linewidth=1, label=f_name, color=next(color))
 
     if f_list is not None:
