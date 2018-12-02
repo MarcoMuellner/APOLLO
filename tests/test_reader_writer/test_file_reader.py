@@ -5,9 +5,8 @@ import re
 # scientific imports
 import numpy as np
 # project imports
-from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols
-from data_handler.file_reader import load_file, check_file_exists, load_fits_file, load_ascii_file, \
-    transpose_if_necessary
+from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols,analysis_file_path,general_kic
+from data_handler.file_reader import load_file, check_file_exists, load_fits_file, load_ascii_file, transpose_if_necessary
 
 try:
     pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
@@ -70,12 +69,11 @@ def test_load_fits_file(file_name):
     assert len(transpose_if_necessary(fits_data)) == 2
 
 
-@pytest.mark.parametrize("file_name", [("YoungStar.dat.txt", {ascii_skiprows: 1, ascii_use_cols: (0, 10)}),
-                                       ("Lightcurve.txt", {ascii_skiprows: 1, ascii_use_cols: (0, 1)}),
-                                       ("fits_lightcurve_without_columns.fits", {fits_hdulist_column: 0}),
-                                       ("fits_lightcurve_with_columns.fits",
-                                        {fits_hdulist_column: 1, fits_flux_column: 'FCOR',
-                                         fits_time_column: 'TIME'}), ])
+@pytest.mark.parametrize("file_name", [{ascii_skiprows: 1, ascii_use_cols: (0, 10),analysis_file_path:test_file_dir,general_kic:"YoungStar"},
+                                        {ascii_skiprows: 1, ascii_use_cols: (0, 10),analysis_file_path:test_file_dir,general_kic:"Lightcurve"},
+                                        {fits_hdulist_column: 0,analysis_file_path:test_file_dir,general_kic:"fits_lightcurve_without_columns"},
+                                        {fits_hdulist_column: 1, fits_flux_column: 'FCOR',fits_time_column: 'TIME',analysis_file_path:test_file_dir,general_kic:"fits_lightcurve_with_columns"},
+                                       ])
 def test_load_file(file_name):
-    data = load_file(f"{test_file_dir}{file_name[0]}", file_name[1])
+    data = load_file(file_name)
     assert len(transpose_if_necessary(data)) == 2

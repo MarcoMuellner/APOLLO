@@ -129,7 +129,7 @@ def look_for_file(kwargs):
 
     return kwargs[analysis_file_path] + lightCurveCandidates[0]
 
-def list_available_files_in_path(filePath, filter=[".txt", ".fits"]):
+def list_available_files_in_path(filePath, filter=[".txt", ".fits",".dat"]):
     resultList = []
     with cd(filePath):
         for file in listdir("."):

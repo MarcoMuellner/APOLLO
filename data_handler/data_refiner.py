@@ -13,19 +13,30 @@ def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     :param kwargs: Run configuration
     :return: Good dataset
     """
-    data = set_time_from_zero(data)
+    data = normalize_data(data)
     data = remove_stray(data,kwargs)
     data = interpolate(data,kwargs)
     return data
 
 
-def set_time_from_zero(data:np.ndarray) -> np.ndarray:
+def normalize_data(data:np.ndarray) -> np.ndarray:
     """
-    Subtracts the zero point of the time array
+    Subtracts the zero point of the time array and removes nans and infs
     :param data: Dataset
     :return: zeroed in dataset
     """
-    return np.array(((data[0] - data[0][0]), data[1]))
+    x = data[0]
+    y = data[1]
+
+    for i in [np.inf,-np.inf,np.nan]:
+        if i in y:
+            n = len(y[y==i])
+
+        x = x[y != i]
+        y = y[y != i]
+
+
+    return np.array(((x - x[0]), y))
 
 def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
     """
@@ -57,7 +68,8 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
     :param kwargs: Run configuration
     :return: dataset with removed strays
     """
-    binsize = int((np.amax(data[1]) - np.amin(data[1]))/10)
+    range_data = np.amax(data[1]) - np.amin(data[1])
+    binsize = int(range_data*np.exp(-range_data/9500000)) #empirically brought down to a reasonable value
 
     bins = np.linspace(np.amin(data[1]), np.amax(data[1]), binsize)
     hist = np.histogram(data[1], bins=bins, density=True)[0]

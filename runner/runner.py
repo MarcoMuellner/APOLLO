@@ -20,13 +20,48 @@ from res.conf_file_str import general_analysis_result_path
 from support.directoryManager import cd
 from support.printer import print_int,Printer
 from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general_kic, cat_analysis, cat_files, \
-    cat_general, cat_plot, analysis_file_path,analysis_folder_prefix
+    cat_general, cat_plot, analysis_file_path,analysis_folder_prefix,general_sequential_run
+
+
+
+def run(screen,file: str):
+    conf_list,nr_of_cores = kwarg_list(file)
+
+    if general_sequential_run in conf_list[0]:
+        sequential_run = conf_list[0][general_sequential_run]
+    else:
+        sequential_run = False
+
+    if not sequential_run:
+        Printer.set_screen(screen)
+    else:
+        Printer.set_screen(None)
+
+
+    p = Process(target=Printer.run)
+    p.start()
+
+    if platform.system() == 'Darwin' or sequential_run: #MacOS cannot multiprocess for some reason. Stupid shit shit shit shit
+        for i in conf_list:
+            run_star(i)
+    else:
+        pool = Pool(processes=nr_of_cores)
+        pool.map(run_star,conf_list)
+
+    Printer.kill_printer()
+    p.join()
 
 
 def kwarg_list(conf_file : str) -> Tuple[List[Dict],int]:
+    """
+    Returns a list of configuration for the runner
+    :param conf_file: basic configuration filename
+    :return: an iterable list of configurations
+    """
     with open(conf_file, 'r') as f:
         kwargs = json.load(f)
 
+    #determine number of cores
     if general_nr_of_cores not in kwargs[cat_general].keys():
         nr_of_cores = 1
     else:
@@ -36,28 +71,32 @@ def kwarg_list(conf_file : str) -> Tuple[List[Dict],int]:
         raise ValueError(
             f"Nr of processors cannot be more than available in the pc! Available: {cpu_count()}. Will be used: {nr_of_cores}")
 
+
+    #Check analysis list!
     if analysis_list_of_ids not in kwargs[cat_analysis].keys():
         raise ValueError(f"You need to set a list of ids to be analyzed with '{analysis_list_of_ids}'")
 
     copy_dict = {}
 
+    #Copy all items from the general category
     for key, value in kwargs[cat_general].items():
         copy_dict[key] = value
 
+    #Copy all items from the file category
     for key, value in kwargs[cat_files].items():
         copy_dict[key] = value
 
+    #Copy all items from the plot category
     for key, value in kwargs[cat_plot].items():
         copy_dict[key] = value
 
-    copy_dict[analysis_file_path] = kwargs[cat_analysis][analysis_file_path]
-
-    if analysis_folder_prefix in kwargs[cat_analysis].keys():
-        copy_dict[analysis_folder_prefix] = kwargs[cat_analysis][analysis_folder_prefix]
+    #Copy all items from analysis category
+    for key, value in kwargs[cat_analysis].items():
+        copy_dict[key] = value
 
     kwarg_list = []
 
-    for i in kwargs[cat_analysis][analysis_list_of_ids]:
+    for i in kwargs[analysis_list_of_ids]:
         cp = deepcopy(copy_dict)
         cp[general_kic] = i
         kwarg_list.append(cp)
@@ -65,6 +104,10 @@ def kwarg_list(conf_file : str) -> Tuple[List[Dict],int]:
     return kwarg_list,nr_of_cores
 
 def run_star(kwargs: Dict):
+    """
+    Runs a full analysis for a given kwargs file.
+    :param kwargs: Run conf
+    """
     if analysis_folder_prefix in kwargs.keys():
         prefix = kwargs[analysis_folder_prefix]
     else:
@@ -78,7 +121,6 @@ def run_star(kwargs: Dict):
         pass
 
     with cd(path):
-
         print_int("Starting run", kwargs)
         # load and refine data
         data = load_file(kwargs)
@@ -104,23 +146,4 @@ def run_star(kwargs: Dict):
         # save results
         save_results(prior, data, kwargs)
         print_int("Done", kwargs)
-
-
-def run(screen,file: str):
-    Printer.set_screen(screen)
-
-    conf_list,nr_of_cores = kwarg_list(file)
-
-    p = Process(target=Printer.run)
-    p.start()
-
-    if platform.system() == 'Darwin': #MacOS cannot multiprocess for some reason. Stupid shit shit shit shit
-        for i in conf_list:
-            run_star(i)
-    else:
-        pool = Pool(processes=nr_of_cores)
-        pool.map(run_star,conf_list)
-        Printer.kill_printer()
-
-    p.join()
 

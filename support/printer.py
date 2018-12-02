@@ -13,6 +13,7 @@ def print_int(msg: str, kwargs: Dict):
 class Printer:
     objMap = od()
     done_list = []
+    failed_list = []
     screen = None
     kill = False
     queue = Queue()
@@ -48,6 +49,8 @@ class Printer:
         for key, value in Printer.objMap.items():
             if "Done" in value:
                 Printer.done_list.append(key)
+            elif "Failed" in value:
+                Printer.failed_list.append(key)
 
             Printer.screen.print_at(f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n", 0, n, colour=Printer.screen.COLOUR_YELLOW)
             n += 1
@@ -56,7 +59,12 @@ class Printer:
             if i in Printer.objMap.keys():
                 del Printer.objMap[i]
 
+        for i in Printer.failed_list:
+            if i in Printer.objMap.keys():
+                del Printer.objMap[i]
 
+        Printer.screen.print_at(f"Failed ids: {Printer.failed_list}", 0, Printer.screen.height - 3,
+                                colour=Printer.screen.COLOUR_RED)
         Printer.screen.print_at(f"Done ids: {Printer.done_list}", 0, Printer.screen.height - 2,
                                 colour=Printer.screen.COLOUR_GREEN)
         Printer.screen.print_at(f"Current ids: {list(Printer.objMap.keys())}", 0, Printer.screen.height - 1,

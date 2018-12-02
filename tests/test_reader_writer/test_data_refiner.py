@@ -3,7 +3,7 @@ import re
 # scientific imports
 import numpy as np
 # project imports
-from data_handler.data_refiner import refine_data,set_time_from_zero,get_gaps,remove_stray,interpolate
+from data_handler.data_refiner import refine_data,normalize_data,get_gaps,remove_stray,interpolate
 
 try:
     pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
@@ -17,11 +17,11 @@ arr = np.array((x,y))
 
 def test_set_time_from_zero():
     arr[0] += 500
-    assert np.abs(set_time_from_zero(arr)[0][0]) < 10**-7
+    assert np.abs(normalize_data(arr)[0][0]) < 10 ** -7
     arr[0] -= 1000
-    assert np.abs(set_time_from_zero(arr)[0][0]) < 10 ** -7
+    assert np.abs(normalize_data(arr)[0][0]) < 10 ** -7
     arr[0] += 1000
-    assert np.abs(set_time_from_zero(arr)[0][0]) < 10 ** -7
+    assert np.abs(normalize_data(arr)[0][0]) < 10 ** -7
 
 def test_get_gaps():
     gap = [i for i in range(3000,4001)]
@@ -68,7 +68,7 @@ def test_interpolate():
     x_gap = np.delete(x,gap)
     y_gap = np.delete(y,gap)
 
-    data = interpolate(np.array((x_gap,y_gap)))
+    data = interpolate(np.array((x_gap,y_gap)),{})
 
     assert np.abs(np.mean(data[0][3000:4000]) - mean_compare_x) < 10**-7
     assert np.abs(np.mean(data[1][3000:4000]) - mean_compare_y) < 1
