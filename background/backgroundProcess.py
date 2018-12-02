@@ -1,12 +1,13 @@
 from logging import getLogger
 import re
 import subprocess
-from multiprocessing.pool import ThreadPool
+from multiprocessing.pool import ThreadPool,Pool
+from itertools import product
 
 from res.strings import *
 from support.directoryManager import cd
 import time
-from res.conf_file_str import general_background_result_path,general_binary_path,general_kic
+from res.conf_file_str import general_background_result_path,general_binary_path,general_kic,general_sequential_run
 from support.printer import print_int
 
 class BackgroundProcess:
@@ -66,10 +67,12 @@ class BackgroundProcess:
         cmdStrings = self._getCommandStrings()
         pList = []
 
-        pool = ThreadPool(processes=2)
+        if general_sequential_run in self.kwargs.keys() and self.kwargs[general_sequential_run]:
+            pool = Pool(processes =2)
+        else:
+            pool = ThreadPool(processes=2)
 
-        for runID, cmd in cmdStrings.items():
-            pool.apply(self._runCmd, args=(runID,cmd,))
+        pool.starmap(self._runCmd, cmdStrings.items())
 
 
 
@@ -99,13 +102,12 @@ class BackgroundProcess:
                 if self.status[runID] == strDiStatRunning:
                     self.status[runID] = strDiamondsStatusGood
                     print_int(f"{runID}: Finished!",self.kwargs)
-                    return True
+                    return
 
                 else:
                     print_int(f"{runID}: Run {runCounter} --> Repeating run, due to failure due to {self.status[runID]}",self.kwargs)
 
-        print_int(f"{runID}: FAILED! Tried 5 runs, failed to find result",self.kwargs)
-        return False
+        raise ValueError(f"{runID}: FAILED! Tried 5 runs, failed to find result",self.kwargs)
 
 
 

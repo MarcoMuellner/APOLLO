@@ -5,6 +5,8 @@ import numpy as np
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
+from support.printer import print_int
+from res.conf_file_str import general_background_result_path
 
 
 class BackgroundPriorFileModel(BackgroundBaseFileModel):
@@ -37,6 +39,8 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                                 strPriorHeight,
                                 strPriorNuMax,
                                 strPriorSigma]
+
+        self.kwargs = kwargs
         self.logger = logging.getLogger(__name__)
 
     def getData(self, key=None, mode=strDiModeFull):
@@ -50,14 +54,10 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :return:Dataset
         :rtype:dict/2-D tuple
         '''
-        print_int("Retrieving data with key "+str(key) + " and mode "+mode,kwargs)
-
         dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
-        print_int("Data is ",kwargs)
-        print_int(dict,kwargs)
         if any(dict) is False and (self.runID is None or
                                     (any(self._fullPriors) is False and any(self._noisePriors) is False)):
-            self._readData()
+            self._readData(self.kwargs)
             dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
 
         if any(dict) is False and self.runID is not None:
@@ -72,15 +72,14 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
 
         return self._getValueFromDict(dict,key)
 
-    def _readData(self):
+    def _readData(self,kwargs):
         '''
         Reads the data. If runID is not None, it will read only one file, the one in the result of the mode. If it is
         None it will read both in the parent directory
         '''
         filesToLoad = []
         values = []
-        dataFolder = self._getFullPath(Settings.ins().getSetting(strDiamondsSettings,
-                                                                            strSectBackgroundResPath).value)
+        dataFolder = self.kwargs[general_background_result_path]
         basePath = dataFolder + "KIC" + self.kicID + "/"
         if self.runID is not None:
             file = basePath + self.runID + "/background_hyperParametersUniform.txt"
@@ -94,8 +93,6 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
             for files in filesToLoad:
                 values.append(np.loadtxt(files).T)
         except FileNotFoundError as e:
-            print_int("Failed to open Prior file",kwargs)
-            print_int(e,kwargs)
             raise IOError("Failed to open Prior file")
 
         for priorList in values:
@@ -106,8 +103,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                     self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
 
     def rewritePriors(self,priors : Dict[str,Tuple[float,float]]):
-        dataFolder = self._getFullPath(Settings.ins().getSetting(strDiamondsSettings,
-                                                                 strSectBackgroundResPath).value)
+        dataFolder = self.kwargs[general_background_result_path]
         basePath = dataFolder + "KIC" + self.kicID + "/"
 
         if len(priors) == 10:
@@ -132,11 +128,11 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :rtype: str
         '''
         if path[0] not in ["~", "/", "\\"]:
-            print_int("Setting priors to full path",kwargs)
-            print_int("Prepending" + ROOT_PATH,kwargs)
+            print_int("Setting priors to full path",self.kwargs)
+            print_int("Prepending" + ROOT_PATH,self.kwargs)
             path = ROOT_PATH + "/" + path
-            print_int("New path: "+path,kwargs)
+            print_int("New path: "+path,self.kwargs)
         else:
-            print_int("Path is already absolute path",kwargs)
+            print_int("Path is already absolute path",self.kwargs)
 
         return path

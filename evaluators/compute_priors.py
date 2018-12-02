@@ -19,7 +19,7 @@ def first_harvey(nu_max: float) -> float:
     """
     Computes first harvey frequency
     :param nu_max: nu_max value determined by pipe
-    :return: Third harvey
+    :return: First harvey
     """
     k = 19.51
     s = -0.071
@@ -97,20 +97,21 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
     """
     f_data = compute_periodogram(data)
 
-    bg_model = background_model(f_data, nyqFreq(data), noise(data), harvey_amp(nu_max), first_harvey(nu_max),
+    bg_model = background_model(f_data, nyqFreq(data), noise(f_data), harvey_amp(nu_max), first_harvey(nu_max),
                                 harvey_amp(nu_max), second_harvey(nu_max), harvey_amp(nu_max), third_harvey(nu_max),
                                 nu_max, amp(nu_max, sigma(nu_max), f_data), sigma(nu_max))
+
     plot_f_space(f_data, kwargs, bg_model=bg_model,plot_name="PSD_guess")
 
     return [
         [0.5 * noise(f_data), 3 * noise(f_data)],
-        [0.1 * harvey_amp(nu_max), 1.75 * harvey_amp(nu_max)],
-        [0.04 * first_harvey(nu_max), 1.15 * first_harvey(nu_max)],
-        [0.1 * harvey_amp(nu_max), 1.75 * harvey_amp(nu_max)],
+        [0.7 * harvey_amp(nu_max), 1.5 * harvey_amp(nu_max)],
+        [0.5 * first_harvey(nu_max), 1.15 * first_harvey(nu_max)],
+        [0.5 * harvey_amp(nu_max), 1.3 * harvey_amp(nu_max)],
         [0.3 * second_harvey(nu_max), 1.48 * second_harvey(nu_max)],
-        [0.1 * harvey_amp(nu_max), 1.75 * harvey_amp(nu_max)],
+        [0.3 * harvey_amp(nu_max), 1.3 * harvey_amp(nu_max)],
         [0.6 * third_harvey(nu_max), 1.3 * third_harvey(nu_max)],
         [0.25 * amp(nu_max, sigma(nu_max), f_data), 2.5 * amp(nu_max, sigma(nu_max), f_data)],
-        [0.8 * nu_max, 1.2 * nu_max],
+        [0.6 * nu_max, 1 * nu_max],
         [0.01 * sigma(nu_max), 1.3 * sigma(nu_max)]
     ]

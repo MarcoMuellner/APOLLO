@@ -64,6 +64,39 @@ def save_fig(fig: Figure, name: str):
 
     fig.savefig(f"images/{name}.pdf")
 
+def plot_parameter_trend(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Dict):
+    """
+    Plots the parameter trend for all parameters
+    :param data_dict: Data Dict containing name and values
+    :param kwargs: Run conf
+    """
+
+    fig : Figure = pl.figure(figsize=(15, 9))
+    y = len(data_dict) // 2 +1
+    n = 1
+    for name, (values, unit) in data_dict.items():
+        try:
+            ax : Axes = fig.add_subplot(2,y,n,sharex=ax)
+        except UnboundLocalError:
+            ax: Axes = fig.add_subplot(2, y, n)
+        ax.plot(values,color='k',linewidth=1)
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel(unit)
+        ax.set_title(name)
+        n+=1
+    fig.suptitle("Parameter progression")
+
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, f"Parameter_trend_n={len(data_dict)}")
+
+    pl.close(fig)
+
+
+
+
 def plot_interpolation(data : np.ndarray, gap_list : List[int],kwargs : Dict):
     """
     Plots the interpolated points in a lightcurve

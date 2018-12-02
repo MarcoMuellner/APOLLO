@@ -101,12 +101,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
 
             self._createBackgroundModel()
         except Exception as e:
-            print_int("Failed to open File " + file,kwargs)
-            self._rawValues[strSummaryMedian] = np.array([0,0,0,0,0,0,0,0,0,0])
-            self._rawValues[strSummaryLowCredLim] = np.array([0,0,0,0,0,0,0,0,0,0])
-            self._rawValues[strSummaryUpCredLim] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-
-            self._createBackgroundModel()
+            raise FileNotFoundError("Cannot find summary file!")
 
     def _createBackgroundModel(self):
         '''

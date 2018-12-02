@@ -7,6 +7,7 @@ from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileMode
 from res.strings import *
 from res.conf_file_str import general_background_result_path
 from uncertainties import ufloat
+from support.printer import print_int
 
 
 class BackgroundEvidenceFileModel(BackgroundBaseFileModel):

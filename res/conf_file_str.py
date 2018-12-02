@@ -26,4 +26,6 @@ cat_analysis = "Analysis"
 cat_plot = "Plot"
 #List of ids
 analysis_list_of_ids = "List of IDs"
+#Internal
+internal_literature_value = "Literature value"
 

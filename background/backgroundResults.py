@@ -1,7 +1,7 @@
 import glob
 import logging
 
-from typing import Dict
+from typing import Dict,Union,List
 import numpy as np
 from uncertainties import ufloat
 
@@ -42,7 +42,10 @@ class BackgroundResults:
         self._kicID = kwargs[general_kic]
         self._runID = runID
         self._dataFile = BackgroundDataFileModel(kwargs)
-        self._summary = BackgroundParamSummaryModel(kwargs, runID)
+        try:
+            self._summary = BackgroundParamSummaryModel(kwargs, runID)
+        except FileNotFoundError:
+            self._summary = None
         self._evidence = BackgroundEvidenceFileModel(kwargs, runID)
         self._prior = BackgroundPriorFileModel(kwargs, runID)
         self._backgroundPriors = BackgroundPriorFileModel(kwargs, runID)
@@ -54,10 +57,9 @@ class BackgroundResults:
         self._names = priorNames
         self._units = priorUnits
         self._psdOnlyFlag = False
-
         self._readBackgroundParameter()
 
-    def getBackgroundParameters(self, key: str = None):
+    def getBackgroundParameters(self, key: str = None) ->Union[BackgroundParameterFileModel,List[BackgroundParameterFileModel]]:
         '''
         Provides an interface for the single background Parameters (e.g. Noise,HarveyParameters, Powerexcess parameters)
         fitted by DIAMONDS. Depending on the mode, this will either return a list of 7-10 items or a single item
@@ -90,8 +92,8 @@ class BackgroundResults:
                 if i.name == key:
                     return i
 
-            print_int("Found no object for '" + key + "'", kwargs)
-            print_int("Returning full list", kwargs)
+            print_int("Found no object for '" + key + "'", self.kwargs)
+            print_int("Returning full list", self.kwargs)
             return dict
 
     @property
@@ -250,12 +252,7 @@ class BackgroundResults:
         elif key is None:
             return self.summary.getData()
         else:
-            print_int(key + " is not in Summary -> did DIAMONDS run correctly?", self.kwargs)
-            if key in (strPriorNuMax, strPriorHeight, strPriorSigma):
-                print_int("Check if you used the correct runID. runID is " + self._runID, self.kwargs)
-            print_int("Content of dict is", self.kwargs)
-            print_int(self.summary.getData(), self.kwargs)
-            raise ValueError
+            raise ValueError(key + " is not in Summary -> did DIAMONDS run correctly?")
 
     def createBackgroundModel(self):
         '''
@@ -287,20 +284,24 @@ class BackgroundResults:
                                 freq_gran2, nu_max, amp, sigma)
 
     def _readBackgroundParameter(self):
-        for i in range(0, self.summary.dataLength()):
+        for i in range(0, len(self._backgroundPriors.getData())):
             try:
                 self._backgroundParameter.append(
                     BackgroundParameterFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
             except IOError as e:
                 print_int("Failed to find backgroundparameter for " + self._names[i], self.kwargs)
             try:
-                self._marginalDistributions.append(
-                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
-                self._marginalDistributions[i].backgrounddata = np.vstack(
-                    (self.summary.getRawData()[strSummaryMedian][i],
-                     self.summary.getRawData()[strSummaryLowCredLim][i],
-                     self.summary.getRawData()[strSummaryUpCredLim][i]))
-                if self._backgroundParameter[i].getData() is None:
-                    self._psdOnlyFlag = True
-            except IOError as e:
-                print_int("Failed to find marginal distribution for " + self._names[i], self.kwargs)
+                if self._summary is not None:
+                    self._marginalDistributions.append(
+                        BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
+
+                    self._marginalDistributions[i].backgrounddata = np.vstack(
+                        (self.summary.getRawData()[strSummaryMedian][i],
+                         self.summary.getRawData()[strSummaryLowCredLim][i],
+                         self.summary.getRawData()[strSummaryUpCredLim][i]))
+
+                    if self._backgroundParameter[i].getData() is None:
+                        self._psdOnlyFlag = True
+            except Exception as e:
+                pass
+                #print_int("Failed to find marginal distribution for " + self._names[i], self.kwargs)

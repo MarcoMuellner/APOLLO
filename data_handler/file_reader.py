@@ -108,7 +108,7 @@ def transpose_if_necessary(data: np.ndarray) -> np.ndarray:
 
 
 def look_for_file(kwargs):
-    files = list_available_files_in_path(kwargs[analysis_file_path])
+    files = list_available_files_in_path(kwargs)
     for file in files:
         if str(kwargs[general_kic]) in file:
             try:
@@ -129,15 +129,16 @@ def look_for_file(kwargs):
 
     return kwargs[analysis_file_path] + lightCurveCandidates[0]
 
-def list_available_files_in_path(filePath, filter=[".txt", ".fits",".dat"]):
+def list_available_files_in_path(kwargs, filter=[".txt", ".fits",".dat"]):
     resultList = []
-    with cd(filePath):
+    with cd(kwargs[analysis_file_path]):
         for file in listdir("."):
             _,file_extension = splitext(file)
             if file_extension in filter:
                 resultList.append(file)
 
     if resultList == []:
+        print_int("NoFile",kwargs)
         raise IOError("No files found")
 
     return resultList

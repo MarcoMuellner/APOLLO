@@ -94,7 +94,7 @@ def fit_acf(data: np.ndarray,  kwargs: Dict) -> Tuple[float, float, float]:
 
     x,y = interpolate_acf(x,y,2) #interpolate acf to make fit work better
 
-    while np.abs(1 - y[0]) < 0.1 or np.any(y > 1):
+    while np.abs(1 - y[0]) < 0.2 or np.any(y > 1):
         x = x[1:]
         y = y[1:]
 
@@ -170,8 +170,14 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
     f_list.append((f, rf"F_filter_0_{'%.2f' % f}$\mu Hz$"))
     plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
 
-    # repeat process twice
-    for i in range(0, 2):
+    #for frequencies below 70 the first guess seems good enough
+    if f < 60:
+        n = 0
+    else:
+        n = 2
+
+    # repeat process n-times
+    for i in range(0, n):
         tau = single_step_procedure(data, f_to_t(f) / 60, kwargs)
         f = f_from_tau(tau)
 

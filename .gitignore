@@ -64,3 +64,17 @@ ys_test\.json
 ys_test_endurance\.json
 
 rg_enrico\.json
+
+apokasc_results/*
+apokasc_single_results/
+LCA_results/
+
+apokasc\.json
+
+apokasc_local\.json
+
+apokasc_result\.tar\.gz
+
+apokasc_single\.json
+
+apokasc_targets\.txt

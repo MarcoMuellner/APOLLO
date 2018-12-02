@@ -6,11 +6,13 @@ import json
 import numpy as np
 # project imports
 from background.backgroundResults import BackgroundResults
-from plotter.plot_handler import plot_f_space
+from plotter.plot_handler import plot_f_space,plot_parameter_trend
+from res.conf_file_str import internal_literature_value
+from support.printer import print_int
 
 
-def save_results(priors: List[List[float]], data : np.ndarray, kwargs: Dict):
-    res_set,psd = compose_results(priors,kwargs)
+def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, kwargs: Dict):
+    res_set,psd = compose_results(priors,nu_max,kwargs)
 
     with open("results.json", 'w') as f:
         json.dump(res_set, f, indent=4)
@@ -19,10 +21,26 @@ def save_results(priors: List[List[float]], data : np.ndarray, kwargs: Dict):
     np.savetxt("lc.txt", data)
 
 
-def compose_results(priors: List[List[float]], kwargs: Dict)->Tuple[od,np.ndarray]:
+def create_parameter_trend_plot(result : BackgroundResults,kwargs : Dict):
+    params = result.getBackgroundParameters()
+    plot_dict = od()
+
+    for param in params:
+        plot_dict[param.name] = (param.getData(),param.unit)
+
+    plot_parameter_trend(plot_dict,kwargs)
+
+
+def compose_results(priors: List[List[float]],nu_max : float, kwargs: Dict)->Tuple[od,np.ndarray]:
     result_full = BackgroundResults(kwargs, runID="FullBackground")
     result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
 
+    create_parameter_trend_plot(result_full,kwargs)
+    create_parameter_trend_plot(result_noise,kwargs)
+
+    if result_full._summary is None or result_noise._summary is None:
+        print_int("summaryErr",kwargs)
+        raise ValueError("Summary file not found!")
 
     full_res_set = od()
 
@@ -38,6 +56,13 @@ def compose_results(priors: List[List[float]], kwargs: Dict)->Tuple[od,np.ndarra
                                               result_noise.evidence._evidence["Skillings log with Error"])
     full_res_set["Bayes factor"] = factor
     full_res_set["Conclusion"] = conc
+
+    full_res_set["Nu max guess"] = nu_max
+
+    if internal_literature_value in kwargs.keys():
+        full_res_set[internal_literature_value] = kwargs[internal_literature_value]
+
+
 
     psd = result_full.powerSpectralDensity
 

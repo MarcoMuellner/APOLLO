@@ -14,6 +14,8 @@ class Printer:
     objMap = od()
     done_list = []
     failed_list = []
+    no_file_avail = []
+    summary_err = []
     screen = None
     kill = False
     queue = Queue()
@@ -51,6 +53,10 @@ class Printer:
                 Printer.done_list.append(key)
             elif "Failed" in value:
                 Printer.failed_list.append(key)
+            elif "NoFile" in value:
+                Printer.no_file_avail.append(key)
+            elif "summaryErr" in value:
+                Printer.summary_err.append(key)
 
             Printer.screen.print_at(f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n", 0, n, colour=Printer.screen.COLOUR_YELLOW)
             n += 1
@@ -63,6 +69,10 @@ class Printer:
             if i in Printer.objMap.keys():
                 del Printer.objMap[i]
 
+        Printer.screen.print_at(f"No summary file ids: {Printer.summary_err}", 0, Printer.screen.height - 5,
+                                colour=Printer.screen.COLOUR_RED)
+        Printer.screen.print_at(f"No files ids: {Printer.failed_list}", 0, Printer.screen.height - 4,
+                                colour=Printer.screen.COLOUR_RED)
         Printer.screen.print_at(f"Failed ids: {Printer.failed_list}", 0, Printer.screen.height - 3,
                                 colour=Printer.screen.COLOUR_RED)
         Printer.screen.print_at(f"Done ids: {Printer.done_list}", 0, Printer.screen.height - 2,
