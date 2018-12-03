@@ -6,7 +6,7 @@ from scipy.signal import argrelextrema
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 # project imports
-from fitter.fit_functions import trismooth, sinc, sin
+from fitter.fit_functions import trismooth, sinc, sin,quadraticPolynomial
 from data_handler.signal_features import get_time_step
 from plotter.plot_handler import plot_peridogramm_from_timeseries, plot_acf_fit
 from support.printer import print_int
@@ -187,4 +187,4 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
         plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
 
     print_int(f"Nu_max: {'%.2f' % f}", kwargs)
-    return f
+    return f - quadraticPolynomial(f,3.98235624e+01,-1.97375869e+00,3.26264332e-02,-1.90764737e-04)

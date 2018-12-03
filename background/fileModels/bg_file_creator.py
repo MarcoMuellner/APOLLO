@@ -58,8 +58,8 @@ def create_priors(priors: np.ndarray, res_path: str):
     arr_min = priors[:7]
     filename_full = "background_hyperParameters.txt"
     filename_min = "background_hyperParameters_noise.txt"
-    save_numpy_array(res_path, filename_full, arr_full, '14')
-    save_numpy_array(res_path, filename_min, arr_min, '14')
+    save_numpy_array(res_path, filename_full, arr_full, '1','%.')
+    save_numpy_array(res_path, filename_min, arr_min, '1','%.')
 
 
 def create_nsmc_configuring_parameters(res_path: str):
@@ -96,7 +96,7 @@ def create_xmeans_configuring_parameters(res_path: str):
     return
 
 
-def save_numpy_array(path, filename, array, comma='14'):
+def save_numpy_array(path, filename, array, comma='14',pre = '%10.'):
     """
     Saves a given numpy array
     :param path: path where the file is saved to
@@ -105,7 +105,7 @@ def save_numpy_array(path, filename, array, comma='14'):
     :param comma: how many digits
     """
     with cd(path):
-        np.savetxt(filename, array, fmt='%10.' + comma + 'f')
+        np.savetxt(filename, array, fmt= pre + comma + 'f')
 
 
 def create_data(f_data: np.ndarray, kwargs: Dict):

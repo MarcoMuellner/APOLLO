@@ -1,12 +1,12 @@
 # library imports
-from typing import List, Dict
+from typing import List, Dict,Tuple
 # scientific imports
 import numpy as np
 # project imports
 from data_handler.signal_features import noise
 from data_handler.signal_features import compute_periodogram
 from plotter.plot_handler import plot_f_space
-from data_handler.signal_features import background_model, nyqFreq
+from data_handler.signal_features import background_model, nyqFreq,boxcar_smoothing
 
 '''
 The prior calculator computes initial guesses for the priors, which then can be used as Priors for DIAMONDS.
@@ -82,6 +82,7 @@ def amp(nu_max: float, sigma: float, f_data: np.ndarray):
     :param f_data: f_data periodogram
     :return: amplitude of oscillation
     """
+    f_data = boxcar_smoothing(f_data)
     x = f_data[0]
     y = f_data[1]
     region = y[np.logical_and(x > (nu_max - sigma), x < (nu_max + sigma))]
@@ -101,17 +102,30 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
                                 harvey_amp(nu_max), second_harvey(nu_max), harvey_amp(nu_max), third_harvey(nu_max),
                                 nu_max, amp(nu_max, sigma(nu_max), f_data), sigma(nu_max))
 
+    params = {
+        'w':noise(f_data),
+        'sigma_1':harvey_amp(nu_max),
+        'b_1':first_harvey(nu_max),
+        'sigma_2':harvey_amp(nu_max),
+        'b_2':second_harvey(nu_max),
+        'sigma_3':harvey_amp(nu_max),
+        'b_3':third_harvey(nu_max),
+        'nu_max':nu_max,
+        'H_osc':amp(nu_max, 2*sigma(nu_max), f_data),
+        'sigma':sigma(nu_max)
+    }
+
     plot_f_space(f_data, kwargs, bg_model=bg_model,plot_name="PSD_guess")
 
     return [
-        [0.5 * noise(f_data), 3 * noise(f_data)],
-        [0.7 * harvey_amp(nu_max), 1.5 * harvey_amp(nu_max)],
-        [0.5 * first_harvey(nu_max), 1.15 * first_harvey(nu_max)],
-        [0.5 * harvey_amp(nu_max), 1.3 * harvey_amp(nu_max)],
-        [0.3 * second_harvey(nu_max), 1.48 * second_harvey(nu_max)],
-        [0.3 * harvey_amp(nu_max), 1.3 * harvey_amp(nu_max)],
-        [0.6 * third_harvey(nu_max), 1.3 * third_harvey(nu_max)],
-        [0.25 * amp(nu_max, sigma(nu_max), f_data), 2.5 * amp(nu_max, sigma(nu_max), f_data)],
-        [0.6 * nu_max, 1 * nu_max],
-        [0.01 * sigma(nu_max), 1.3 * sigma(nu_max)]
-    ]
+        [1 * noise(f_data)                        , 8 * noise(f_data)],
+        [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
+        [0.04 * first_harvey(nu_max)                , 0.8 * first_harvey(nu_max)],
+        [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
+        [0.3 * second_harvey(nu_max)                , 1.48 * second_harvey(nu_max)],
+        [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
+        [0.4 * third_harvey(nu_max)                 , 1.1 * third_harvey(nu_max)],
+        [0.5 * amp(nu_max, 2*sigma(nu_max), f_data)  , 2.5 * amp(nu_max, 2*sigma(nu_max), f_data)],
+        [0.8 * nu_max                               , 1.2 * nu_max],
+        [0.4 * sigma(nu_max)                       , 1.3 * sigma(nu_max)]
+    ],params

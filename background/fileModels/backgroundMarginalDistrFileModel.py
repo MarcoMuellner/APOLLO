@@ -6,6 +6,7 @@ import numpy as np
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
 from res.conf_file_str import general_background_result_path,general_kic
+from support.printer import print_int
 
 
 class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
@@ -29,9 +30,10 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         self._id = id
         self._name = name
         self._unit = unit
+        self.kwargs = kwargs
         self.dataFolder = kwargs[general_background_result_path]
         if (runID is not None and id is not None):
-            self._readData()
+            self._readData(kwargs)
         return
 
     @property
@@ -57,7 +59,7 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         :return: The Dataset. Single numpy array
         '''
         if self._data is None:
-            self._readData()
+            self._readData(self.kwargs)
 
         return self._data
 
@@ -85,23 +87,26 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         :return: Values needed for plotting the Marginal distribution
         :rtype: 5-D tuple
         '''
-        if self._backgroundData is None:
-            print_int("BackgroundData is not set, returning",kwargs)
-            raise ValueError("BackgroundData is not set, returning")
 
-        par_median, par_le, par_ue = self._backgroundData
         par, marg = self._data
+        try:
+            par_median, par_le, par_ue = self._backgroundData
 
-        par_err_le = par_median - par_le
-        par_err_ue = par_ue - par_median
-        par_err = (par_err_le ** 2 + par_err_ue ** 2) ** (0.5) / 2 ** (0.5)
+            par_err_le = par_median - par_le
+            par_err_ue = par_ue - par_median
+            par_err = (par_err_le ** 2 + par_err_ue ** 2) ** (0.5) / 2 ** (0.5)
 
-        fill_x = par[(par >= par_le) & (par <= par_ue)]
-        fill_y = marg[(par >= par_le) & (par <= par_ue)]
+            fill_x = par[(par >= par_le) & (par <= par_ue)]
+            fill_y = marg[(par >= par_le) & (par <= par_ue)]
+        except:
+            fill_x = None
+            fill_y = None
+            par_err = None
+            par_median = None
 
-        return (par,marg,fill_x,fill_y,par_err)
+        return (par,marg,fill_x,fill_y,par_err,par_median)
 
-    def _readData(self):
+    def _readData(self,kwargs):
         '''
         Reads the Data. Should be only used internally
         '''

@@ -53,7 +53,7 @@ def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
     (values,counts) = np.unique(real_diff,return_counts=True)
     most_common = values[np.argmax(counts)]
 
-    gap_ids = np.where(diff !=  np.round(most_common,decimals=2))
+    gap_ids = np.where(np.abs(diff - np.round(most_common,decimals=2)) > 350 * np.round(most_common,decimals=2) )
     if len(gap_ids[0]) == 0:
         gap_ids = None
     else:
@@ -87,7 +87,7 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
 
     list_data = []
     for i in [0,1]:
-        list_data.append(data[i][np.logical_and(data[1] > cen - 4 * wid, data[1] < cen + 4 * wid)])
+        list_data.append(data[i][np.logical_and(data[1] > cen - 5 * wid, data[1] < cen + 5 * wid)])
 
     data = np.array(list_data)
 

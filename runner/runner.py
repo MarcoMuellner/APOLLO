@@ -7,6 +7,7 @@ import json
 from os import makedirs
 import traceback
 # scientific imports
+import numpy as np
 # project imports
 from data_handler.file_reader import load_file
 from data_handler.data_refiner import refine_data
@@ -49,7 +50,7 @@ def run(screen,file: str):
         pool = Pool(processes=nr_of_cores)
         pool.map(run_star,conf_list)
 
-    Printer.kill_printer()
+    #print_int("KILL_SIR",conf_list[0])
     p.join()
 
 
@@ -97,11 +98,23 @@ def kwarg_list(conf_file : str) -> Tuple[List[Dict],int]:
 
     kwarg_list = []
 
-    for i in kwargs[analysis_list_of_ids]:
+    if ".txt" in str(kwargs[analysis_list_of_ids]):
+        data = np.loadtxt(str(kwargs[analysis_list_of_ids]))
+        if data.shape[0] > 1000:
+            data = data.T
+        if data.shape[0] == 2:
+            data = zip(data[0].astype(int).tolist(),data[1].toList())
+        else:
+            data = data.tolist();
+
+    else:
+        data = kwargs[analysis_list_of_ids]
+
+    for i in data:
         cp = deepcopy(copy_dict)
         try:
             if len(i) == 2:
-                cp[general_kic] = i[0]
+                cp[general_kic] = int(i[0])
                 cp[internal_literature_value] = i[1]
         except:
             cp[general_kic] = i
@@ -146,7 +159,7 @@ def run_star(kwargs: Dict):
                 print_int(f"Nu max guess: {'%.2f' % nu_max}", kwargs)
 
             # create files for diamonds and run
-            prior = priors(nu_max, data,kwargs)
+            prior,params = priors(nu_max, data,kwargs)
             print_int(f"Priors: {prior}", kwargs)
 
             create_files(data, nyqFreq(data), prior, kwargs)
@@ -156,8 +169,14 @@ def run_star(kwargs: Dict):
             print_int("Saving results", kwargs)
             # save results
 
-            save_results(prior, data, nu_max, kwargs)
+            save_results(prior, data, nu_max,params, kwargs)
             print_int("Done", kwargs)
+        except AttributeError as e:
+            error = f"{e.__class__.__name__} : {str(e)}\n"
+            trace = traceback.format_exc()
+            with open("errors.txt", "w") as f:
+                f.write(error)
+                f.write(trace)
         except Exception as e:
             print_int("Failed",kwargs)#
             error = f"{e.__class__.__name__} : {str(e)}\n"

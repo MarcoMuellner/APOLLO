@@ -95,6 +95,36 @@ def plot_parameter_trend(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Di
     pl.close(fig)
 
 
+def plot_marginal_distributions(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Dict):
+    fig : Figure = pl.figure(figsize=(20, 9))
+    y = len(data_dict) // 2 +1
+    n = 1
+    for name, ((par,marg,fill_x,fill_y,par_err,par_median), unit) in data_dict.items():
+        try:
+            ax : Axes = fig.add_subplot(2,y,n)
+        except UnboundLocalError:
+            ax: Axes = fig.add_subplot(2, y, n)
+
+        if par_median is not None:
+            ax.set_xlim(par_median-5*par_err,par_median+5*par_err)
+        ax.set_ylim(0,max(marg)*1.2)
+        ax.plot(par, marg,linewidth=2,c='k')
+        if fill_x is not None and fill_y is not None:
+            ax.fill_between(fill_x,fill_y,0,alpha=0.5,facecolor='green')
+        if par_median is not None:
+            ax.axvline(par_median,c='r')
+        ax.set_xlabel(unit,fontsize=16)
+        ax.set_title(name)
+        n +=1
+
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, f"Marginal_distibution_n={len(data_dict)}")
+
+    pl.close(fig)
+
 
 
 def plot_interpolation(data : np.ndarray, gap_list : List[int],kwargs : Dict):
@@ -153,7 +183,7 @@ def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, po
     ax1.plot(lin, gaussian(lin, *popt))
 
     (cen, wid) = (popt[1], popt[2])
-    sigma = 4  # used by the fit!
+    sigma = 5  # used by the fit!
     ax1.axvline(cen - sigma * wid, ls='dashed', color='k')
     ax1.axvline(cen + sigma * wid, ls='dashed', color='k')
 

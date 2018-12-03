@@ -28,4 +28,5 @@ cat_plot = "Plot"
 analysis_list_of_ids = "List of IDs"
 #Internal
 internal_literature_value = "Literature value"
+internal_flag_worked = "Run worked flag"
 

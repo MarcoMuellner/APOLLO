@@ -291,11 +291,10 @@ class BackgroundResults:
             except IOError as e:
                 print_int("Failed to find backgroundparameter for " + self._names[i], self.kwargs)
             try:
+                self._marginalDistributions.append(
+                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
                 if self._summary is not None:
-                    self._marginalDistributions.append(
-                        BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
-
-                    self._marginalDistributions[i].backgrounddata = np.vstack(
+                    self._marginalDistributions[i]._backgroundData = np.vstack(
                         (self.summary.getRawData()[strSummaryMedian][i],
                          self.summary.getRawData()[strSummaryLowCredLim][i],
                          self.summary.getRawData()[strSummaryUpCredLim][i]))

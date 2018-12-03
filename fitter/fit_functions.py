@@ -46,8 +46,8 @@ def exponentialDistribution(x,A,B,u):
     return A+B*np.exp(-x*u)*u
 
 
-def quadraticPolynomial(x, a, b, c):
-    return a + b * x + c * x ** 2
+def quadraticPolynomial(x, a, b, c,d):
+    return a + b * x + c * x ** 2 +d * x ** 3
 
 def sin(x,amp,tau):
     '''
