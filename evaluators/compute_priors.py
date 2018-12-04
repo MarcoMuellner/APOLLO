@@ -118,7 +118,7 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
     plot_f_space(f_data, kwargs, bg_model=bg_model,plot_name="PSD_guess")
 
     return [
-        [1 * noise(f_data)                        , 8 * noise(f_data)],
+        [0.1 * noise(f_data)                        , 3 * noise(f_data)],
         [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
         [0.04 * first_harvey(nu_max)                , 0.8 * first_harvey(nu_max)],
         [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],

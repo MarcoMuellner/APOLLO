@@ -187,4 +187,6 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
         plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
 
     print_int(f"Nu_max: {'%.2f' % f}", kwargs)
-    return f - quadraticPolynomial(f,3.98235624e+01,-1.97375869e+00,3.26264332e-02,-1.90764737e-04)
+
+
+    return f
