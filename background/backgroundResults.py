@@ -47,9 +47,7 @@ class BackgroundResults:
             kic_new = str(kic) + f"_{kwargs[internal_noise_value]}"
         else:
             kic_new = kic
-        print(kic_new)
         self.kwargs[general_kic] = kic_new
-        print(self.kwargs[general_kic])
         self._kicID = self.kwargs[general_kic]
         self._runID = runID
         self._dataFile = BackgroundDataFileModel(self.kwargs)

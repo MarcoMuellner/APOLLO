@@ -164,7 +164,7 @@ if not nofit:
     print(f"Fitvalues: {popt}")
     print(f"Standarddeviation: {(nu_max_new - nu_max_literature).std()}")
 
-fig1 = pl.figure(figsize=(20, 20))
+fig1 = pl.figure(figsize=(20, 10))
 fig1.suptitle(f"Failed: {args.use_failed}")
 ax1 = fig1.add_subplot(3, 3, 1)
 ax1.set_title("Histogram of values")
@@ -205,12 +205,12 @@ ax4.set_xlabel(r"$\mu_{maxliterature}$")
 ax4.axhline(y=0, linestyle='dashed')
 
 ax5 = fig1.add_subplot(3, 3, 5, )
-ax5.set_title("Distribution of targets")
-labels = 'Worked', 'Failed', 'Unknown'
+#ax5.set_title("Distribution of targets")
+#labels = 'Worked', 'Failed', 'Unknown'
 pie_data = [n_working, n_failed, n_total - n_working - n_failed]
 explode = [0.1, 0, 0]
 colors = ['green', 'red', 'gray']
-ax5.pie(pie_data, explode=explode, labels=labels, shadow=True, startangle=90, colors=colors)
+ax5.pie(pie_data, explode=explode, shadow=True, startangle=90, colors=colors)
 ax5.axis('equal')
 
 ax6 = fig1.add_subplot(3, 3, 6)

@@ -109,7 +109,7 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwar
         if exception_text is None:
             exception_text = "Failed to plot model"
 
-    if err is None and exception_text is None:
+    if err == [] and exception_text is None:
         full_res_set[internal_flag_worked] = True
     else:
         full_res_set[internal_flag_worked] = False
