@@ -7,6 +7,8 @@ import numpy as np
 from res.conf_file_str import general_background_result_path, general_kic, general_background_data_path
 from data_handler.signal_features import compute_periodogram
 from support.directoryManager import cd
+from res.conf_file_str import internal_noise_value
+from support.printer import print_int
 
 
 def full_result_path(kwargs: Dict) -> str:
@@ -20,7 +22,10 @@ def full_result_path(kwargs: Dict) -> str:
     if general_kic not in kwargs.keys():
         raise AttributeError(f"You need to set '{general_kic}' in job file!")
 
-    return f"{kwargs[general_background_result_path]}/KIC{kwargs[general_kic]}"
+    if internal_noise_value not in kwargs:
+        return f"{kwargs[general_background_result_path]}/KIC{kwargs[general_kic]}"
+    else:
+        return f"{kwargs[general_background_result_path]}/KIC{kwargs[general_kic]}_{kwargs[internal_noise_value]}"
 
 
 def create_files(data: np.ndarray, nyq_f: float, priors: List[List[float]], kwargs: Dict):
@@ -31,6 +36,7 @@ def create_files(data: np.ndarray, nyq_f: float, priors: List[List[float]], kwar
     :param priors: List of priors
     :param kwargs: Run configuratio
     """
+    print_int(f"Path: {full_result_path(kwargs)}",kwargs)
     create_folder(full_result_path(kwargs))
     create_data(compute_periodogram(data), kwargs)
     create_priors(np.array(priors), full_result_path(kwargs))
@@ -117,5 +123,9 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
     if general_background_data_path not in kwargs.keys():
         raise AttributeError(f"You need to set '{general_background_data_path}' in job file!")
 
-    filename = f"KIC{kwargs[general_kic]}.txt"
+    if internal_noise_value not in kwargs:
+        filename = f"KIC{kwargs[general_kic]}.txt"
+    else:
+        filename = f"KIC{kwargs[general_kic]}_{kwargs[internal_noise_value]}.txt"
+
     save_numpy_array(kwargs[general_background_data_path], filename, f_data)

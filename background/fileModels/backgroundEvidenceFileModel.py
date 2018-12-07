@@ -8,6 +8,7 @@ from res.strings import *
 from res.conf_file_str import general_background_result_path
 from uncertainties import ufloat
 from support.printer import print_int
+from support.exceptions import EvidenceFileNotFound
 
 
 class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
@@ -69,6 +70,4 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
             self._evidence[strEvidSkillInfLog] = values[2]
             self._evidence[strEvidSkillLogWithErr] = ufloat(values[0], values[1])
         except Exception as e:
-            print_int("Failed to open File '" +file,kwargs)
-            print_int(e,kwargs)
-            raise IOError
+            raise EvidenceFileNotFound("Failed to open File '" +file,kwargs)

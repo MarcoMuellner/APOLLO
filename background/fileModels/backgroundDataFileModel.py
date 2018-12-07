@@ -6,6 +6,7 @@ import numpy as np
 
 from res.strings import *
 from res.conf_file_str import general_background_data_path
+from support.printer import print_int
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 

@@ -11,6 +11,7 @@ from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_c
     analysis_file_path, general_kic
 from support.directoryManager import cd
 from support.printer import print_int
+from support.exceptions import InputFileNotFound
 
 
 def load_file(kwargs: Dict) -> np.ndarray:
@@ -122,10 +123,10 @@ def look_for_file(kwargs):
                 if "PSD" in candidate:
                     lightCurveCandidates.remove(candidate)
     except UnboundLocalError:
-        raise IOError("No valid files found")
+        raise InputFileNotFound("No valid files found",kwargs)
 
     if len(lightCurveCandidates) != 1:
-        raise IOError("Too many files found")
+        raise InputFileNotFound("Too many files found",kwargs)
 
     return kwargs[analysis_file_path] + lightCurveCandidates[0]
 
@@ -139,6 +140,6 @@ def list_available_files_in_path(kwargs, filter=[".txt", ".fits",".dat"]):
 
     if resultList == []:
         print_int("NoFile",kwargs)
-        raise IOError("No files found")
+        raise InputFileNotFound("No files found",kwargs)
 
     return resultList

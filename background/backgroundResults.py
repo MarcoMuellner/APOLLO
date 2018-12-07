@@ -3,6 +3,7 @@ import logging
 
 from typing import Dict,Union,List
 import numpy as np
+from copy import deepcopy
 from uncertainties import ufloat
 
 from background.fileModels.backgroundDataFileModel import BackgroundDataFileModel
@@ -15,7 +16,7 @@ from res.strings import *
 from support.printer import print_int
 from data_handler.signal_features import background_model
 
-from res.conf_file_str import general_kic, general_background_result_path
+from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value
 
 
 class BackgroundResults:
@@ -38,22 +39,32 @@ class BackgroundResults:
         modulus. An error of 200K is assumed. Optional
         '''
         self.logger = logging.getLogger(__name__)
-        self.kwargs = kwargs
-        self._kicID = kwargs[general_kic]
+
+        self.kwargs = deepcopy(kwargs)
+
+        kic = self.kwargs[general_kic]
+        if internal_noise_value in kwargs.keys():
+            kic_new = str(kic) + f"_{kwargs[internal_noise_value]}"
+        else:
+            kic_new = kic
+        print(kic_new)
+        self.kwargs[general_kic] = kic_new
+        print(self.kwargs[general_kic])
+        self._kicID = self.kwargs[general_kic]
         self._runID = runID
-        self._dataFile = BackgroundDataFileModel(kwargs)
+        self._dataFile = BackgroundDataFileModel(self.kwargs)
         try:
-            self._summary = BackgroundParamSummaryModel(kwargs, runID)
+            self._summary = BackgroundParamSummaryModel(self.kwargs, runID)
         except FileNotFoundError:
             self._summary = None
-        self._evidence = BackgroundEvidenceFileModel(kwargs, runID)
-        self._prior = BackgroundPriorFileModel(kwargs, runID)
-        self._backgroundPriors = BackgroundPriorFileModel(kwargs, runID)
+        self._evidence = BackgroundEvidenceFileModel(self.kwargs, runID)
+        self._prior = BackgroundPriorFileModel(self.kwargs, runID)
+        self._backgroundPriors = BackgroundPriorFileModel(self.kwargs, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
-        self._dataFolder = kwargs[general_background_result_path]
+        self._dataFolder = self.kwargs[general_background_result_path]
         self._nyq = float(
-            np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kwargs[general_kic]))[0]))
+            np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(self.kwargs[general_kic]))[0]))
         self._names = priorNames
         self._units = priorUnits
         self._psdOnlyFlag = False

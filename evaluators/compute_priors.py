@@ -82,11 +82,11 @@ def amp(nu_max: float, sigma: float, f_data: np.ndarray):
     :param f_data: f_data periodogram
     :return: amplitude of oscillation
     """
-    f_data = boxcar_smoothing(f_data)
+    #f_data = boxcar_smoothing(f_data)
     x = f_data[0]
     y = f_data[1]
     region = y[np.logical_and(x > (nu_max - sigma), x < (nu_max + sigma))]
-    return max(region)
+    return np.median(region)
 
 
 def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
@@ -117,15 +117,17 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
 
     plot_f_space(f_data, kwargs, bg_model=bg_model,plot_name="PSD_guess")
 
+    m_f = 1 if nu_max <50 else 1
+
     return [
-        [0.1 * noise(f_data)                        , 3 * noise(f_data)],
+        [4 * noise(f_data)/m_f                        , 17 * noise(f_data)*m_f],
         [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.04 * first_harvey(nu_max)                , 0.8 * first_harvey(nu_max)],
+        [0.3 * first_harvey(nu_max)/m_f                , 1.3 * first_harvey(nu_max)*m_f],
         [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.3 * second_harvey(nu_max)                , 1.48 * second_harvey(nu_max)],
+        [0.1 * second_harvey(nu_max)/m_f              , 1.2 * second_harvey(nu_max)*m_f],
         [0.1 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.4 * third_harvey(nu_max)                 , 1.1 * third_harvey(nu_max)],
-        [0.5 * amp(nu_max, 2*sigma(nu_max), f_data)  , 2.5 * amp(nu_max, 2*sigma(nu_max), f_data)],
-        [0.8 * nu_max                               , 1.2 * nu_max],
-        [0.4 * sigma(nu_max)                       , 1.3 * sigma(nu_max)]
+        [0.2 * third_harvey(nu_max)/m_f                 , 1.4 * third_harvey(nu_max)*m_f],
+        [0.7 * amp(nu_max, sigma(nu_max), f_data)/m_f  , 1.5 * amp(nu_max, sigma(nu_max), f_data)*m_f],
+        [0.7 * nu_max /m_f                              , 1.3 * nu_max*m_f],
+        [0.7 * sigma(nu_max) / m_f                      , 1.3 * sigma(nu_max)*m_f]
     ],params

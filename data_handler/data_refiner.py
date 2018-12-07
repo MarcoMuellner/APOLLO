@@ -5,6 +5,7 @@ import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
 from plotter.plot_handler import plot_sigma_clipping,plot_interpolation
+from res.conf_file_str import internal_noise_value
 
 def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
@@ -14,6 +15,7 @@ def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     :return: Good dataset
     """
     data = normalize_data(data)
+    data = add_noise(data,kwargs)
     data = remove_stray(data,kwargs)
     data = interpolate(data,kwargs)
     return data
@@ -141,3 +143,37 @@ def interpolate(data : np.ndarray,kwargs : Dict)->np.ndarray:
     plot_interpolation(data,gap_arr_ids,kwargs)
 
     return data
+
+
+def add_noise(data : np.ndarray, kwargs : Dict) -> np.ndarray:
+    """
+    Adds noise to the signal configured within the conf dict
+    :param data: Dataset
+    :param kwargs: Run conf
+    :return: Noisier signal
+    """
+    if internal_noise_value in kwargs.keys():
+        range_data = np.amax(data[1]) - np.amin(data[1])
+        binsize = int(range_data * np.exp(-range_data / 9500000))  # empirically brought down to a reasonable value
+
+        bins = np.linspace(np.amin(data[1]), np.amax(data[1]), binsize)
+        hist = np.histogram(data[1], bins=bins, density=True)[0]
+
+        mids = (bins[1:] + bins[:-1]) / 2
+        cen = np.average(mids, weights=hist)
+        wid = np.sqrt(np.average((mids - cen) ** 2, weights=hist))
+
+        p0 = [0, cen, wid]
+        bins = bins[:-1]
+
+        popt, __ = scipyFit(bins, hist, gaussian, p0)
+
+        (_, wid) = (popt[1], popt[2])
+
+        x = data[0]
+        y = data[1]
+
+        noise = int(kwargs[internal_noise_value]) * popt[1]*(np.random.rand(len(data[1])) - 0.5)
+        return np.array((x,(y + noise)))
+    else:
+        return data

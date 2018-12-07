@@ -9,21 +9,25 @@ from background.backgroundResults import BackgroundResults
 from plotter.plot_handler import plot_f_space,plot_parameter_trend,plot_marginal_distributions
 from res.conf_file_str import internal_literature_value,internal_flag_worked
 from support.printer import print_int
+from support.exceptions import ResultFileNotFound
+from background.backgroundProcess import BackgroundProcess
 
 
-def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, kwargs: Dict):
+def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess,kwargs: Dict):
     np.savetxt("lc.txt", data)
 
     res_set,psd,err, exception_text = compose_results(priors,nu_max,params,kwargs)
+
+    for key,val in proc.run_count.items():
+        res_set["{key}: Number of runs"] = val
 
     np.savetxt("psd.txt",psd)
 
     with open("results.json", 'w') as f:
         json.dump(res_set, f, indent=4)
 
-    if err is not None:
-        print_int(err,kwargs)
-        raise AttributeError("Problem determining results!")
+    if err != []:
+        raise ResultFileNotFound("Problem determining results!",kwargs,err)
 
 
 
@@ -46,7 +50,7 @@ def create_marginal_distributions_plot(result: BackgroundResults,kwargs : Dict):
     plot_marginal_distributions(plot_dict,kwargs)
 
 
-def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwargs: Dict)->Tuple[od,np.ndarray,str,str]:
+def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwargs: Dict)->Tuple[od,np.ndarray,List[str],str]:
     result_full = BackgroundResults(kwargs, runID="FullBackground")
     result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
 
@@ -56,15 +60,15 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwar
     create_marginal_distributions_plot(result_full, kwargs)
     create_marginal_distributions_plot(result_noise, kwargs)
 
-    err = None
+    err = []
     exception_text = None
 
     if result_full._summary is None:
-        err = "summaryErr"
+        err.append("Cannot find summary file for full background")
         exception_text = "Cannot find summary file for standard run"
 
     if result_noise._summary is None:
-        err = "summaryErr"
+        err.append("Cannot find summary file for noise background")
         exception_text = "Cannot find summary file for noise run"
 
 
@@ -86,7 +90,7 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwar
         full_res_set["Bayes factor"] = factor
         full_res_set["Conclusion"] = conc
     except:
-        err = "summaryErr"
+        err.append("Cannot find read evidence file")
         if exception_text is None:
             exception_text = "Failed to read evidence values"
 
@@ -101,7 +105,7 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwar
         plot_f_space(psd.T, kwargs, bg_model=result_full.createBackgroundModel())
         plot_f_space(psd.T, kwargs, bg_model=result_noise.createBackgroundModel())
     except:
-        err = "summaryErr"
+        err.append("Failed to plot model")
         if exception_text is None:
             exception_text = "Failed to plot model"
 
