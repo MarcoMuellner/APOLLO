@@ -73,7 +73,7 @@ def create_nsmc_configuring_parameters(res_path: str):
     Creates the nsmc configuration parameters
     :param res_path:  Result path
     """
-    arr = np.array([500, 500, 50000, 1500, 50, 2.10, 0.01, 0.1]).transpose()
+    arr = np.array([500, 500, 50000, 1000, 50, 2.10, 0.0, 1.0]).transpose()
     filename = "NSMC_configuringParameters.txt"
     save_numpy_array(res_path, filename, arr)
     return
