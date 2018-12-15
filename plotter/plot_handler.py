@@ -7,7 +7,7 @@ import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 # project imports
-from res.conf_file_str import general_kic, plot_show, plot_save
+from res.conf_file_str import general_kic, plot_show, plot_save,internal_noise_value
 from fitter.fit_functions import gaussian
 from data_handler.signal_features import compute_periodogram, boxcar_smoothing
 from background.backgroundResults import BackgroundResults
@@ -15,6 +15,17 @@ from background.backgroundResults import BackgroundResults
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
 pl.rc('ytick', labelsize='x-small')
+
+def get_appendix(kwargs : Dict):
+    appendix = ""
+
+    if general_kic in kwargs.keys():
+        appendix += f"_{kwargs[general_kic]}_"
+
+    if internal_noise_value in kwargs.keys():
+        appendix += f"n_{kwargs[internal_noise_value]}_"
+
+    return appendix
 
 
 def add_subplot_axes(ax: Axes, rect: List[float]) -> Axes:
@@ -84,13 +95,13 @@ def plot_parameter_trend(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Di
         ax.set_ylabel(unit)
         ax.set_title(name)
         n+=1
-    fig.suptitle("Parameter progression")
+    fig.suptitle(f"Parameter progression{get_appendix(kwargs)}")
 
     if plot_show in kwargs.keys() and kwargs[plot_show]:
         pl.show(fig)
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
-        save_fig(fig, f"Parameter_trend_n={len(data_dict)}")
+        save_fig(fig, f"Parameter_trend_n={len(data_dict)}{get_appendix(kwargs)}")
 
     pl.close(fig)
 
@@ -121,7 +132,7 @@ def plot_marginal_distributions(data_dict : Dict[str,Tuple[np.ndarray,str]],kwar
         pl.show(fig)
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
-        save_fig(fig, f"Marginal_distibution_n={len(data_dict)}")
+        save_fig(fig, f"Marginal_distibution_n={len(data_dict)}{get_appendix(kwargs)}")
 
     pl.close(fig)
 
@@ -150,10 +161,42 @@ def plot_interpolation(data : np.ndarray, gap_list : List[int],kwargs : Dict):
         pl.show(fig)
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
-        save_fig(fig, "Lightcurve_interpolation")
+        save_fig(fig, f"Lightcurve_interpolation{get_appendix(kwargs)}")
 
     pl.close(fig)
     # plot data
+
+def plot_noise_residual(original_data : np.ndarray, noisy_data: np.ndarray, kwargs : Dict):
+    fig: Figure = pl.figure(figsize=(10, 6))
+
+    fig.suptitle(f"Noise residual{get_appendix(kwargs)}")
+    ax: Axes = fig.add_subplot(1,3,1)
+
+    ax.plot(original_data[0],original_data[1],'x',color='k',markersize=2)
+    ax.set_title("Original lighcurve")
+    ax.set_xlabel("Time (days)")
+    ax.set_ylabel("Flux")
+
+    ax: Axes = fig.add_subplot(1, 3, 2)
+    ax.plot(noisy_data[0],noisy_data[1],'o',color='k',markersize=2)
+    ax.set_title("Noisy lightcrurve")
+    ax.set_xlabel("Time (days)")
+
+    res = noisy_data[1] - original_data[1]
+    ax: Axes = fig.add_subplot(1, 3, 3)
+    ax.plot(original_data[0],res,'x',color='k',markersize=2)
+    ax.set_title("Residual")
+    ax.set_xlabel("Time(days")
+
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, f"Lightcurve_noise_analysis{get_appendix(kwargs)}")
+
+    pl.close(fig)
+
+
 
 
 def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, popt: List[float], kwargs: Dict):
@@ -169,7 +212,7 @@ def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, po
     ax: Axes = fig.add_subplot(111)
 
     if general_kic in kwargs.keys():
-        ax.set_title(f"KIC{kwargs[general_kic]}")
+        ax.set_title(f"KIC{get_appendix(kwargs)}")
 
     rect = [0.7, 0.08, 0.3, 0.3]
     ax1: Axes = add_subplot_axes(ax, rect)
@@ -198,7 +241,7 @@ def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, po
         pl.show(fig)
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
-        save_fig(fig, "Lightcurve_sigma_clipping")
+        save_fig(fig, f"Lightcurve_sigma_clipping{get_appendix(kwargs)}")
 
     pl.close(fig)
 
@@ -222,7 +265,7 @@ def plot_f_space(f_data: np.ndarray, kwargs: dict, add_smoothing: bool = False, 
         name = plot_name
 
     if general_kic in kwargs.keys():
-        ax.set_title(f"KIC{kwargs[general_kic]}")
+        ax.set_title(f"KIC{get_appendix(kwargs)}")
 
     ax.set_ylabel(r'PSD [ppm$^2$/$\mu$Hz]')
     ax.set_xlabel(r'Frequency [$\mu$Hz]')
@@ -244,6 +287,8 @@ def plot_f_space(f_data: np.ndarray, kwargs: dict, add_smoothing: bool = False, 
             name += f"_full_fit"
         else:
             name += f"_noise_fit"
+
+    name +=get_appendix(kwargs)
 
     color = iter(pl.cm.rainbow(np.linspace(0, 1, 10)))
     if f_list is not None:
@@ -283,7 +328,7 @@ def plot_acf_fit(acf: np.ndarray, fit: np.ndarray, tau: float, kwargs: Dict, gue
     ax: Axes = fig.add_subplot(111)
 
     if general_kic in kwargs.keys():
-        ax.set_title(f"KIC{kwargs[general_kic]}")
+        ax.set_title(f"KIC{get_appendix(kwargs)}")
 
     pl.plot(acf[0], acf[1], 'x', color='k', markersize=2)
     pl.plot(fit[0], fit[1], color='red', linewidth=1.5, label="Fit")
@@ -297,5 +342,5 @@ def plot_acf_fit(acf: np.ndarray, fit: np.ndarray, tau: float, kwargs: Dict, gue
         pl.show(fig)
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
-        save_fig(fig, f"Fit_{10 ** 6 / tau}")
+        save_fig(fig, f"Fit_{10 ** 6 / tau}{get_appendix(kwargs)}")
     pl.close(fig)

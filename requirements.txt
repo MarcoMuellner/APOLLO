@@ -11,4 +11,5 @@ pyDiamondsBackground==1.1.2
 coloredlogs==10.0
 coverage
 asciimatics
+pdf2image
 

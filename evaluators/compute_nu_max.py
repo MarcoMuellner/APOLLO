@@ -188,5 +188,9 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
 
     print_int(f"Nu_max: {'%.2f' % f}", kwargs)
 
+    #if f < 66:
+    #    return 2*f - quadraticPolynomial(f,-5.73055576e+00,1.56287850e+00,-9.48554460e-03,-8.62482014e-07)
+    #else:
+    #    return 2 * f - quadraticPolynomial(f,7.90556422e+02,-2.84333433e+01,3.73350582e-01,-1.61640707e-03)
 
     return f

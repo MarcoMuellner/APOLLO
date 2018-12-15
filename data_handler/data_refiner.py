@@ -4,7 +4,7 @@ from typing import Tuple,List,Dict
 import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
-from plotter.plot_handler import plot_sigma_clipping,plot_interpolation
+from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual
 from res.conf_file_str import internal_noise_value
 
 def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
@@ -173,7 +173,10 @@ def add_noise(data : np.ndarray, kwargs : Dict) -> np.ndarray:
         x = data[0]
         y = data[1]
 
-        noise = int(kwargs[internal_noise_value]) * popt[1]*(np.random.rand(len(data[1])) - 0.5)
+        noise = int(kwargs[internal_noise_value]) * wid*(np.random.normal(len(data[1])) - 0.5)
+
+        plot_noise_residual(data,np.array((x,(y + noise))),kwargs)
+
         return np.array((x,(y + noise)))
     else:
         return data

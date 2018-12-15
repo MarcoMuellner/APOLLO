@@ -164,7 +164,7 @@ if not nofit:
     print(f"Fitvalues: {popt}")
     print(f"Standarddeviation: {(nu_max_new - nu_max_literature).std()}")
 
-fig1 = pl.figure(figsize=(20, 20))
+fig1 = pl.figure(figsize=(20, 10))
 fig1.suptitle(f"Failed: {args.use_failed}")
 ax1 = fig1.add_subplot(3, 3, 1)
 ax1.set_title("Histogram of values")
