@@ -73,7 +73,7 @@ def save_fig(fig: Figure, name: str):
     except FileExistsError:
         pass
 
-    fig.savefig(f"images/{name}.pdf")
+    fig.savefig(f"images/{name}.png")
 
 def plot_parameter_trend(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Dict):
     """

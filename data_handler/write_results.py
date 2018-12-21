@@ -11,6 +11,7 @@ from res.conf_file_str import internal_literature_value,internal_flag_worked
 from support.printer import print_int
 from support.exceptions import ResultFileNotFound
 from background.backgroundProcess import BackgroundProcess
+from background.fileModels.bg_file_creator import nsmc_configuring_parameters
 
 
 def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess,kwargs: Dict):
@@ -20,6 +21,8 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
 
     for key,val in proc.run_count.items():
         res_set["{key}: Number of runs"] = val
+
+    res_set["NSMC configuring parameters"] = nsmc_configuring_parameters().tolist()
 
     np.savetxt("psd.txt",psd)
 

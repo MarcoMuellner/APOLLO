@@ -64,16 +64,18 @@ def create_priors(priors: np.ndarray, res_path: str):
     arr_min = priors[:7]
     filename_full = "background_hyperParameters.txt"
     filename_min = "background_hyperParameters_noise.txt"
-    save_numpy_array(res_path, filename_full, arr_full, '1','%.')
-    save_numpy_array(res_path, filename_min, arr_min, '1','%.')
+    save_numpy_array(res_path, filename_full, arr_full, '2','%.')
+    save_numpy_array(res_path, filename_min, arr_min, '2','%.')
 
+def nsmc_configuring_parameters() -> np.ndarray:
+    return np.array([500, 500, 50000, 2000, 50, 2.10, 0.1, 1.0]).transpose()
 
 def create_nsmc_configuring_parameters(res_path: str):
     """
     Creates the nsmc configuration parameters
     :param res_path:  Result path
     """
-    arr = np.array([500, 500, 50000, 1000, 50, 2.10, 0.0, 1.0]).transpose()
+    arr = nsmc_configuring_parameters()
     filename = "NSMC_configuringParameters.txt"
     save_numpy_array(res_path, filename, arr)
     return

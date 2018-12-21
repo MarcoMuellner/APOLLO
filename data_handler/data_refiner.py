@@ -4,8 +4,9 @@ from typing import Tuple,List,Dict
 import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
-from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual
+from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual,plot_f_space
 from res.conf_file_str import internal_noise_value
+from data_handler.signal_features import compute_periodogram
 
 def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
@@ -168,12 +169,12 @@ def add_noise(data : np.ndarray, kwargs : Dict) -> np.ndarray:
 
         popt, __ = scipyFit(bins, hist, gaussian, p0)
 
-        (_, wid) = (popt[1], popt[2])
+        (cen, wid) = (popt[1], popt[2])
 
         x = data[0]
         y = data[1]
 
-        noise = int(kwargs[internal_noise_value]) * wid*(np.random.normal(len(data[1])) - 0.5)
+        noise = float(kwargs[internal_noise_value]) * (np.random.normal(cen,100,len(y)))
 
         plot_noise_residual(data,np.array((x,(y + noise))),kwargs)
 
