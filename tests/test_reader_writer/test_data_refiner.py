@@ -3,7 +3,8 @@ import re
 # scientific imports
 import numpy as np
 # project imports
-from data_handler.data_refiner import refine_data,normalize_data,get_gaps,remove_stray,interpolate
+from data_handler.data_refiner import refine_data,normalize_data,get_gaps,remove_stray,interpolate,compute_duty_cycle\
+    ,reduce_data_to_duty_cycle,reduce_data_to_observation_time,compute_observation_time
 
 try:
     pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
@@ -89,3 +90,24 @@ def test_refine_data():
     assert np.abs(np.mean(data[1])) < 3
     assert np.abs(np.mean(data[0][3000:4000]) - mean_compare_x) < 10 ** -7
     assert np.abs(np.mean(data[1][3000:4000]) - mean_compare_y) < 10
+
+def test_get_duty_cycle():
+    data_1 = np.array((x,y))
+    assert compute_duty_cycle(data_1) == 100
+    data_2 = np.loadtxt(test_file_dir+"Lightcurve.txt")
+    assert compute_duty_cycle(data_2) == 90
+
+def test_add_gaps():
+    data_1 = np.array((x, y))
+    assert compute_duty_cycle(data_1) == 100
+    res_data = reduce_data_to_duty_cycle(data_1,80)
+    assert np.abs(80 - compute_duty_cycle(res_data)) < 1
+    data_2 = np.loadtxt(test_file_dir + "Lightcurve.txt")
+    res_data = reduce_data_to_duty_cycle(data_2, 80)
+    assert np.abs(80 - compute_duty_cycle(res_data)) < 1
+
+def test_reduce_time():
+    data_1 = np.array((x, y))
+    assert compute_observation_time(data_1) == 100
+    res_data = reduce_data_to_observation_time(data_1,60)
+    assert np.abs(compute_observation_time(res_data) - 60) < 1

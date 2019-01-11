@@ -24,7 +24,7 @@ from support.directoryManager import cd
 from support.printer import print_int, Printer
 from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general_kic, cat_analysis, cat_files, \
     cat_general, cat_plot, internal_literature_value, analysis_folder_prefix, general_sequential_run, \
-    analysis_noise_values, internal_noise_value
+    analysis_noise_values, internal_noise_value,analysis_number_repeats,internal_run_number
 from support.exceptions import ResultFileNotFound,InputFileNotFound,EvidenceFileNotFound
 
 
@@ -110,28 +110,50 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
     else:
         data = kwargs[analysis_list_of_ids]
 
+    if analysis_number_repeats in kwargs[cat_analysis]:
+        repeat = int(kwargs[cat_analysis][analysis_number_repeats]) + 1
+        repeat_set = True
+    else:
+        repeat = 2
+        repeat_set = False
+
     for i in data:
-        cp = deepcopy(copy_dict)
-        try:
-            if len(i) == 2:
-                cp[general_kic] = int(i[0])
-                cp[internal_literature_value] = i[1]
-        except:
-            cp[general_kic] = int(i)
-        if analysis_noise_values in kwargs[cat_analysis]:
-            for i in kwargs[cat_analysis][analysis_noise_values]:
-                newcp = deepcopy(cp)
-                newcp[internal_noise_value] = i
+        for j in range(1,repeat):
+            cp = deepcopy(copy_dict)
+
+            try:
+                if len(i) == 2:
+                    cp[general_kic] = int(i[0])
+                    cp[internal_literature_value] = i[1]
+            except:
+                cp[general_kic] = int(i)
+
+            if repeat_set:
                 if analysis_folder_prefix in cp:
-                    pre  = newcp[analysis_folder_prefix]
+                    pre = cp[analysis_folder_prefix]
                 else:
                     pre = "KIC"
 
-                pre = f"{pre}_{cp[general_kic]}/noise_{i}"
-                newcp[analysis_folder_prefix] = pre
-                kwarg_list.append(newcp)
-        else:
-            kwarg_list.append(cp)
+                cp[analysis_folder_prefix] = f"{pre}_{cp[general_kic]}/run_{j}"
+                cp[internal_run_number] = j
+
+            if analysis_noise_values in kwargs[cat_analysis]:
+                for k in kwargs[cat_analysis][analysis_noise_values]:
+                    newcp = deepcopy(cp)
+                    newcp[internal_noise_value] = k
+                    if analysis_folder_prefix in cp:
+                        pre  = newcp[analysis_folder_prefix]
+                    else:
+                        pre = "KIC"
+
+                    if repeat_set:
+                        pre = f"{pre}/noise_{k}"
+                    else:
+                        pre = f"{pre}_{cp[general_kic]}/noise_{k}"
+                    newcp[analysis_folder_prefix] = pre
+                    kwarg_list.append(newcp)
+            else:
+                kwarg_list.append(cp)
 
     return kwarg_list, nr_of_cores
 

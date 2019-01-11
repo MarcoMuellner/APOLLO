@@ -1,7 +1,7 @@
 from typing import Dict
 from collections import OrderedDict as od
 from multiprocessing import Queue
-from res.conf_file_str import general_kic,internal_noise_value
+from res.conf_file_str import general_kic,internal_noise_value,internal_run_number
 import time
 import numpy as np
 import platform
@@ -28,10 +28,15 @@ class Printer:
             changed = False
             while not Printer.queue.empty():
                 val = Printer.queue.get()
+                key = val[1][general_kic]
+                if internal_run_number in val[1]:
+                    key = f"{key}_r_{val[1][internal_run_number]}"
+
                 if internal_noise_value in val[1]:
-                    Printer.objMap[f"{val[1][general_kic]}_noise_{val[1][internal_noise_value]}"] = val[0]
-                else:
-                    Printer.objMap[val[1][general_kic]] = val[0]
+                    key = f"{key}_n_{val[1][internal_noise_value]}"
+
+                Printer.objMap[key] = val[0]
+
                 changed = True
 
             if changed:

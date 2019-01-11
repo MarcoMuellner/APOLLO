@@ -20,6 +20,7 @@ general_sequential_run = "Sequential run"
 analysis_file_path = "Paths to lightcurves"
 analysis_folder_prefix = "Prefix of folder"
 analysis_noise_values = "Noise values for run"
+analysis_number_repeats = "Number of repeats"
 #categories
 cat_general = "General"
 cat_files = "Files"
@@ -31,4 +32,5 @@ analysis_list_of_ids = "List of IDs"
 internal_literature_value = "Literature value"
 internal_flag_worked = "Run worked flag"
 internal_noise_value = "Noise value"
+internal_run_number = "Run number"
 

@@ -21,6 +21,97 @@ def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     data = interpolate(data,kwargs)
     return data
 
+def get_total_gap(data : np.ndarray) -> float:
+    """
+    Computes the total gap in time units for a given dataset
+    :param data: datset of the lightcurve
+    :return: total gap in units of time
+    """
+    values,counts,most_common = get_diff_values_counts_most_common(data)
+
+    values[values - most_common < 10**-5] = 0
+    return float(np.sum(values*counts))
+
+def compute_duty_cycle(data : np.ndarray) -> float:
+    """
+    Computes the duty cycle for a given lightcurve.
+    :param data: dataset of the lightcurve
+    :return: duty cycle in percent
+    """
+    x = data[0]
+    total_length = x[-1] - x[0]
+
+    total_gap = get_total_gap(data)
+
+    return (total_length-total_gap)*100/total_length
+
+def compute_observation_time(data : np.ndarray) -> float:
+    """
+    Computes the total observation time for a given dataset
+    :param data: dataset of the lightcurve
+    :return: total observation time
+    """
+    x = data[0]
+    total_length = x[-1] - x[0]
+    total_gap = get_total_gap(data)
+    return total_length - total_gap
+
+def reduce_data_to_observation_time(data : np.ndarray, time : float) -> np.ndarray:
+    """
+    Reduces the observation to a given time by cutting in the edges
+    :param data: dataset of the lightcurve
+    :param time: target observation time
+    :return: array with given length
+    """
+    null_obs_time = compute_observation_time(data)
+    if time > null_obs_time or null_obs_time < 0:
+        raise ValueError(f"Target observation time cannot be reached. Needs to be bigger zero and smaller than "
+                         f"zero observation time. 0 time is {null_obs_time}, target obs time is {time}")
+
+    x = data[0]
+    y = data[1]
+    obs_time = compute_observation_time(np.array((x, y)))
+    fringe = 0
+    _,_,most_common = get_diff_values_counts_most_common(data)
+    while (obs_time > time):
+        mask = np.logical_and(data[0] > data[0][int(len(data[0])/2)] - time/2 - fringe/2
+                              ,data[0]< data[0][int(len(data[0])/2)] + time/2 + fringe/2)
+        y = data[1][mask]
+        x = data[0][mask]
+        obs_time = compute_observation_time(np.array((x, y)))
+        fringe = obs_time - time
+
+    return np.array((x,y))
+
+
+def reduce_data_to_duty_cycle(data : np.ndarray, target_duty_cycle : float) -> np.ndarray:
+    """
+    Adds gaps to the dataset to reach a given duty cycle
+    :param data: dataset of the lightcurve
+    :param target_duty_cycle: duty cycle that is needed to reach. Needs to be less then the starting duty cycle
+    :return: data with given dutycycle
+    """
+
+    null_duty_cycle = compute_duty_cycle(data)
+    if target_duty_cycle > null_duty_cycle or target_duty_cycle > 100 or target_duty_cycle < 0:
+        raise ValueError(f"Target duty cycle can't be reached. It needs to be between 0 and a 100 and smaller than"
+                         "the starting duty cycle. Starting duty cycle is {'.%2f'%null_duty_cycle}% "
+                         "and target duty cycle is {'.%2f'%target_duty_cycle}%")
+
+    x = data[0]
+    y = data[1]
+    duty_cycle =compute_duty_cycle(np.array((x,y)))
+    fringe = 0
+    while(duty_cycle > target_duty_cycle):
+        target_indices = len(data[0])*((null_duty_cycle - target_duty_cycle)/100 + fringe)
+        mask = np.logical_or(data[0] < data[0][int(len(data[0])/2 - target_indices/2)]
+                             ,data[0] >  data[0][int(len(data[0])/2 + target_indices/2)])
+        y = data[1][mask]
+        x = data[0][mask]
+        duty_cycle = compute_duty_cycle(np.array((x, y)))
+        fringe = duty_cycle - target_duty_cycle
+
+    return np.array((x,y))
 
 def normalize_data(data:np.ndarray) -> np.ndarray:
     """
@@ -41,6 +132,18 @@ def normalize_data(data:np.ndarray) -> np.ndarray:
 
     return np.array(((x - x[0]), y))
 
+def get_diff_values_counts_most_common(data : np.ndarray) -> Tuple[np.ndarray,np.ndarray,float]:
+    """
+    Returns the difference values and counts for a given dataset in the temporal axis as well as the most common value
+    :param data: Dataset of the lightcurve
+    :return: Tuple of 2 arrays, consisting of values and counts as well as a float with the most common value
+    """
+    x = data[0]
+    diff = x[1:len(x)] - x[0:len(x) - 1]
+    (values, counts) = np.unique(diff, return_counts=True)
+    most_common = values[np.argmax(counts)]
+    return values,counts,most_common
+
 def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
     """
     Finds gaps in a given dataset
@@ -51,10 +154,7 @@ def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
     #approximation of difference
     diff = np.round(x[1:len(x)] - x[0:len(x)-1],decimals=2)
     #real difference
-    real_diff = x[1:len(x)] - x[0:len(x) - 1]
-
-    (values,counts) = np.unique(real_diff,return_counts=True)
-    most_common = values[np.argmax(counts)]
+    values,counts,most_common = get_diff_values_counts_most_common(data)
 
     gap_ids = np.where(np.abs(diff - np.round(most_common,decimals=2)) > 350 * np.round(most_common,decimals=2) )
     if len(gap_ids[0]) == 0:
