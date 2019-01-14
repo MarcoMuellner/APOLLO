@@ -55,14 +55,14 @@ class BackgroundProcess:
                 continue
 
             self.priorChanges[runID] = {}
-
-            binPath = self._getFullPath(self.binaryPath + strDiBinary)
             runResPath = f"{self.resultsPath}KIC{self.kicID}/{runID}/"
 
-            if general_prior_mode in self.kwargs.keys():
-                prior_mode = self.kwargs[general_prior_mode]
+            if runID == strDiModeNoise:
+                binPath = self._getFullPath(self.binaryPath + strDiBinary_noise)
+            elif runID == strDiModeFull:
+                binPath = self._getFullPath(self.binaryPath + strDiBinary_standard)
             else:
-                prior_mode = "uniform"
+                raise ValueError(f"Cannot determine binary for {diIntMode}")
 
             if not os.path.exists(runResPath):
                 print_int(f"Directory {runResPath} does not exist. Creating ...",self.kwargs)
@@ -71,7 +71,7 @@ class BackgroundProcess:
             self.check_paths[runID] = runResPath
 
             print_int(f"{runID}: Results path {runResPath}",self.kwargs)
-            cmdStrings[runID] = [binPath,self.kicID,runID,diIntMode,prior_modecd ..]
+            cmdStrings[runID] = [binPath, self.kicID, runID]
             print_int(f"{runID}: Command --> {cmdStrings[runID]}",self.kwargs)
 
         return cmdStrings

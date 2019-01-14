@@ -97,7 +97,8 @@ strDiModeFull = "FullBackground"
 strDiIntModeNoise = "noise"
 strDiIntModeFull = "standard"
 #DiamondsBinaryNames
-strDiBinary = "background"
+strDiBinary_standard = "background_standard_model"
+strDiBinary_noise = "background_noise_only_model"
 #DiamondsErrorStrings
 strDiamondsErrBetterLikelihood = "Can't find point with a better Likelihood"
 strDiamondsErrCovarianceFailed = "Covariance Matrix decomposition failed"
