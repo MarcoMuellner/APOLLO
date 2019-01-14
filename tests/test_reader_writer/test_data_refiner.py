@@ -95,7 +95,7 @@ def test_get_duty_cycle():
     data_1 = np.array((x,y))
     assert compute_duty_cycle(data_1) == 100
     data_2 = np.loadtxt(test_file_dir+"Lightcurve.txt")
-    assert compute_duty_cycle(data_2) == 90
+    assert np.abs(compute_duty_cycle(data_2) - 99) < 1
 
 def test_add_gaps():
     data_1 = np.array((x, y))

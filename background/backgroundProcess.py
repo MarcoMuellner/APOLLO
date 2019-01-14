@@ -7,7 +7,7 @@ from itertools import product
 from res.strings import *
 from support.directoryManager import cd
 import time
-from res.conf_file_str import general_background_result_path,general_binary_path,general_kic,internal_noise_value
+from res.conf_file_str import general_background_result_path,general_binary_path,general_kic,internal_noise_value,general_prior_mode
 from support.printer import print_int
 
 class BackgroundProcess:
@@ -59,6 +59,11 @@ class BackgroundProcess:
             binPath = self._getFullPath(self.binaryPath + strDiBinary)
             runResPath = f"{self.resultsPath}KIC{self.kicID}/{runID}/"
 
+            if general_prior_mode in self.kwargs.keys():
+                prior_mode = self.kwargs[general_prior_mode]
+            else:
+                prior_mode = "uniform"
+
             if not os.path.exists(runResPath):
                 print_int(f"Directory {runResPath} does not exist. Creating ...",self.kwargs)
                 os.makedirs(runResPath)
@@ -66,7 +71,7 @@ class BackgroundProcess:
             self.check_paths[runID] = runResPath
 
             print_int(f"{runID}: Results path {runResPath}",self.kwargs)
-            cmdStrings[runID] = [binPath,self.kicID,runID,diIntMode]
+            cmdStrings[runID] = [binPath,self.kicID,runID,diIntMode,prior_modecd ..]
             print_int(f"{runID}: Command --> {cmdStrings[runID]}",self.kwargs)
 
         return cmdStrings

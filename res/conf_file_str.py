@@ -11,6 +11,7 @@ plot_save = "Save plots"
 #general conf
 general_kic = "KIC ID"
 general_binary_path = "Binary path"
+general_prior_mode = "Prior mode"
 general_background_result_path = "Background result path"
 general_background_data_path = "Background data path"
 general_analysis_result_path = "Path for results"
