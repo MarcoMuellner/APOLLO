@@ -1,0 +1,31 @@
+{
+  "General": {
+    "Binary path": "/home/marco/prog/Background/build/",
+    "Background result path": "/home/marco/prog/Background/results/",
+    "Background data path": "/home/marco/prog/Background/data/",
+    "Path for results": "/home/marco/prog/LCA/n_60_70/",
+    "Number of cores used": 32,
+    "Sequential run": false
+  },
+  "Files": {
+    "Flux column": "SAP_FLUX",
+    "Time column": "TIME",
+    "Data column for hdulist": 0,
+    "Skipped rows in ascii file": 0,
+    "Used columns in ascii file": [
+      0,
+      1
+    ]
+  },
+  "Analysis": {
+    "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_targets/",
+    "Prefix of folder": "APO",
+    "Noise values for run": [0,0.3,0.6,0.9,1.2,1.5,1.8,2.1,2.3,2.5,2.7,3],
+    "Number of repeats": 10
+  },
+  "Plot": {
+    "Show plots": false,
+    "Save plots": true
+  },
+  "List of IDs": "60-70.txt"
+}

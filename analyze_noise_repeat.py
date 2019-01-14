@@ -105,6 +105,7 @@ for id_key in res.keys():
         mean_res[id_key]["noise"].append(noise_key)
 
 res = None
+name_list = []
 
 for key,val in mean_res.items():
     if len(val["h"]) < len(noise_values_conf)-5:
@@ -113,6 +114,8 @@ for key,val in mean_res.items():
     np_w = np.array(val["w"])
     np_bayes = np.array(val["bayes"])
     np_noise = np.array(val["noise"])
+
+    name_list.append(key)
 
     snr = np_h / np_w
 
@@ -165,7 +168,7 @@ bayes_full = unp.nominal_values(bayes_full)
 mask = np.abs(snr_full/snr_full_err) > 5
 mask = np.logical_and(bayes_full > 0, bayes_full_err < 50)
 
-pl.figure(figsize=(16,10))
+fig = pl.figure(figsize=(16,10))
 pl.errorbar(snr_full[mask],bayes_full[mask],xerr=snr_full_err[mask],yerr=bayes_full_err[mask],fmt='x',color='k')
 pl.axhline(y=5, linestyle='dashed', color='red', label='Strong evidence')
 pl.axhline(y=2.5, linestyle='dotted', color='red', label='Moderate evidence')
@@ -178,4 +181,19 @@ pl.ylabel("Bayes")
 pl.xlim(10**4,10**-1)
 pl.ylim(10**-1,100)
 pl.savefig(f"noise_results/full_behaviour.pdf")
+
+def onclick(event : MouseEvent):
+
+    if event.dblclick:
+        snr = event.xdata
+        bayes = event.ydata
+
+        for (bayes_val,snr_val,name) in zip(bayes_full,snr_full,name_list):
+             if np.abs(bayes_val - bayes) < 1:
+                 print(f"ID: {name}")
+                 return
+
+        print(f"No ID found for {event.xdata} {event.ydata}")
+
+cid = fig.canvas.mpl_connect('button_press_event', onclick)
 pl.show()

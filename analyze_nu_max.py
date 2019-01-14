@@ -135,12 +135,14 @@ for j in [r"$\nu_{max,guess}$", r"Residual $\nu_{max,guess}$", r"Relative Residu
                 linestyle='dashed', alpha=0.7)
 
     if cnt == 1:
-        ax.plot(lit_val, quadraticPolynomial(lit_val, *popt), 'x', markersize=5, color='red', alpha=0.7)
-        ax.plot(lit_val, quadraticPolynomial(lit_val, *popt2), 'x', markersize=5, color='blue', alpha=0.7)
+        pass
+        #ax.plot(lit_val, quadraticPolynomial(lit_val, *popt), 'x', markersize=5, color='red', alpha=0.7)
+        #ax.plot(lit_val, quadraticPolynomial(lit_val, *popt2), 'x', markersize=5, color='blue', alpha=0.7)
 
     if cnt == 2:
-        ax.plot(lit_val, quadraticPolynomial(lit_val, *popt) - lit_val, 'x', markersize=5, color='red', alpha=0.7)
-        ax.plot(lit_val, quadraticPolynomial(lit_val, *popt2) - lit_val, 'x', markersize=5, color='blue', alpha=0.7)
+        pass
+        #ax.plot(lit_val, quadraticPolynomial(lit_val, *popt) - lit_val, 'x', markersize=5, color='red', alpha=0.7)
+        #ax.plot(lit_val, quadraticPolynomial(lit_val, *popt2) - lit_val, 'x', markersize=5, color='blue', alpha=0.7)
 
     if cnt == 3:
         ax.plot(lit_val, (quadraticPolynomial(lit_val, *popt) - lit_val) * 100 / lit_val, 'x', markersize=5,
@@ -189,6 +191,7 @@ def onclick(event: MouseEvent):
         index = (np.abs(np.array(res_dat[r"$\nu_{max,literature}$"]) - event.xdata)).argmin()
 
         fig_im : Figure= pl.figure(figsize=(10, 6))
+        print(res_dat["full_fit"][index])
         img = convert_from_path(res_dat["full_fit"][index])[0]
         pl.imshow(img)
         pl.axis('off')
