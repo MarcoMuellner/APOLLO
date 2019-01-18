@@ -5,7 +5,8 @@ import numpy as np
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from settings.settings import Settings
+from support.printer import print_int
+from res.conf_file_str import general_background_result_path
 
 
 class BackgroundPriorFileModel(BackgroundBaseFileModel):
@@ -16,7 +17,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
     return the correct priors independently of the mode set.
     '''
 
-    def __init__(self,kicID = None,runID = None):
+    def __init__(self,kwargs,runID = None):
         '''
         Constructor for the PriorSetup. KicID and runID are set via the BaseBackgroundFile class.
         :param kicID: KicID of the star. Optional, but should be set here. If not set via property setter
@@ -24,7 +25,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :param runID: RunID of the star. Optional. If None it will read the ones in the parent directory of the results
         :type runID: string
         '''
-        BackgroundBaseFileModel.__init__(self, kicID, runID)
+        BackgroundBaseFileModel.__init__(self, kwargs, runID)
 
         self._fullPriors = {}
         self._noisePriors = {}
@@ -38,6 +39,8 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                                 strPriorHeight,
                                 strPriorNuMax,
                                 strPriorSigma]
+
+        self.kwargs = kwargs
         self.logger = logging.getLogger(__name__)
 
     def getData(self, key=None, mode=strDiModeFull):
@@ -51,14 +54,10 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :return:Dataset
         :rtype:dict/2-D tuple
         '''
-        self.logger.debug("Retrieving data with key "+str(key) + " and mode "+mode)
-
         dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
-        self.logger.debug("Data is ")
-        self.logger.debug(dict)
         if any(dict) is False and (self.runID is None or
                                     (any(self._fullPriors) is False and any(self._noisePriors) is False)):
-            self._readData()
+            self._readData(self.kwargs)
             dict = self._fullPriors if mode == strDiModeFull else self._noisePriors
 
         if any(dict) is False and self.runID is not None:
@@ -73,31 +72,39 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
 
         return self._getValueFromDict(dict,key)
 
-    def _readData(self):
+    def _readData(self,kwargs):
         '''
         Reads the data. If runID is not None, it will read only one file, the one in the result of the mode. If it is
         None it will read both in the parent directory
         '''
         filesToLoad = []
         values = []
-        dataFolder = self._getFullPath(Settings.ins().getSetting(strDiamondsSettings,
-                                                                            strSectBackgroundResPath).value)
+        dataFolder = self.kwargs[general_background_result_path]
         basePath = dataFolder + "KIC" + self.kicID + "/"
         if self.runID is not None:
-            file = basePath + self.runID + "/background_hyperParametersUniform.txt"
-            filesToLoad.append(file)
+            if self.runID == "FullBackground":
+                filesToLoad.append(basePath + self.runID + "/background_hyperParametersUniform_lower.txt")
+                filesToLoad.append(basePath + self.runID + "/background_hyperParametersGaussian_nu_max.txt")
+                filesToLoad.append(basePath + self.runID + "/background_hyperParametersUniform_upper.txt")
+            else:
+                file = basePath + self.runID + "/background_hyperParametersUniform.txt"
+                filesToLoad.append(file)
         else:
             file = basePath + "background_hyperParameters.txt"
             filesToLoad.append(file)
             file = basePath + "background_hyperParameters_noise.txt"
             filesToLoad.append(file)
+            file = basePath + "background_hyperParametersUniform_lower.txt"
+            filesToLoad.append(file)
+            file = basePath + "background_hyperParametersGaussian_nu_max.txt"
+            filesToLoad.append(file)
+            file = basePath + "background_hyperParametersUniform_upper.txt"
+            filesToLoad.append(file)
         try:
             for files in filesToLoad:
-                values.append(np.loadtxt(files).T)
-        except FileNotFoundError as e:
-            self.logger.error("Failed to open Prior file")
-            self.logger.error(e)
-            raise IOError("Failed to open Prior file")
+                values = values + np.loadtxt(files).T.tolist()
+        except (FileNotFoundError,IOError) as e:
+            pass
 
         for priorList in values:
             for it,(priorMin,priorMax) in enumerate(zip(priorList[0],priorList[1])):
@@ -107,8 +114,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                     self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
 
     def rewritePriors(self,priors : Dict[str,Tuple[float,float]]):
-        dataFolder = self._getFullPath(Settings.ins().getSetting(strDiamondsSettings,
-                                                                 strSectBackgroundResPath).value)
+        dataFolder = self.kwargs[general_background_result_path]
         basePath = dataFolder + "KIC" + self.kicID + "/"
 
         if len(priors) == 10:
@@ -133,11 +139,11 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         :rtype: str
         '''
         if path[0] not in ["~", "/", "\\"]:
-            self.logger.debug("Setting priors to full path")
-            self.logger.debug("Prepending" + ROOT_PATH)
+            print_int("Setting priors to full path",self.kwargs)
+            print_int("Prepending" + ROOT_PATH,self.kwargs)
             path = ROOT_PATH + "/" + path
-            self.logger.debug("New path: "+path)
+            print_int("New path: "+path,self.kwargs)
         else:
-            self.logger.debug("Path is already absolute path")
+            print_int("Path is already absolute path",self.kwargs)
 
         return path

@@ -24,33 +24,19 @@ def checkValues(analyzeSection):
     return valuesOk
 
 for i in os.listdir(path):
-    if "YS" not in i:
-        continue
     try:
         with open(path+i+"/results.json", 'rt') as f:
             resultDict = json.load(f)
     except:
         continue
 
-    analyzeSection = resultDict[strAnalyzerResSectAnalysis]
-    bayesFactor = analyzeSection[strAnalyzerResValBayes]
-    bayesFactor = ufloat_fromstr(bayesFactor)
+    bayesFactor = ufloat_fromstr(resultDict["Bayes factor"])
     if bayesFactor >= 5:
-        valuesOk = checkValues(analyzeSection)
-
-        if valuesOk:
-            #print("Star "+i+" is good with Bayyes Factor of "+str(bayesFactor))
-            strongEvidenceList.append(i[3:])
+        strongEvidenceList.append(i[3:])
     elif 2.5 <= bayesFactor and bayesFactor < 5:
-        valuesOk = checkValues(analyzeSection)
-
-        if valuesOk:
-            moderateEvidenceList.append(i[3:])
+        moderateEvidenceList.append(i[3:])
     elif 1 <= bayesFactor and bayesFactor <2.5:
-        valuesOk = checkValues(analyzeSection)
-
-        if valuesOk:
-            weakEvidenceList.append(i[3:])
+        weakEvidenceList.append(i[3:])
 
 print("STRONG EVIDENCE")
 print(strongEvidenceList)
