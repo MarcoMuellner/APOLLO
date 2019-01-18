@@ -12,12 +12,13 @@ from support.printer import print_int
 from support.exceptions import ResultFileNotFound
 from background.backgroundProcess import BackgroundProcess
 from background.fileModels.bg_file_creator import nsmc_configuring_parameters
+from evaluators.compute_delta_nu import get_delta_nu
 
 
 def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess,kwargs: Dict):
     np.savetxt("lc.txt", data)
 
-    res_set,psd,err, exception_text = compose_results(priors,nu_max,params,kwargs)
+    res_set,psd,err, exception_text = compose_results(priors,nu_max,params,data,kwargs)
 
     for key,val in proc.run_count.items():
         res_set["{key}: Number of runs"] = val
@@ -53,7 +54,7 @@ def create_marginal_distributions_plot(result: BackgroundResults,kwargs : Dict):
     plot_marginal_distributions(plot_dict,kwargs)
 
 
-def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwargs: Dict)->Tuple[od,np.ndarray,List[str],str]:
+def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data : np.ndarray, kwargs: Dict)->Tuple[od,np.ndarray,List[str],str]:
     result_full = BackgroundResults(kwargs, runID="FullBackground")
     result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
 
@@ -77,7 +78,7 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwar
 
     full_res_set = od()
 
-    full_res_set["priors"] = get_priors(priors, result_full)
+    #full_res_set["priors"] = get_priors(priors, result_full)
 
     full_res_set["Determined params"] = params
 
@@ -106,6 +107,9 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict, kwar
 
     try:
         plot_f_space(psd.T, kwargs, bg_model=result_full.createBackgroundModel())
+
+        delta_nu = get_delta_nu(data,result_full,kwargs)
+
         plot_f_space(psd.T, kwargs, bg_model=result_noise.createBackgroundModel())
     except:
         err.append("Failed to plot model")

@@ -51,11 +51,12 @@ def compute_acf(data: np.ndarray) -> np.ndarray:
     :param data: Dataset that is autocorrelated.
     :return: ACF signal. Time is in minutes!!
     """
-    corr = np.correlate(data[1], data[1], mode='full')
+    mask = data[0] < 100
+    corr = np.correlate(data[1][mask], data[1][mask], mode='full')
     corr = corr[corr.size // 2:]
     corr /= max(corr)
     corr = corr ** 2
-    return np.array((data[0][1:] * 60, corr))
+    return np.array((data[0][mask][1:] * 60, corr))
 
 
 def interpolate_acf(x : np.ndarray,y : np.ndarray, points: int) -> Tuple[np.ndarray,np.ndarray]:
@@ -89,14 +90,15 @@ def fit_acf(data: np.ndarray,  kwargs: Dict) -> Tuple[float, float, float]:
     peak,_ = find_peaks(data[1])
     tau_guess = 4*data[0][peak[1]]/np.pi #use first zero peak for a guess of tau!
 
-    x = data[0][:peak[3]] #restrict up to third peak
-    y = data[1][:peak[3]]
-
-    x,y = interpolate_acf(x,y,2) #interpolate acf to make fit work better
+    x = data[0][:peak[2]] #restrict up to third peak
+    y = data[1][:peak[2]]
 
     while np.abs(1 - y[0]) < 0.2 or np.any(y > 1):
         x = x[1:]
         y = y[1:]
+
+    x,y = interpolate_acf(x,y,4) #interpolate acf to make fit work better
+
 
     plot_x = np.linspace(0, max(x), 4000)
 
@@ -181,7 +183,7 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
         tau = single_step_procedure(data, f_to_t(f) / 60, kwargs)
         f = f_from_tau(tau)
 
-        print_int(f"{i+1}. frequency {'%.2f' % f}", kwargs)
+        print_int(f"{i+2}. frequency {'%.2f' % f}", kwargs)
 
         f_list.append((f, rf"F_filter_{i + 1}_{'%.2f' % f}$\mu Hz$"))
         plot_peridogramm_from_timeseries(data, kwargs, True, f_list)

@@ -117,14 +117,18 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
 
     plot_f_space(f_data, kwargs, bg_model=bg_model, plot_name="PSD_guess")
 
+    lower_harvey_1 = min(f_data[0])
+    minimum_percentage_harvey_1 = 0.7
+
+
     return [
         [0.5 * noise(f_data)                        , 2 * noise(f_data)],
         [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.01                                       , 1.1 * first_harvey(nu_max)],
+        [lower_harvey_1                                      , minimum_percentage_harvey_1*second_harvey(nu_max)],
         [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.1 * second_harvey(nu_max)              , 1.2 * second_harvey(nu_max)],
+        [minimum_percentage_harvey_1 * second_harvey(nu_max)              , 1.3 * second_harvey(nu_max)],
         [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.2 * third_harvey(nu_max)                 , 1.4 * third_harvey(nu_max)],
+        [0.7 * third_harvey(nu_max)                 , 1.4 * third_harvey(nu_max)],
         [0.1 * amp(nu_max, sigma(nu_max), f_data)  , 3.5 * amp(nu_max, sigma(nu_max), f_data)],
         [0.7 * nu_max                               , 1.3 * nu_max],
         [0.7 * sigma(nu_max)                       , 1.3 * sigma(nu_max)]

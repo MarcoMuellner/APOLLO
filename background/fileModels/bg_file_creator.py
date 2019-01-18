@@ -130,4 +130,4 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
     else:
         filename = f"KIC{kwargs[general_kic]}_{kwargs[internal_noise_value]}.txt"
 
-    save_numpy_array(kwargs[general_background_data_path], filename, f_data)
+    save_numpy_array(kwargs[general_background_data_path], filename, f_data.T)

@@ -99,7 +99,7 @@ class BackgroundProcess:
         return p
 
     def _runCmd(self,runID, cmd):
-        for runCounter in range(1,11):
+        for runCounter in range(1,21):
             self.run_count[runID] = runCounter
             print_int(f"Starting {runID}:no {runCounter}",self.kwargs)
             with cd(self.binaryPath):

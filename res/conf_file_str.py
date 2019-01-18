@@ -22,6 +22,7 @@ analysis_file_path = "Paths to lightcurves"
 analysis_folder_prefix = "Prefix of folder"
 analysis_noise_values = "Noise values for run"
 analysis_number_repeats = "Number of repeats"
+analysis_obs_time_value = "Target observation time"
 #categories
 cat_general = "General"
 cat_files = "Files"

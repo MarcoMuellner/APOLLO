@@ -45,7 +45,7 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
         dataFolder = kwargs[general_background_data_path]
         file = dataFolder+"KIC"+self.kicID+".txt"
         try:
-            self._psd = np.loadtxt(file).T
+            self._psd = np.loadtxt(file)
         except FileNotFoundError as e:
             print_int("Cannot read PSD file, setting PSD to none",kwargs)
             print_int("File is "+file,kwargs)

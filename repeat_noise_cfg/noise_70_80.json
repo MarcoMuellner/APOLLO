@@ -20,8 +20,8 @@
   "Analysis": {
     "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_targets/",
     "Prefix of folder": "APO",
-    "Noise values for run": [0,0.3,0.6,0.9,1.2,1.5,1.8,2.1,2.3,2.5,2.7,3],
-    "Number of repeats": 10
+    "Noise values for run": [0,0.4,0.8,1,1.4,1.8,2,2.3,2.6,2.9,3,3.2,3.4,3.6,3.8,4.0,4.2,4.4,4.6,4.8,5],
+    "Number of repeats": 5
   },
   "Plot": {
     "Show plots": false,

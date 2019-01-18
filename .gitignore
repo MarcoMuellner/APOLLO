@@ -91,3 +91,11 @@ run_cfg/
 noise_results/
 
 venv_windows/
+
+test_data/
+
+reduced_k2/
+
+smurfs_data/
+
+ys_golden_sample\.txt

@@ -21,6 +21,7 @@ class Printer:
     screen = None
     kill = False
     queue = Queue()
+    total_runs = 0
 
     @staticmethod
     def run():
@@ -75,8 +76,10 @@ class Printer:
             elif "KILL_SIR" in value:
                 Printer.kill = True
                 return
-
-            Printer.screen.print_at(f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n", 0, n, colour=Printer.screen.COLOUR_YELLOW)
+            try:
+                Printer.screen.print_at(f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n", 0, n, colour=Printer.screen.COLOUR_YELLOW)
+            except IndexError:
+                pass
             n += 1
 
         for i in Printer.done_list:
@@ -114,6 +117,9 @@ class Printer:
         start = Printer.screen.height - offset
 
         j = 0
+
+        total = len(Printer.done_list) + len(Printer.failed_list) + len(Printer.no_file_avail) + \
+                len(Printer.summary_err) + len(Printer.no_evidence) + len(Printer.objMap.keys())
         for i in summary_err_list:
             Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_RED)
             j+=1
@@ -137,6 +143,8 @@ class Printer:
         for i in current_list:
             Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_CYAN)
             j+=1
+
+        Printer.screen.print_at(f"Worked off: {total}/{Printer.total_runs}",0,Printer.screen.height -1,colour=Printer.screen.COLOUR_WHITE)
 
         Printer.screen.refresh()
 

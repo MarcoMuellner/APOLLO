@@ -31,6 +31,8 @@ from support.exceptions import ResultFileNotFound,InputFileNotFound,EvidenceFile
 def run(screen, file: str):
     conf_list, nr_of_cores = kwarg_list(file)
 
+    Printer.total_runs = len(conf_list)
+
     if general_sequential_run in conf_list[0]:
         sequential_run = conf_list[0][general_sequential_run]
     else:

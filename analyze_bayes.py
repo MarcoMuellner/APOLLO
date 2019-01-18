@@ -4,6 +4,7 @@ from json import load
 import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import matplotlib.image as mpimg
 from matplotlib.backend_bases import MouseEvent
 from collections import OrderedDict
 import numpy as np
@@ -33,9 +34,15 @@ def plot_bar_from_counter(list_item, ax: Axes):
 
     counter = dict((x, list_item.count(x)) for x in set(list_item))
 
-    frequencies = [counter["Strong evidence"], counter["Moderate evidence"], counter["Weak evidence"],
-                   counter["Inconclusive"]]
-    names = ["Strong evidence", "Moderate evidence", "Weak evidence", "Inconclusive"]
+    frequencies = []
+    names = []
+
+    for i in ["Strong evidence","Moderate evidence","Weak evidence","Inconclusive"]:
+        try:
+            frequencies.append(counter[i])
+            names.append(counter[i])
+        except:
+            pass
 
     x_coordinates = np.arange(len(counter))
     ax.bar(x_coordinates, frequencies, align='center', color='k')
@@ -62,6 +69,7 @@ res_dat["Amp oscillation"] = []
 res_dat["Literature value"] = []
 res_dat["SNR"] = []
 res_dat["full_fit"] = []
+res_dat["light_curve"] = []
 
 for path, sub_path, files in os.walk(path):
     if "results.json" in files:
@@ -76,7 +84,8 @@ for path, sub_path, files in os.walk(path):
         res_dat["Literature value"].append(get_val(data_dict, "Literature value"))
         res_dat["SNR"].append(get_val(data_dict["Full Background result"], "$H_\\mathrm{osc}$") / get_val(
             data_dict["Full Background result"], "w"))
-        res_dat["full_fit"].append(f"{path}/images/PSD_full_fit.pdf")
+        res_dat["full_fit"].append(f"{path}/images/PSD_full_fit_{int(path.split('_')[-1])}_.png")
+        res_dat["light_curve"].append(f"{path}/images/Lightcurve_sigma_clipping_{int(path.split('_')[-1])}_.png")
 
 
 fig: Figure = pl.figure(figsize=(20, 10))
@@ -109,21 +118,25 @@ def onclick(event : MouseEvent):
     if event.dblclick:
         if event.inaxes == ax2:
             vector_list = np.sqrt(np.array(res_dat["SNR"]) ** 2 + np.array(res_dat['Bayes factor']) ** 2)
-            index = (np.abs(np.array(res_dat["SNR"]) - event.xdata)).argmin()
+            index = (np.abs(np.array(res_dat["Bayes factor"]) - event.ydata)).argmin()
         elif event.inaxes == ax3:
             vector_list = np.sqrt(np.array(res_dat["Literature value"]) ** 2 + np.array(res_dat['Bayes factor']) ** 2)
-            index = (np.abs(np.array(res_dat["Literature value"]) - event.xdata)).argmin()
+            index = (np.abs(np.array(res_dat["Literature value"]) - event.ydata)).argmin()
         else:
             return
 
         vector = np.sqrt(event.x**2 + event.y**2)
-        index = (np.abs(vector_list - vector)).argmin()
+        #index = (np.abs(vector_list - vector)).argmin()
 
         fig_im = pl.figure(figsize=(10, 6))
-        img = convert_from_path(res_dat["full_fit"][index])[0]
-        pl.imshow(img)
+        image = mpimg.imread(res_dat["full_fit"][index])
+        pl.imshow(image)
         pl.axis('off')
-        pl.show(fig_im)
+        fig_im = pl.figure(figsize=(10, 6))
+        image = mpimg.imread(res_dat["light_curve"][index])
+        pl.imshow(image)
+        pl.axis('off')
+        pl.show()
 
 
 cid = fig.canvas.mpl_connect('button_press_event', onclick)

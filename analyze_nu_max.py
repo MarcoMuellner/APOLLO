@@ -5,6 +5,7 @@ import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent
+import matplotlib.image as mpimg
 from collections import OrderedDict
 import numpy as np
 from uncertainties import ufloat_fromstr
@@ -82,7 +83,7 @@ for path, sub_path, files in os.walk(path):
         res_dat[r"Residual $\nu_{max,fit}$"].append(f_fit - f_guess)
         res_dat[r"Relative Residual $\nu_{max,fit}$"].append((f_fit - f_guess) * 100 / f_lit)
 
-        res_dat["full_fit"].append(f"{path}/images/PSD_full_fit.pdf")
+        res_dat["full_fit"].append(f"{path}/images/PSD_full_fit_{int(path.split('_')[-1])}_.png")
 
 fig: Figure = pl.figure(figsize=(20, 10))
 fig.suptitle(r"$\nu_{max}$ analysis")
@@ -90,15 +91,15 @@ fig.suptitle(r"$\nu_{max}$ analysis")
 y = np.array(res_dat[r"$\nu_{max,guess}$"])
 x = np.array(res_dat[r"$\nu_{max,literature}$"])[y < 66]
 y = y[y < 66]
-popt, _ = curve_fit(quadraticPolynomial, x, y)
+#popt, _ = curve_fit(quadraticPolynomial, x, y)
 
-lower_values = [x,2*y -quadraticPolynomial(y,*popt)]
+#lower_values = [x,2*y -quadraticPolynomial(y,*popt)]
 
 y = np.array(res_dat[r"$\nu_{max,guess}$"])
 x = np.array(res_dat[r"$\nu_{max,literature}$"])[y > 66]
 y = y[y > 66]
-popt2, _ = curve_fit(quadraticPolynomial, x, y)
-upper_values = [x,2*y -quadraticPolynomial(y,*popt2)]
+#popt2, _ = curve_fit(quadraticPolynomial, x, y)
+#upper_values = [x,2*y -quadraticPolynomial(y,*popt2)]
 
 pl.figure()
 arr = np.array(res_dat[r"Amount sigma"])
@@ -145,10 +146,11 @@ for j in [r"$\nu_{max,guess}$", r"Residual $\nu_{max,guess}$", r"Relative Residu
         #ax.plot(lit_val, quadraticPolynomial(lit_val, *popt2) - lit_val, 'x', markersize=5, color='blue', alpha=0.7)
 
     if cnt == 3:
-        ax.plot(lit_val, (quadraticPolynomial(lit_val, *popt) - lit_val) * 100 / lit_val, 'x', markersize=5,
-                color='red', alpha=0.7)
-        ax.plot(lit_val, (quadraticPolynomial(lit_val, *popt2) - lit_val) * 100 / lit_val, 'x', markersize=5,
-                color='blue', alpha=0.7)
+        pass
+        #ax.plot(lit_val, (quadraticPolynomial(lit_val, *popt) - lit_val) * 100 / lit_val, 'x', markersize=5,
+        #        color='red', alpha=0.7)
+        #ax.plot(lit_val, (quadraticPolynomial(lit_val, *popt2) - lit_val) * 100 / lit_val, 'x', markersize=5,
+        #        color='blue', alpha=0.7)
 
     if cnt != 4:
         ax.set_ylim(min(res_dat[j])*1.2,max(res_dat[j])*1.2)
@@ -160,8 +162,8 @@ for j in [r"$\nu_{max,guess}$", r"Residual $\nu_{max,guess}$", r"Relative Residu
     cnt += 1
 
 ax: Axes = fig.add_subplot(3, 3, 7,sharex = ax)
-ax.plot(lower_values[0], lower_values[1], 'x', markersize=2, color='red')
-ax.plot(upper_values[0], upper_values[1], 'x', markersize=2, color='blue')
+#ax.plot(lower_values[0], lower_values[1], 'x', markersize=2, color='red')
+#ax.plot(upper_values[0], upper_values[1], 'x', markersize=2, color='blue')
 ax.plot(lit_val, res_dat[r"$\nu_{max,literature}$"], markersize=2, color='k',
                 linestyle='dashed', alpha=0.7)
 ax.axhline(y=0, color='k')
@@ -169,15 +171,15 @@ ax.set_title("Guess normalized to fit")
 ax.set_ylabel("Fitted values")
 
 ax: Axes = fig.add_subplot(3, 3, 8,sharex = ax)
-ax.plot(lower_values[0], lower_values[1]-lower_values[0], 'x', markersize=2, color='red')
-ax.plot(upper_values[0], upper_values[1]-upper_values[0], 'x', markersize=2, color='blue')
+#ax.plot(lower_values[0], lower_values[1]-lower_values[0], 'x', markersize=2, color='red')
+#ax.plot(upper_values[0], upper_values[1]-upper_values[0], 'x', markersize=2, color='blue')
 ax.axhline(y=0, color='k')
 ax.set_title("Guess normalized to fit")
 ax.set_ylabel("Residual values")
 
 ax: Axes = fig.add_subplot(3, 3, 9,sharex = ax)
-ax.plot(lower_values[0], 100*(lower_values[1]-lower_values[0])/lower_values[0], 'x', markersize=2, color='red')
-ax.plot(upper_values[0], 100*(upper_values[1]-upper_values[0])/upper_values[0], 'x', markersize=2, color='blue')
+#ax.plot(lower_values[0], 100*(lower_values[1]-lower_values[0])/lower_values[0], 'x', markersize=2, color='red')
+#ax.plot(upper_values[0], 100*(upper_values[1]-upper_values[0])/upper_values[0], 'x', markersize=2, color='blue')
 ax.axhline(y=0, color='k')
 ax.set_title("Guess normalized to fit (Relative)")
 ax.set_ylabel("Residual values")
@@ -192,22 +194,24 @@ def onclick(event: MouseEvent):
 
         fig_im : Figure= pl.figure(figsize=(10, 6))
         print(res_dat["full_fit"][index])
-        img = convert_from_path(res_dat["full_fit"][index])[0]
-        pl.imshow(img)
+
+        image = mpimg.imread(res_dat["full_fit"][index])
+        pl.imshow(image)
         pl.axis('off')
         identifier = r'$\nu_{max,literature}$'
         pl.text(0.5, -0.1, rf"$\nu_{{max,literature}}$={res_dat[identifier][index]}",
                 size=14, ha='center', transform=pl.gca().transAxes)
+
         pl.show(fig_im)
 
 
 cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
-print(f"Lower fit: {popt}")
-print(f"Upper fit: {popt2}")
-print(f"Lower std: {(lower_values[1]-lower_values[0]).std()}")
-print(f"Lower std relative: {((lower_values[1]-lower_values[0])*100/lower_values[0]).std()}")
-print(f"Upper std: {(upper_values[1]-upper_values[0]).std()}")
-print(f"Upper std relative: {((upper_values[1]-upper_values[0])*100/upper_values[0]).std()}")
+#print(f"Lower fit: {popt}")
+#print(f"Upper fit: {popt2}")
+#print(f"Lower std: {(lower_values[1]-lower_values[0]).std()}")
+#print(f"Lower std relative: {((lower_values[1]-lower_values[0])*100/lower_values[0]).std()}")
+#print(f"Upper std: {(upper_values[1]-upper_values[0]).std()}")
+#print(f"Upper std relative: {((upper_values[1]-upper_values[0])*100/upper_values[0]).std()}")
 
 pl.show(fig)

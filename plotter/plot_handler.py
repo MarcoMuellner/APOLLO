@@ -344,3 +344,21 @@ def plot_acf_fit(acf: np.ndarray, fit: np.ndarray, tau: float, kwargs: Dict, gue
     if plot_save in kwargs.keys() and kwargs[plot_save]:
         save_fig(fig, f"Fit_{10 ** 6 / tau}{get_appendix(kwargs)}")
     pl.close(fig)
+
+def plot_delta_nu_acf(data : np.ndarray,delta_nu : float,kwargs):
+    fig: Figure = pl.figure(figsize=(10, 6))
+    ax: Axes = fig.add_subplot(111)
+
+    if general_kic in kwargs.keys():
+        ax.set_title(f"KIC{get_appendix(kwargs)}")
+
+    pl.plot(data[0],data[1],color='k',linewidth=2)
+    pl.axvline(x=delta_nu,linestyle='dashed',color='red',linewidth=2)
+    pl.xlabel("Frequency ($\mu$Hz)")
+    pl.ylabel("ACF")
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, f"ACF_Delta_nu_{get_appendix(kwargs)}")
+    pl.close(fig)

@@ -82,18 +82,29 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         dataFolder = self.kwargs[general_background_result_path]
         basePath = dataFolder + "KIC" + self.kicID + "/"
         if self.runID is not None:
-            file = basePath + self.runID + "/background_hyperParametersUniform.txt"
-            filesToLoad.append(file)
+            if self.runID == "FullBackground":
+                filesToLoad.append(basePath + self.runID + "/background_hyperParametersUniform_lower.txt")
+                filesToLoad.append(basePath + self.runID + "/background_hyperParametersGaussian_nu_max.txt")
+                filesToLoad.append(basePath + self.runID + "/background_hyperParametersUniform_upper.txt")
+            else:
+                file = basePath + self.runID + "/background_hyperParametersUniform.txt"
+                filesToLoad.append(file)
         else:
             file = basePath + "background_hyperParameters.txt"
             filesToLoad.append(file)
             file = basePath + "background_hyperParameters_noise.txt"
             filesToLoad.append(file)
+            file = basePath + "background_hyperParametersUniform_lower.txt"
+            filesToLoad.append(file)
+            file = basePath + "background_hyperParametersGaussian_nu_max.txt"
+            filesToLoad.append(file)
+            file = basePath + "background_hyperParametersUniform_upper.txt"
+            filesToLoad.append(file)
         try:
             for files in filesToLoad:
-                values.append(np.loadtxt(files).T)
-        except FileNotFoundError as e:
-            raise IOError("Failed to open Prior file")
+                values = values + np.loadtxt(files).T.tolist()
+        except (FileNotFoundError,IOError) as e:
+            pass
 
         for priorList in values:
             for it,(priorMin,priorMax) in enumerate(zip(priorList[0],priorList[1])):

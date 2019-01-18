@@ -56,7 +56,7 @@ class BackgroundResults:
         except FileNotFoundError:
             self._summary = None
         self._evidence = BackgroundEvidenceFileModel(self.kwargs, runID)
-        self._prior = BackgroundPriorFileModel(self.kwargs, runID)
+        #self._prior = BackgroundPriorFileModel(self.kwargs, runID)
         self._backgroundPriors = BackgroundPriorFileModel(self.kwargs, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
@@ -66,7 +66,7 @@ class BackgroundResults:
         self._names = priorNames
         self._units = priorUnits
         self._psdOnlyFlag = False
-        self._readBackgroundParameter()
+        #self._readBackgroundParameter()
 
     def getBackgroundParameters(self, key: str = None) ->Union[BackgroundParameterFileModel,List[BackgroundParameterFileModel]]:
         '''
@@ -297,7 +297,7 @@ class BackgroundResults:
             try:
                 self._backgroundParameter.append(
                     BackgroundParameterFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
-            except IOError as e:
+            except (IOError,ValueError) as e:
                 print_int("Failed to find backgroundparameter for " + self._names[i], self.kwargs)
             try:
                 self._marginalDistributions.append(

@@ -5,7 +5,7 @@ import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
 from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual,plot_f_space
-from res.conf_file_str import internal_noise_value
+from res.conf_file_str import internal_noise_value,analysis_obs_time_value
 from data_handler.signal_features import compute_periodogram
 
 def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
@@ -16,6 +16,7 @@ def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     :return: Good dataset
     """
     data = normalize_data(data)
+    data = reduce_data_to_observation_time(data,kwargs)
     data = add_noise(data,kwargs)
     data = remove_stray(data,kwargs)
     data = interpolate(data,kwargs)
@@ -56,32 +57,36 @@ def compute_observation_time(data : np.ndarray) -> float:
     total_gap = get_total_gap(data)
     return total_length - total_gap
 
-def reduce_data_to_observation_time(data : np.ndarray, time : float) -> np.ndarray:
+def reduce_data_to_observation_time(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
     Reduces the observation to a given time by cutting in the edges
     :param data: dataset of the lightcurve
     :param time: target observation time
     :return: array with given length
     """
-    null_obs_time = compute_observation_time(data)
-    if time > null_obs_time or null_obs_time < 0:
-        raise ValueError(f"Target observation time cannot be reached. Needs to be bigger zero and smaller than "
-                         f"zero observation time. 0 time is {null_obs_time}, target obs time is {time}")
+    if analysis_obs_time_value in kwargs.keys():
+        time = kwargs[analysis_obs_time_value]
+        null_obs_time = compute_observation_time(data)
+        if time > null_obs_time or null_obs_time < 0:
+            raise ValueError(f"Target observation time cannot be reached. Needs to be bigger zero and smaller than "
+                             f"zero observation time. 0 time is {null_obs_time}, target obs time is {time}")
 
-    x = data[0]
-    y = data[1]
-    obs_time = compute_observation_time(np.array((x, y)))
-    fringe = 0
-    _,_,most_common = get_diff_values_counts_most_common(data)
-    while (obs_time > time):
-        mask = np.logical_and(data[0] > data[0][int(len(data[0])/2)] - time/2 - fringe/2
-                              ,data[0]< data[0][int(len(data[0])/2)] + time/2 + fringe/2)
-        y = data[1][mask]
-        x = data[0][mask]
+        x = data[0]
+        y = data[1]
         obs_time = compute_observation_time(np.array((x, y)))
-        fringe = obs_time - time
+        fringe = 0
+        _,_,most_common = get_diff_values_counts_most_common(data)
+        while (obs_time > time):
+            mask = np.logical_and(data[0] > data[0][int(len(data[0])/2)] - time/2 - fringe/2
+                                  ,data[0]< data[0][int(len(data[0])/2)] + time/2 + fringe/2)
+            y = data[1][mask]
+            x = data[0][mask]
+            obs_time = compute_observation_time(np.array((x, y)))
+            fringe = obs_time - time
 
-    return np.array((x,y))
+        return normalize_data(np.array((x,y)))
+    else:
+        return data
 
 
 def reduce_data_to_duty_cycle(data : np.ndarray, target_duty_cycle : float) -> np.ndarray:
