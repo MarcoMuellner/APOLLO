@@ -1,101 +1,116 @@
-# Add any directories, files, or patterns you don't want to be tracked by version control
+# Byte-compiled / optimized / DLL files
 __pycache__/
-.idea/
-*.csv
-*.gsheet
-*.swp
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
 *.log
+local_settings.py
+db.sqlite3
 
-008366239_1241
+# Flask stuff:
+instance/
+.webassets-cache
 
-*.pyc
+# Scrapy stuff:
+.scrapy
 
-debug\.log\.1
+# Sphinx documentation
+docs/_build/
 
-results/*
+# PyBuilder
+target/
 
-\.cache/v/cache/
+# Jupyter Notebook
+.ipynb_checkpoints
 
-tests/\.cache/v/cache/
+# pyenv
+.python-version
 
-~
+# celery beat schedule file
+celerybeat-schedule
 
-tests/testFiles/diamondsFiles/KICtestKIC\.txt
+# SageMath parsed files
+*.sage.py
 
-tests/testFiles/playground/fits_123456789\.fits
-
-tests/testFiles/diamondsFiles/background/results/KIC123456789/background_hyperParameters\.txt
-
-tests/testFiles/diamondsFiles/background/results/KIC123456789/background_hyperParameters_noise\.txt
-
-kicList\.txt
-
+# Environments
+.env
+.venv
+env/
 venv/
+ENV/
+env.bak/
+venv.bak/
 
-\.DS_Store
+# Spyder project settings
+.spyderproject
+.spyproject
 
-6424157\.dat
+# Rope project settings
+.ropeproject
 
-6424157\.dat\.gz
+# mkdocs documentation
+/site
 
-KIC6424157\.txt
+# mypy
+.mypy_cache/
 
-\.pytest_cache/v/cache/
-
-tests/\.pytest_cache/v/cache/
-
-info\.log\.1
-
-*.png
-
-*noiseResults*
-tempfile\.txt
-
-\.coverage
-
-cc-test-reporter
-
-coverage\.xml
-
-ys_everest_endurance\.json
-
-ys_test\.json
-
-ys_test_endurance\.json
-
-rg_enrico\.json
-
-apokasc_results/*
-apokasc_single_results/
-LCA_results/
-
-apokasc\.json
-
-apokasc_local\.json
-
-apokasc_result\.tar\.gz
-
-apokasc_single\.json
-
-apokasc_targets\.txt
-
-apokasc_test_results
-
-rg_results
-
-working_apokasc
 endurance_results/
+
+sample_lists/
 
 run_cfg/
 
+.idea/
+
 noise_results/
 
-venv_windows/
-
-test_data/
-
-reduced_k2/
-
-smurfs_data/
-
-ys_golden_sample\.txt
+.DS_Store
