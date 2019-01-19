@@ -5,6 +5,7 @@ import numpy as np
 # project imports
 from data_handler.data_refiner import refine_data,normalize_data,get_gaps,remove_stray,interpolate,compute_duty_cycle\
     ,reduce_data_to_duty_cycle,reduce_data_to_observation_time,compute_observation_time
+from res.conf_file_str import analysis_obs_time_value
 
 try:
     pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
@@ -35,15 +36,6 @@ def test_get_gaps():
     assert np.abs(most_common - 100/5000) < 10**-5
 
     gap = [i for i in range(3000, 3002)]
-
-    x_gap = np.delete(x, gap)
-    y_gap = np.delete(y, gap)
-
-    gap_ids, most_common = get_gaps(np.array((x_gap, y_gap)))
-    assert 2999 in gap_ids
-    assert np.abs(most_common - 100 / 5000) < 10 ** -5
-
-    gap = []
 
     x_gap = np.delete(x, gap)
     y_gap = np.delete(y, gap)
@@ -109,5 +101,7 @@ def test_add_gaps():
 def test_reduce_time():
     data_1 = np.array((x, y))
     assert compute_observation_time(data_1) == 100
-    res_data = reduce_data_to_observation_time(data_1,60)
+    kwargs = {}
+    kwargs[analysis_obs_time_value] = 60
+    res_data = reduce_data_to_observation_time(data_1,kwargs)
     assert np.abs(compute_observation_time(res_data) - 60) < 1
