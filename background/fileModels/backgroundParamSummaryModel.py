@@ -6,7 +6,8 @@ from uncertainties import ufloat
 
 from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from settings.settings import Settings
+from res.conf_file_str import general_background_result_path
+from support.printer import print_int
 
 
 class BackgroundParamSummaryModel(BackgroundBaseFileModel):
@@ -15,7 +16,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
     the background model, which in turn provides the final values for the fit
     '''
 
-    def __init__(self,kicID=None,runID=None):
+    def __init__(self,kwargs,runID=None):
         '''
         Constructor for the summary class. KICID and RunID are set within the Baseclass,
         which provides properties for these parameters.
@@ -24,13 +25,14 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         :param runID: The RunID for the star, can be fullBackground or noiseOnly
         :type runID: string
         '''
-        BackgroundBaseFileModel.__init__(self, kicID, runID)
+        BackgroundBaseFileModel.__init__(self, kwargs, runID)
+        self.kwargs = kwargs
         self._rawValues = {}
         self._priorValues = {}
         self.logger = logging.getLogger(__name__)
 
-        if(kicID is not None and runID is not None):
-            self._readData()
+        if(runID is not None):
+            self._readData(kwargs)
 
     def dataLength(self):
         return len(self._priorValues)
@@ -64,7 +66,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
 
     def _getDataWrapper(self,map,key):
         if any(map) is False:
-            self._readData()
+            self._readData(self.kwargs)
         return self._getInternalData(map,key)
 
     def _getInternalData(self,dict,key):
@@ -82,14 +84,13 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
 
         return self._getValueFromDict(dict,key)
 
-    def _readData(self):
+    def _readData(self,kwargs):
         '''
         Internal reader function. Reads the values of the backgroundSummary file and creates
         the background model. If something fails in reading, the raw values and the
         background model will be set empty.
         '''
-        dataFolder = Settings.ins().getSetting(strDiamondsSettings,
-                                                           strSectBackgroundResPath).value
+        dataFolder = kwargs[general_background_result_path]
 
         file = dataFolder+"KIC"+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"
         try:
@@ -100,13 +101,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
 
             self._createBackgroundModel()
         except Exception as e:
-            self.logger.error("Failed to open File " + file)
-            self.logger.error(e)
-            self._rawValues[strSummaryMedian] = np.array([0,0,0,0,0,0,0,0,0,0])
-            self._rawValues[strSummaryLowCredLim] = np.array([0,0,0,0,0,0,0,0,0,0])
-            self._rawValues[strSummaryUpCredLim] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-
-            self._createBackgroundModel()
+            raise FileNotFoundError("Cannot find summary file!")
 
     def _createBackgroundModel(self):
         '''

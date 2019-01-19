@@ -3,7 +3,6 @@ from scipy import optimize
 from scipy.signal import butter, filtfilt
 import logging
 from uncertainties import ufloat
-from fitter.fitFunctions import *
 
 
 class DeltaNuEvaluator:
@@ -175,6 +174,26 @@ class DeltaNuEvaluator:
         self._deltaNuEst = 0.263 * pow(nuMax, 0.772)
         return self._deltaNuEst
 
+    def gaussian(self,x, y0, amp, cen, wid):
+        '''
+        Fitting function used. Fits a Gaussian using the following function:
+        .. math::
+            y(x)=y_0+\frac{amp}{\sqrt{2\pi wid}}\text{exp}(-\frac{(x-cen)^2}{2*wid^2})
+        :param x:x-Axis against which we will approximate the function
+        :type x:1-D numpy array
+        :param y0:y-Offset of the function
+        :type y0:float
+        :param amp:Amplitude of the gaussian
+        :type amp:float
+        :param cen:x-Value of center of distribution
+        :type cen:float
+        :param wid:Standard deviation of the distribution
+        :type wid:float
+        :return:y-Array of a gaussian distribution
+        :rtype:1-D numpy array
+        '''
+        return y0 + (amp / (np.sqrt(2 * np.pi) * wid)) * np.exp(-(x - cen) ** 2 / (2 * wid ** 2))
+
     def _scipyFit(self, data, deltaNuEst):
         '''
         Performs the fit of the gaussian in the autocorrelated dataset
@@ -211,7 +230,7 @@ class DeltaNuEvaluator:
                     0.3]
                 )
 
-        self._popt, pcov = optimize.curve_fit(gaussian, x, y, p0=arr, bounds=bounds)
+        self._popt, pcov = optimize.curve_fit(self.gaussian, x, y, p0=arr, bounds=bounds)
         self._perr = np.sqrt(np.diag(pcov))
 
         #x0_err = np.sqrt(pow(self._perr[2],2) + pow(self._popt[3],2))

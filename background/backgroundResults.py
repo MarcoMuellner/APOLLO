@@ -1,7 +1,9 @@
 import glob
 import logging
 
+from typing import Dict,Union,List
 import numpy as np
+from copy import deepcopy
 from uncertainties import ufloat
 
 from background.fileModels.backgroundDataFileModel import BackgroundDataFileModel
@@ -10,10 +12,11 @@ from background.fileModels.backgroundMarginalDistrFileModel import BackgroundMar
 from background.fileModels.backgroundParamSummaryModel import BackgroundParamSummaryModel
 from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
 from background.fileModels.backgroundPriorFileModel import BackgroundPriorFileModel
-from evaluators.bcEvaluator import BCEvaluator
-from evaluators.deltaNuEvaluator import DeltaNuEvaluator
 from res.strings import *
-from settings.settings import Settings
+from support.printer import print_int
+from data_handler.signal_features import background_model
+
+from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value
 
 
 class BackgroundResults:
@@ -26,7 +29,7 @@ class BackgroundResults:
      need to instantiate this class twice with a different runID
     '''
 
-    def __init__(self, kicID:str, runID:str, tEff:float=None):
+    def __init__(self, kwargs: Dict, runID: str):
         '''
         The constructor of the class. It sets up all classes that provide an interface to the lower laying files
         from DIAMONDS. It also sets up some other things like names
@@ -36,29 +39,36 @@ class BackgroundResults:
         modulus. An error of 200K is assumed. Optional
         '''
         self.logger = logging.getLogger(__name__)
-        self._kicID = kicID
+
+        self.kwargs = deepcopy(kwargs)
+
+        kic = self.kwargs[general_kic]
+        if internal_noise_value in kwargs.keys():
+            kic_new = str(kic) + f"_{kwargs[internal_noise_value]}"
+        else:
+            kic_new = kic
+        self.kwargs[general_kic] = kic_new
+        self._kicID = self.kwargs[general_kic]
         self._runID = runID
-        self._dataFile = BackgroundDataFileModel(kicID)
-        self._summary = BackgroundParamSummaryModel(kicID, runID)
-        self._evidence = BackgroundEvidenceFileModel(kicID, runID)
-        self._prior = BackgroundPriorFileModel(kicID, runID)
-        self._backgroundPriors = BackgroundPriorFileModel(kicID, runID)
+        self._dataFile = BackgroundDataFileModel(self.kwargs)
+        try:
+            self._summary = BackgroundParamSummaryModel(self.kwargs, runID)
+        except FileNotFoundError:
+            self._summary = None
+        self._evidence = BackgroundEvidenceFileModel(self.kwargs, runID)
+        #self._prior = BackgroundPriorFileModel(self.kwargs, runID)
+        self._backgroundPriors = BackgroundPriorFileModel(self.kwargs, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
-        self._dataFolder = Settings.ins().getSetting(strDiamondsSettings, strSectBackgroundResPath).value
-        self._nyq = float(np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(kicID))[0]))
+        self._dataFolder = self.kwargs[general_background_result_path]
+        self._nyq = float(
+            np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(self.kwargs[general_kic]))[0]))
         self._names = priorNames
         self._units = priorUnits
         self._psdOnlyFlag = False
+        #self._readBackgroundParameter()
 
-        self._readBackgroundParameter()
-
-        if tEff is not None:
-            self._tEff = ufloat(tEff, 200)
-            self._bolometricCorrCalculator = BCEvaluator(tEff)
-            self._bolometricCorrection = self._bolometricCorrCalculator.BC
-
-    def getBackgroundParameters(self, key:str=None):
+    def getBackgroundParameters(self, key: str = None) ->Union[BackgroundParameterFileModel,List[BackgroundParameterFileModel]]:
         '''
         Provides an interface for the single background Parameters (e.g. Noise,HarveyParameters, Powerexcess parameters)
         fitted by DIAMONDS. Depending on the mode, this will either return a list of 7-10 items or a single item
@@ -67,19 +77,17 @@ class BackgroundResults:
         :return:Full dict or single parameter depending on key
         :rtype:List/BackgroundParameterFileModel
         '''
-        return self._getValueFromDict(self._backgroundParameter,key)
+        return self._getValueFromDict(self._backgroundParameter, key)
 
-    def getMarginalDistribution(self, key:str=None):
+    def getMarginalDistribution(self, key: str = None):
         '''
         Returns single MarginalDistributions or full MarginalDistributions. Contains the MarginalDistributions class
         :param key: key for the Marginal Distribution
         :rtype:list/MarginalDistribution
         '''
-        return self._getValueFromDict(self._marginalDistributions,key)
+        return self._getValueFromDict(self._marginalDistributions, key)
 
-
-
-    def _getValueFromDict(self,dict:dict,key:str=None):
+    def _getValueFromDict(self, dict: dict, key: str = None):
         '''
         This is a helper method, which returns a single item from a list if the item exists or the whole dict otherwhise
         :param dict: The list to search in
@@ -93,8 +101,8 @@ class BackgroundResults:
                 if i.name == key:
                     return i
 
-            self.logger.warning("Found no object for '" + key + "'")
-            self.logger.warning("Returning full list")
+            print_int("Found no object for '" + key + "'", self.kwargs)
+            print_int("Returning full list", self.kwargs)
             return dict
 
     @property
@@ -240,8 +248,7 @@ class BackgroundResults:
         '''
         return self._getSummaryParameter(strPriorFlatNoise)
 
-
-    def _getSummaryParameter(self, key:str=None):
+    def _getSummaryParameter(self, key: str = None):
         '''
         Returns the SummaryParameter, i.e. the value computed by DIAMONDS. Can be a single Parameter or a full dict
         if key is None
@@ -254,88 +261,55 @@ class BackgroundResults:
         elif key is None:
             return self.summary.getData()
         else:
-            self.logger.error(key + " is not in Summary -> did DIAMONDS run correctly?")
-            if key in (strPriorNuMax, strPriorHeight, strPriorSigma):
-                self.logger.error("Check if you used the correct runID. runID is " + self._runID)
-            self.logger.error("Content of dict is")
-            self.logger.error(self.summary.getData())
-            raise ValueError
-
-    def calculateDeltaNu(self):
-        '''
-        Computes delta nu using the deltaNuCalculator
-        '''
-        backgroundModel = self.createBackgroundModel()
-        backGroundData = np.vstack((self.summary.getRawData(strSummaryMedian),
-                                    self.summary.getRawData(strSummaryLowCredLim),
-                                    self.summary.getRawData(strSummaryUpCredLim)))
-
-        self._deltaNuCalculator = DeltaNuEvaluator(self.nuMax[0], self.sigma[0],
-                                                   self._dataFile.powerSpectralDensity,
-                                                   self._nyq, backGroundData, backgroundModel)
+            raise ValueError(key + " is not in Summary -> did DIAMONDS run correctly?")
 
     def createBackgroundModel(self):
         '''
         Creates a full Background model
         :return: Background Model
         '''
-        freq, psd = self._dataFile.powerSpectralDensity
+        psd = self._dataFile.powerSpectralDensity.T
         par_median = self.summary.getRawData(strSummaryMedian)  # median values
-        runGauss = (self._runID is strDiModeFull)
-        if runGauss:
-            self.logger.debug("Height is '" + str(self.oscillationAmplitude) + "'")
-            self.logger.debug("Numax is '" + str(self.nuMax) + "'")
-            self.logger.debug("Sigma is '" + str(self.sigma) + "'")
-            g = self.oscillationAmplitude.n * np.exp(
-                -(self.nuMax.n - freq) ** 2 / (2. * self.sigma.n ** 2))  ## Gaussian envelope
-        else:
-            g = 0
 
-        zeta = 2. * np.sqrt(2.) / np.pi  # !DPI is the pigreca value in double precision
-        r = (np.sin(np.pi / 2. * freq / self._nyq) / (
-            np.pi / 2. * freq / self._nyq)) ** 2  # ; responsivity (apodization) as a sinc^2
         w = par_median[0]  # White noise component
-
-        ## Long-trend variations
         sigma_long = par_median[1]
         freq_long = par_median[2]
-        h_long = (sigma_long ** 2 / freq_long) / (1. + (freq / freq_long) ** 4)
-
-        ## First granulation component
         sigma_gran1 = par_median[3]
         freq_gran1 = par_median[4]
-        h_gran1 = (sigma_gran1 ** 2 / freq_gran1) / (1. + (freq / freq_gran1) ** 4)
-
-        ## Second granulation component
         sigma_gran2 = par_median[5]
         freq_gran2 = par_median[6]
-        h_gran2 = (sigma_gran2 ** 2 / freq_gran2) / (1. + (freq / freq_gran2) ** 4)
 
-        ## Global background model
-        w = np.zeros_like(freq) + w
+        runGauss = (self._runID is strDiModeFull)
         if runGauss:
-            retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w, g * r
+            nu_max = self.nuMax.n
+            amp = self.oscillationAmplitude.n
+            sigma = self.sigma.n
         else:
-            retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
+            nu_max = None
+            amp = None
+            sigma = None
 
-        return retVal
+        return background_model(psd, self._nyq, w, sigma_long, freq_long, sigma_gran1, freq_gran1, sigma_gran2,
+                                freq_gran2, nu_max, amp, sigma)
 
     def _readBackgroundParameter(self):
-        for i in range(0, self.summary.dataLength()):
+        for i in range(0, len(self._backgroundPriors.getData())):
             try:
                 self._backgroundParameter.append(
-                    BackgroundParameterFileModel(self._names[i], self._units[i], self._kicID, self._runID, i))
-            except IOError as e:
-                self.logger.error("Failed to find backgroundparameter for "+self._names[i])
-                self.logger.error(e)
+                    BackgroundParameterFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
+            except (IOError,ValueError) as e:
+                print_int("Failed to find backgroundparameter for " + self._names[i], self.kwargs)
             try:
                 self._marginalDistributions.append(
-                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self._kicID, self._runID, i))
-                self._marginalDistributions[i].backgrounddata = np.vstack((self.summary.getRawData()[strSummaryMedian][i],
-                                                                           self.summary.getRawData()[strSummaryLowCredLim][i],
-                                                                           self.summary.getRawData()[strSummaryUpCredLim][i]))
-                if self._backgroundParameter[i].getData() is None:
-                    self._psdOnlyFlag = True
-            except IOError as e:
-                self.logger.error("Failed to find marginal distribution for "+self._names[i])
-                self.logger.error(e)
+                    BackgroundMarginalDistrFileModel(self._names[i], self._units[i], self.kwargs, self._runID, i))
+                if self._summary is not None:
+                    self._marginalDistributions[i]._backgroundData = np.vstack(
+                        (self.summary.getRawData()[strSummaryMedian][i],
+                         self.summary.getRawData()[strSummaryLowCredLim][i],
+                         self.summary.getRawData()[strSummaryUpCredLim][i]))
+
+                    if self._backgroundParameter[i].getData() is None:
+                        self._psdOnlyFlag = True
+            except Exception as e:
+                pass
+                #print_int("Failed to find marginal distribution for " + self._names[i], self.kwargs)

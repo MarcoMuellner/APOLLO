@@ -1,12 +1,14 @@
 import logging
 import numpy as np
+from res.conf_file_str import general_kic
+from support.printer import print_int
 
 class BackgroundBaseFileModel:
     '''
     Base class for the background filereaders. Creates some properties for the kicIDs, units and provides an interface
     for some methods that have to be implemented
     '''
-    def __init__(self,kicID = None,runID = None):
+    def __init__(self,kwargs,runID = None):
         '''
         Constructor of the Baseclass
         :param kicID: KICId of the star
@@ -15,13 +17,16 @@ class BackgroundBaseFileModel:
         :type runID: string
         '''
         self.logger = logging.getLogger(__name__)
-        self._kicID = kicID
+        try:
+            self._kicID = str(kwargs[general_kic])
+        except:
+            pass
         self._runID = runID
 
     def getData(self,*args):
         raise NotImplementedError
 
-    def _readData(self):
+    def _readData(self,kwargs):
         raise NotImplementedError
 
     @property
@@ -29,7 +34,7 @@ class BackgroundBaseFileModel:
         try:
             return self._unit
         except NameError or AttributeError:
-            self.logger.warning("Unit not set, setting to empty")
+            print_int("Unit not set, setting to empty",self.kwargs)
             self._unit = ""
             return self._unit
 
@@ -40,7 +45,7 @@ class BackgroundBaseFileModel:
             try:
                 return dict[key]
             except:
-                self.logger.warning("No value for key '"+key+"',returning full dict")
+                print_int("No value for key '"+key+"',returning full dict",kwargs)
                 return dict
 
 
@@ -76,8 +81,8 @@ class BackgroundBaseFileModel:
         try:
             data = np.loadtxt(file).T
         except FileNotFoundError as e:
-            self.logger.error("Failed to open File "+file)
-            self.logger.error(e)
+            print_int("Failed to open File "+file,kwargs)
+            print_int(e,kwargs)
             raise IOError("Failed to open file. "+file)
         return data
 
