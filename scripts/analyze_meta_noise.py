@@ -9,8 +9,6 @@ from matplotlib.backend_bases import MouseEvent
 import numpy as np
 from uncertainties import ufloat_fromstr,unumpy as unp,ufloat
 from scipy.optimize import curve_fit
-from os import makedirs
-from shutil import rmtree
 from support.directoryManager import cd
 
 pl.rc('font', family='serif')

@@ -216,10 +216,10 @@ def single_noise_analysis(data_path : str):
 res = {}
 
 res[(30,40)] = single_noise_analysis("endurance_results/n_30_40/")
-res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
-res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
-res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
-res[(70,80)] = single_noise_analysis("endurance_results/n_70_80/")
+#res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
+#res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
+#res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
+#res[(70,80)] = single_noise_analysis("endurance_results/n_70_80/")
 
 
 

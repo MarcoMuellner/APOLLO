@@ -13,4 +13,5 @@ coverage
 asciimatics
 pdf2image
 pytest
+pandas
 
