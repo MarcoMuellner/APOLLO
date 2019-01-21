@@ -11,6 +11,7 @@ from res.conf_file_str import general_kic, plot_show, plot_save,internal_noise_v
 from fitter.fit_functions import gaussian
 from data_handler.signal_features import compute_periodogram, boxcar_smoothing
 from background.backgroundResults import BackgroundResults
+from fitter.fit_functions import gaussian_amp
 
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
@@ -271,7 +272,6 @@ def plot_f_space(f_data: np.ndarray, kwargs: dict, add_smoothing: bool = False, 
     ax.set_xlabel(r'Frequency [$\mu$Hz]')
 
     if add_smoothing:
-        name += "_smoothed"
         smoothed_data = boxcar_smoothing(f_data, 700)
         ax.loglog(smoothed_data[0], smoothed_data[1], linewidth=1, color='green', alpha=0.5)
 
@@ -361,4 +361,23 @@ def plot_delta_nu_acf(data : np.ndarray,delta_nu : float,kwargs):
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
         save_fig(fig, f"ACF_Delta_nu_{get_appendix(kwargs)}")
+    pl.close(fig)
+
+def plot_delta_nu_fit(data : np.ndarray, popt : List[float],kwargs : Dict):
+    fig: Figure = pl.figure(figsize=(10, 6))
+    ax: Axes = fig.add_subplot(111)
+
+    if general_kic in kwargs.keys():
+        ax.set_title(f"KIC{get_appendix(kwargs)}")
+
+    pl.plot(data[0],data[1],color='k',linewidth=2)
+    pl.plot(data[0],gaussian_amp(data[0],*popt),color='red',linewidth=2)
+    pl.axvline(x=popt[2],linestyle='dashed',color='blue',linewidth=2)
+    pl.xlabel("Frequency ($\mu$Hz)")
+    pl.ylabel("ACF")
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, f"ACF_fit_delta_nu{get_appendix(kwargs)}")
     pl.close(fig)

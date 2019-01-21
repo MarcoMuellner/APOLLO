@@ -15,7 +15,7 @@ from background.fileModels.bg_file_creator import nsmc_configuring_parameters
 from evaluators.compute_delta_nu import get_delta_nu
 
 
-def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess,kwargs: Dict):
+def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, n_runs : int,kwargs: Dict):
     np.savetxt("lc.txt", data)
 
     res_set,psd,err, exception_text = compose_results(priors,nu_max,params,data,kwargs)
@@ -24,6 +24,7 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
         res_set["{key}: Number of runs"] = val
 
     res_set["NSMC configuring parameters"] = nsmc_configuring_parameters().tolist()
+    res_set["Number of iterations"] = n_runs
 
     np.savetxt("psd.txt",psd)
 
@@ -106,15 +107,18 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
     psd = result_full.powerSpectralDensity
 
     try:
-        plot_f_space(psd.T, kwargs, bg_model=result_full.createBackgroundModel())
-
-        delta_nu = get_delta_nu(data,result_full,kwargs)
-
-        plot_f_space(psd.T, kwargs, bg_model=result_noise.createBackgroundModel())
+        plot_f_space(psd.T, kwargs, bg_model=result_full.createBackgroundModel(),add_smoothing=True)
+        plot_f_space(psd.T, kwargs, bg_model=result_noise.createBackgroundModel(),add_smoothing=True)
     except:
         err.append("Failed to plot model")
         if exception_text is None:
             exception_text = "Failed to plot model"
+
+    try:
+        delta_nu = get_delta_nu(data,result_full,kwargs)
+        full_res_set["Delta nu"] = f"{delta_nu}"
+    except:
+        full_res_set["Delta nu"] = "Can't determine delta nu!"
 
     if err == [] and exception_text is None:
         full_res_set[internal_flag_worked] = True

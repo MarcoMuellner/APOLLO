@@ -16,8 +16,14 @@ def load_results(path : str,ignore_list : List[str] = None) -> List[Tuple[str,Di
     :return: List containing this values
     """
     res_list = []
+    cnt = 0
     for path,sub_path,files in  os.walk(path):
-        if 'results.json' not in files or 'conf.json' not in files or "ignore.txt" in files:
+        if 'results.json' not in files or 'conf.json' not in files:
+            continue
+
+        cnt +=1
+
+        if "ignore.txt" in files:
             continue
 
         try:
@@ -34,6 +40,7 @@ def load_results(path : str,ignore_list : List[str] = None) -> List[Tuple[str,Di
 
         res_list.append((path,result,conf))
 
+    print(f"Total: {cnt}")
     return res_list
 
 def get_val(dictionary: dict, key: str, default_value=None):

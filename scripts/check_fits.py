@@ -20,11 +20,6 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("input_path", help="Result path for a given dataset", type=str)
 
-try:
-    os.makedirs("discarded_objects")
-except:
-    pass
-
 args = parser.parse_args()
 
 res_list = load_results(args.input_path,["checked.txt"])

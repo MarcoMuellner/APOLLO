@@ -24,7 +24,7 @@ from support.directoryManager import cd
 from support.printer import print_int, Printer
 from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general_kic, cat_analysis, cat_files, \
     cat_general, cat_plot, internal_literature_value, analysis_folder_prefix, general_sequential_run, \
-    analysis_noise_values, internal_noise_value,analysis_number_repeats,internal_run_number
+    analysis_noise_values, internal_noise_value,analysis_number_repeats,internal_run_number,internal_delta_nu
 from support.exceptions import ResultFileNotFound,InputFileNotFound,EvidenceFileNotFound
 
 
@@ -127,6 +127,8 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
                 if len(i) == 2:
                     cp[general_kic] = int(i[0])
                     cp[internal_literature_value] = i[1]
+                if len(i) == 3:
+                    cp[internal_delta_nu] = i[2]
             except:
                 cp[general_kic] = int(i)
 
@@ -194,7 +196,7 @@ def run_star(kwargs: Dict):
             sigma_ampl = calculate_flicker_amplitude(data)
             f_ampl = flicker_amplitude_to_frequency(sigma_ampl)
             print_int("Computing nu_max", kwargs)
-            nu_max = compute_nu_max(data, f_ampl, kwargs)
+            nu_max,n_runs = compute_nu_max(data, f_ampl, kwargs)
 
             if internal_literature_value in kwargs.keys():
                 print_int(f"Nu_max guess: {'%.2f' % nu_max}, literature: {'%.2f' % kwargs[internal_literature_value]}",
@@ -213,7 +215,7 @@ def run_star(kwargs: Dict):
             print_int("Saving results", kwargs)
             # save results
 
-            save_results(prior, data, nu_max, params,proc, kwargs)
+            save_results(prior, data, nu_max, params,proc,n_runs, kwargs)
             print_int("Done", kwargs)
         except (EvidenceFileNotFound,ResultFileNotFound,InputFileNotFound) as e:
             error = f"{e.__class__.__name__} : {str(e)}\n"

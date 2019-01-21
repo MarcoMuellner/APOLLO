@@ -6,7 +6,7 @@ from scipy.signal import argrelextrema
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 # project imports
-from fitter.fit_functions import trismooth, sinc, sin,quadraticPolynomial
+from fitter.fit_functions import trismooth, sinc, sin,linearPolynomial
 from data_handler.signal_features import get_time_step
 from plotter.plot_handler import plot_peridogramm_from_timeseries, plot_acf_fit
 from support.printer import print_int
@@ -93,16 +93,19 @@ def fit_acf(data: np.ndarray,  kwargs: Dict) -> Tuple[float, float, float]:
     x = data[0][:peak[2]] #restrict up to third peak
     y = data[1][:peak[2]]
 
-    while np.abs(1 - y[0]) < 0.2 or np.any(y > 1):
+    while np.abs(1 - y[0]) < 0.1 or np.any(y > 1):
         x = x[1:]
         y = y[1:]
+
+    x_without_int = x
+    y_without_int = y
 
     x,y = interpolate_acf(x,y,4) #interpolate acf to make fit work better
 
 
     plot_x = np.linspace(0, max(x), 4000)
 
-    p0_sinc_initial = [1, tau_guess]
+    p0_sinc_initial = [max(y), tau_guess]
     bounds = ([0, 0], [1, np.inf])
 
     # initial sinc fit
@@ -122,6 +125,10 @@ def fit_acf(data: np.ndarray,  kwargs: Dict) -> Tuple[float, float, float]:
 
     plot_acf_fit(np.array((x, y)), np.array((plot_x,full_fit)), sinc_final_popt[1], kwargs,
                  np.array((plot_x, sinc(plot_x, *p0_sinc_initial))))
+
+    np.savetxt(f"ACF_{'%.2f'%f_from_tau(sinc_final_popt[1])}.txt",np.array((x_without_int,y_without_int)))
+    np.savetxt(f"Fit_parameter_sinc_{'%.2f'%f_from_tau(sinc_final_popt[1])}.txt",np.array(sinc_final_popt))
+    np.savetxt(f"Fit_parameter_sin_{'%.2f' % f_from_tau(sinc_final_popt[1])}.txt", np.array(sin_popt))
 
     return sinc_final_popt[0], sin_popt[0], sinc_final_popt[1]
 
@@ -153,7 +160,7 @@ def single_step_procedure(data: np.ndarray, tau: float, kwargs: Dict) -> float:
     return tau_acf
 
 
-def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
+def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> Tuple[float,int]:
     """
     Performs the full procedure introduced by Kallinger (2016)
     :param data: Full dataset from the lightcurve
@@ -173,15 +180,13 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
     plot_peridogramm_from_timeseries(data, kwargs, True, f_list)
 
     #for frequencies below 70 the first guess seems good enough
-    if f < 60:
-        n = 0
-    else:
-        n = 2
+    n=1
 
     # repeat process n-times
     for i in range(0, n):
         tau = single_step_procedure(data, f_to_t(f) / 60, kwargs)
-        f = f_from_tau(tau)
+        f_new = f_from_tau(tau)
+        f = f_new
 
         print_int(f"{i+2}. frequency {'%.2f' % f}", kwargs)
 
@@ -190,9 +195,10 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> float:
 
     print_int(f"Nu_max: {'%.2f' % f}", kwargs)
 
+    f = 2*f - linearPolynomial(f,30.5,0.7)
     #if f < 66:
     #    return 2*f - quadraticPolynomial(f,-5.73055576e+00,1.56287850e+00,-9.48554460e-03,-8.62482014e-07)
     #else:
     #    return 2 * f - quadraticPolynomial(f,7.90556422e+02,-2.84333433e+01,3.73350582e-01,-1.61640707e-03)
 
-    return f
+    return f,n

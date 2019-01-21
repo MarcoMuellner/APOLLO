@@ -5,7 +5,8 @@ from background.backgroundResults import BackgroundResults
 from data_handler.signal_features import compute_periodogram, nyqFreq
 from scipy.signal import butter, filtfilt
 import matplotlib.pyplot as pl
-from plotter.plot_handler import plot_f_space, plot_delta_nu_acf
+from plotter.plot_handler import plot_f_space, plot_delta_nu_acf,plot_delta_nu_fit
+from fitter.fit_functions import gaussian_amp,scipyFit
 
 
 def _findGaussBoundaries(data=None, cen=None, sigma=None):
@@ -89,6 +90,18 @@ def autocorrelate(f_y):
     corrs /= corrs2[0]
     return corrs
 
+def perform_fit(x : np.ndarray,y : np.ndarray,kwargs):
+    initY0 = np.mean(y)
+    initWid = 0.05
+    initCen = x[np.argmin(np.abs(y-np.amax(y)))]
+    initAmp = (max(y)- initY0)*(np.sqrt(2 * np.pi) * initWid)
+
+    popt,perr = scipyFit(x,y,gaussian_amp,[initY0,initAmp,initCen,initWid])
+
+    plot_delta_nu_fit(np.array((x,y)),popt,kwargs)
+
+    return ufloat(popt[2],perr[2])
+
 
 def get_delta_nu(data: np.ndarray, result: BackgroundResults, kwargs):
     model = result.createBackgroundModel()
@@ -121,4 +134,5 @@ def get_delta_nu(data: np.ndarray, result: BackgroundResults, kwargs):
 
     mask = np.logical_and(deltaF > delta_nu/1.4,deltaF < 1.5* delta_nu)
     plot_delta_nu_acf(np.array((deltaF[mask], corrs[mask])), delta_nu, kwargs)
-    return
+    delta_nu = perform_fit(deltaF[mask], corrs[mask],kwargs)
+    return delta_nu

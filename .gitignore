@@ -114,3 +114,4 @@ run_cfg/
 noise_results/
 
 .DS_Store
+acf_out/
