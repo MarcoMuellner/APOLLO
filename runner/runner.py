@@ -7,6 +7,7 @@ import json
 from os import makedirs
 import traceback
 import shutil
+from uncertainties import ufloat,ufloat_fromstr
 # scientific imports
 import numpy as np
 # project imports
@@ -73,8 +74,7 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
         nr_of_cores = kwargs[cat_general][general_nr_of_cores]
 
     if nr_of_cores > cpu_count():
-        raise ValueError(
-            f"Nr of processors cannot be more than available in the pc! Available: {cpu_count()}. Will be used: {nr_of_cores}")
+        nr_of_cores = cpu_count()
 
     # Check analysis list!
     if analysis_list_of_ids not in kwargs.keys():
@@ -102,10 +102,10 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
 
     if ".txt" in str(kwargs[analysis_list_of_ids]):
         data = np.loadtxt(str(kwargs[analysis_list_of_ids]))
-        if data.shape[0] > 1000:
+        if data.shape[0] > 5:
             data = data.T
-        if data.shape[0] == 2:
-            data = zip(data[0].astype(int).tolist(), data[1].toList())
+        if data.shape[0] >= 2:
+            data = zip(data[0].astype(int).tolist(), *[data[i].tolist() for i in range(1,len(data))])
         else:
             data = data.tolist()
 
@@ -119,16 +119,24 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
         repeat = 2
         repeat_set = False
 
+
     for i in data:
         for j in range(1,repeat):
             cp = deepcopy(copy_dict)
 
             try:
-                if len(i) == 2:
+                if len(i) != 1:
                     cp[general_kic] = int(i[0])
-                    cp[internal_literature_value] = i[1]
-                if len(i) == 3:
-                    cp[internal_delta_nu] = i[2]
+
+                if len(i) >= 3:
+                    cp[internal_literature_value] = ufloat(i[1],i[2])
+                else:
+                    cp[internal_literature_value] = ufloat(i[1],0)
+
+                if len(i) >= 5:
+                    cp[internal_delta_nu] = ufloat(i[3],i[4])
+                elif len(i) >= 4:
+                    cp[internal_delta_nu] = ufloat(i[3],0)
             except:
                 cp[general_kic] = int(i)
 
@@ -185,7 +193,17 @@ def run_star(kwargs: Dict):
     with cd(path):
         try:
             with open("conf.json", 'w') as f:
+                if internal_literature_value in kwargs.keys():
+                    kwargs[internal_literature_value] = f"{kwargs[internal_literature_value]}"
+                if internal_delta_nu in kwargs.keys():
+                    kwargs[internal_delta_nu] = f"{kwargs[internal_delta_nu]}"
+
                 json.dump(kwargs, f, indent=4)
+
+                if internal_literature_value in kwargs.keys():
+                    kwargs[internal_literature_value] = ufloat_fromstr(kwargs[internal_literature_value])
+                if internal_delta_nu in kwargs.keys():
+                    kwargs[internal_delta_nu] = ufloat_fromstr(kwargs[internal_delta_nu])
 
             print_int("Starting run", kwargs)
             # load and refine data
@@ -199,7 +217,7 @@ def run_star(kwargs: Dict):
             nu_max,n_runs = compute_nu_max(data, f_ampl, kwargs)
 
             if internal_literature_value in kwargs.keys():
-                print_int(f"Nu_max guess: {'%.2f' % nu_max}, literature: {'%.2f' % kwargs[internal_literature_value]}",
+                print_int(f"Nu_max guess: {'%.2f' % nu_max}, literature: {kwargs[internal_literature_value]}",
                           kwargs)
             else:
                 print_int(f"Nu max guess: {'%.2f' % nu_max}", kwargs)

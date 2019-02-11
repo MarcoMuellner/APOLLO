@@ -6,11 +6,11 @@ import matplotlib.image as mpimg
 import numpy as np
 
 from scripts.helper_functions import load_results,get_val,recreate_dir
-from scripts.helper_functions import f_max,full_background
+from scripts.helper_functions import f_max,full_background, delta_nu
 from res.conf_file_str import general_kic,internal_literature_value
 from pandas import DataFrame
 from scipy.optimize import curve_fit
-from uncertainties import ufloat
+from uncertainties import ufloat,ufloat_fromstr
 
 def fit_fun(x,a,b):
     return a+b*x
@@ -45,19 +45,42 @@ res = {
     "image_path":[]
 }
 
+good_list = {
+    (30,40) : [],
+    (40,50) : [],
+    (50,60) : [],
+    (60,70) : [],
+    (70,80) : [],
+}
+
 for path,result,conf in res_list:
-    f_lit = conf["Literature value"]
+    f_lit = ufloat_fromstr(conf[internal_literature_value])
+    f_max_f = get_val(result[full_background],f_max).nominal_value
+    f_guess = result["Nu max guess"]
+
+    if np.abs(f_max_f - f_lit)/f_lit < 0.01 and np.abs(f_guess - f_lit)/f_lit < 0.05:
+        for (minimum,maximum) in good_list.keys():
+            if minimum < f_max_f < maximum:
+                good_list[(minimum,maximum)].append((conf[general_kic],f_lit.std_dev))
+                break
+        print(f"Minima ID: {conf[general_kic]},max : {f_max_f}")
 
     res["id"].append(conf[general_kic])
     res["f_max"].append(get_val(result[full_background],f_max).nominal_value)
     res["f_max_err"].append(get_val(result[full_background], f_max).std_dev)
-    res["f_lit"].append(result[internal_literature_value])
+    res["f_lit"].append(get_val(result,internal_literature_value).nominal_value)
     res["f_guess"].append(result["Nu max guess"])
     res["evidence"].append(result["Conclusion"])
     res["bayes factor"].append(get_val(result,"Bayes factor").nominal_value)
     res["bayes factor error"].append(get_val(result, "Bayes factor").std_dev)
     res["image_path"].append(f"{path}/images")
 
+cnt = 0
+for key,value in good_list.items():
+    np.savetxt(f"{args.output_path}{key[0]}-{key[1]}.txt",np.array(value)[0:10],fmt="%10d %.2f")
+    if cnt >9:
+        break
+    cnt +=1
 
 df = DataFrame(data=res)
 df = df.sort_values(by=['f_lit'])

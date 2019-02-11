@@ -7,7 +7,7 @@ import numpy as np
 # project imports
 from background.backgroundResults import BackgroundResults
 from plotter.plot_handler import plot_f_space,plot_parameter_trend,plot_marginal_distributions
-from res.conf_file_str import internal_literature_value,internal_flag_worked
+from res.conf_file_str import internal_literature_value,internal_flag_worked,internal_delta_nu
 from support.printer import print_int
 from support.exceptions import ResultFileNotFound
 from background.backgroundProcess import BackgroundProcess
@@ -102,7 +102,10 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
     full_res_set["Nu max guess"] = nu_max
 
     if internal_literature_value in kwargs.keys():
-        full_res_set[internal_literature_value] = kwargs[internal_literature_value]
+        full_res_set[internal_literature_value] = f"{kwargs[internal_literature_value]}"
+
+    if internal_delta_nu in kwargs.keys():
+        full_res_set[internal_delta_nu] = f"{kwargs[internal_delta_nu]}"
 
     psd = result_full.powerSpectralDensity
 

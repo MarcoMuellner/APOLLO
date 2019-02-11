@@ -5,6 +5,7 @@ from uncertainties import ufloat_fromstr
 from shutil import rmtree
 
 f_max = "$f_\\mathrm{max}$ "
+delta_nu = "Delta nu"
 
 full_background = "Full Background result"
 

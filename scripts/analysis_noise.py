@@ -11,6 +11,7 @@ from uncertainties import ufloat_fromstr,unumpy as unp,ufloat
 from scipy.optimize import curve_fit
 from os import makedirs
 from shutil import rmtree
+from typing import Union
 
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
@@ -19,7 +20,7 @@ pl.rc('ytick', labelsize='x-small')
 def fit_fun(x,a,b):
     return a+b*np.log(x)
 
-def get_val(dictionary: dict, key: str, default_value=None):
+def get_val(dictionary: dict, key: str, default_value=None) ->Union[ufloat,str,float]:
     if key in dictionary.keys():
         try:
             return ufloat_fromstr(dictionary[key])
@@ -48,7 +49,7 @@ def single_noise_analysis(data_path : str):
         except IndexError:
             continue
 
-        if noise > 6:
+        if noise > 5:
             continue
 
         if 'results.json' not in files or 'conf.json' not in files:
@@ -64,14 +65,20 @@ def single_noise_analysis(data_path : str):
         f = get_val(result["Full Background result"], '$f_\\mathrm{max}$ ')
         f_lit = conf["Literature value"]
 
-        if np.abs(f.nominal_value - f_lit) / f_lit > 0.1:
+        if np.abs(f.nominal_value - f_lit) / f_lit > 0.15:
             print(f"Skipping {path} due to difference between lit and result --> {np.abs(f.nominal_value - f_lit) * 100 / f_lit}")
             print(f"Literature value: {f_lit}")
             print(f"Result value: {f.nominal_value}\n")
             continue
 
+
         w = get_val(result["Full Background result"], "w")
         bayes = get_val(result, "Bayes factor")
+
+        if (h/w).std_dev/(h/w).nominal_value > 0.3:
+            continue
+
+
         run_id = conf['KIC ID']
 
         if run_id not in res.keys():
@@ -94,14 +101,20 @@ def single_noise_analysis(data_path : str):
             "noise": []
         }
         for noise_key, val in res[id_key].items():
-            mean_res[id_key]["w"].append(np.mean(val["w"]))
-            mean_res[id_key]["h"].append(np.mean(val["h"]))
-            mean_res[id_key]["bayes"].append(np.mean(val["bayes"]))
+            if len(val["h"]) <= 2:
+                print(f"Skipping {noise_key} due to too few datapoints")
+                continue
+            mean_res[id_key]["w"].append(np.median(val["w"]))
+            mean_res[id_key]["h"].append(np.median(val["h"]))
+            mean_res[id_key]["bayes"].append(np.median(val["bayes"]))
             mean_res[id_key]["noise"].append(noise_key)
 
     name_list = []
 
     for key, val in mean_res.items():
+        if len(val["h"]) <= 2:
+            print(f"Skipping {key} due to too few datapoints")
+            continue
         np_h = np.array(val["h"])
         np_w = np.array(val["w"])
         np_bayes = np.array(val["bayes"])
@@ -129,8 +142,8 @@ def single_noise_analysis(data_path : str):
         popt, pcov = curve_fit(fit_fun, snr, np_bayes, sigma=np_bayes_err)
         perr = np.sqrt(np.diag(pcov))
 
-        popt_min = popt - 4 * perr
-        popt_max = popt + 4 * perr
+        popt_min = popt - 1 * perr
+        popt_max = popt + 1 * perr
 
         # mask = np.logical_and(np_bayes > 0, np_bayes < 50)
 
@@ -173,8 +186,8 @@ def single_noise_analysis(data_path : str):
     popt, pcov = curve_fit(fit_fun, snr_full, bayes_full, sigma=bayes_full_err)
     perr = np.sqrt(np.diag(pcov))
 
-    popt_min = popt - 4 * perr
-    popt_max = popt + 4 * perr
+    popt_min = popt - 1 * perr
+    popt_max = popt + 1 * perr
 
     fig = pl.figure(figsize=(16, 10))
     pl.errorbar(snr_full, bayes_full, xerr=snr_full_err, yerr=bayes_full_err, fmt='x', color='k')
@@ -216,7 +229,7 @@ def single_noise_analysis(data_path : str):
 res = {}
 
 res[(30,40)] = single_noise_analysis("endurance_results/n_30_40/")
-#res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
+res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
 #res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
 #res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
 #res[(70,80)] = single_noise_analysis("endurance_results/n_70_80/")
@@ -232,7 +245,8 @@ c = 0
 for key,value in res.items():
     fit_snr = np.linspace(min(value["SNR"]) * 0.9, max(value["SNR"]),1000)
 
-    popt, pcov = curve_fit(fit_fun, value["SNR"], value["Bayes"],sigma=value["Bayes_err"])
+    bounds =[[0,-np.inf],[np.inf,np.inf]]
+    popt, pcov = curve_fit(fit_fun, value["SNR"], value["Bayes"],sigma=value["Bayes_err"],bounds=bounds)
     perr = np.sqrt(np.diag(pcov))
 
     a = ufloat(popt[0], perr[0])
@@ -249,8 +263,8 @@ for key,value in res.items():
     print(f"Boundary moderate evidence: {snr_moderate}")
     print(f"Boundary zero: {snr_zero}\n")
 
-    popt_min = popt - 4 * perr
-    popt_max = popt + 4 * perr
+    popt_min = popt - 1 * perr
+    popt_max = popt + 1 * perr
 
     pl.errorbar(value["SNR"], value["Bayes"],color=c_l[c], xerr=value["SNR_err"], yerr=value["Bayes_err"], fmt='x',label=f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
     pl.plot(fit_snr, fit_fun(fit_snr, *popt), color=c_l[c],linewidth=2,alpha=0.7)

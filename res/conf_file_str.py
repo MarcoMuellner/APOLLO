@@ -31,8 +31,8 @@ cat_plot = "Plot"
 #List of ids
 analysis_list_of_ids = "List of IDs"
 #Internal
-internal_literature_value = "Literature value"
-internal_delta_nu = "Literature value"
+internal_literature_value = "Literature value nu max"
+internal_delta_nu = "Literature value delta nu"
 internal_flag_worked = "Run worked flag"
 internal_noise_value = "Noise value"
 internal_run_number = "Run number"
