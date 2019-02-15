@@ -4,25 +4,60 @@ from typing import Dict
 import numpy as np
 from scipy.signal import periodogram, butter, filtfilt
 from astropy.convolution import convolve, Box1DKernel
+from astropy.stats import LombScargle
+import matplotlib.pyplot as pl
+from scipy.integrate import simps
 
 
 # project imports
+
+def window_function(df,nyq,ls,width = None, oversampling = 10):
+    if width is None:
+        width = 100 * df
+
+    freq_cen = 0.5 * nyq
+    Nfreq = int(oversampling * width /df)
+    freq = freq_cen + (df / oversampling) * np.arange(-Nfreq, Nfreq, 1)
+
+    x = 0.5 * np.sin(2 * np.pi * freq_cen * ls.t) + 0.5 * np.cos(2 * np.pi * freq_cen * ls.t)
+
+    # Calculate power spectrum for the given frequency range:
+    ls = LombScargle(ls.t, x, center_data=True)
+    power = ls.power(freq, method='fast', normalization='psd', assume_regular_frequency=True)
+    power /= power[int(len(power) / 2)]  # Normalize to have maximum of one
+
+    freq -= freq_cen
+    freq *= 1e6
+    return freq, power
+
+def fundamental_spacing_integral(df,nyq,ls):
+    freq, window = window_function(df,nyq,ls,width=100*df, oversampling=5)
+    df = simps(window, freq)
+    return df*1e-6
 
 def compute_periodogram(data: np.ndarray) -> np.ndarray:
     """
     Computes a given periodogram from the lightcurve
     :param data: Lightcurve dataset
-    :param kwargs: Run configuration
     :return: Periodogram from the dataset
     """
-    fs = 1 / ((data[0][10] - data[0][9]) * 24 * 3600)  # doesnt matter which timepoint is used.
-    f, psd = periodogram(data[1], fs, scaling='density')
-    f = f * 10 ** 6
-    psd = np.divide(psd[1:], 10 ** 6)
-    f = f[1:]
-    return np.array((f, psd))
+    indx = np.isfinite(data[1])
+    df = 1 / (86400 * (np.amax(data[0][indx]) - np.amin(data[0][indx])))  # Hz
+    ls = LombScargle(data[0][indx] * 86400, data[1][indx], center_data=True)
+    nyq = 1/(2*86400*np.median(np.diff(data[0][indx])))
 
+    df = fundamental_spacing_integral(df,nyq,ls)
 
+    freq = np.arange(df ,nyq, df)
+    power = ls.power(freq, normalization='psd', method='fast', assume_regular_frequency=True)
+
+    N = len(ls.t)
+    tot_MS = np.sum((ls.y - np.mean(ls.y)) ** 2) / N
+    tot_lomb = np.sum(power)
+    normfactor = tot_MS / tot_lomb
+    freq *=10**6
+    power *= normfactor/(df*10**6)
+    return np.array((freq,power))
 def get_time_step(data: np.ndarray) -> float:
     """
     Returns the most common time steps in the datapoints.
@@ -43,6 +78,15 @@ def nyqFreq(data: np.ndarray) -> float:
     """
     t_diff = get_time_step(data) * 24 * 3600  # convert mostcommon to seconds
     return 10 ** 6 / (2 * t_diff)  # return Nyquist
+
+def nyqFreq_c_d(data: np.ndarray) -> float:
+    """
+    Computes the nyquist frequency according to the nyquist theorem.
+    :param data: Timeseries dataset. Time needs to be in days
+    :return: Nyquist frequency in uHz
+    """
+    t_diff = get_time_step(data)  # convert mostcommon to seconds
+    return 1 / (2 * t_diff)  # return Nyquist
 
 
 def boxcar_smoothing(data: np.ndarray, smooth: int = 100) -> np.ndarray:
@@ -108,3 +152,5 @@ def background_model(psd: np.ndarray, nyq: float, w: float, sigma_long: float, f
         retVal = zeta * h_long * r, zeta * h_gran1 * r, zeta * h_gran2 * r, w
 
     return retVal
+
+

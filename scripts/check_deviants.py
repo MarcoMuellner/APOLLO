@@ -38,21 +38,24 @@ def press(event):
 path_list = []
 
 print(len(res_list))
-sigma = 0.05
+sigma = 0.1
 
 redo_list = []
 
 for path, result, conf in res_list:
     f_max_f = get_val(result[full_background], f_max)
-    f_lit = ufloat_fromstr(result[internal_literature_value])
     f_guess = result["Nu max guess"]
-    kic_id = conf[general_kic]
+    try:
+        f_lit = ufloat_fromstr(result[internal_literature_value])
+        if np.abs(f_max_f - f_lit) < f_lit.std_dev:
+            continue
 
-    if np.abs(f_max_f - f_lit) < f_lit.std_dev:
-        continue
+    except:
+        f_lit = result["Literature value"]
 
     if np.abs(f_max_f - f_lit) / f_lit < sigma:
         continue
+    kic_id = conf[general_kic]
 
     app = conf[general_kic]
 
@@ -63,7 +66,7 @@ for path, result, conf in res_list:
     image_guess = mpimg.imread(f"{path}/images/PSD_guess_full_fit_{app}_.png")
     image_fit = mpimg.imread(f"{path}/images/PSD_full_fit_{app}_.png")
 
-    fig : Figure = pl.figure(figsize=(16, 6))
+    fig : Figure = pl.figure(figsize=(18, 10))
     #fig.subplots_adjust(wspace=0.05)
     fig.suptitle(path)
     ax_guess : Axes = fig.add_subplot(121)

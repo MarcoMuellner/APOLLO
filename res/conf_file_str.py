@@ -36,4 +36,7 @@ internal_delta_nu = "Literature value delta nu"
 internal_flag_worked = "Run worked flag"
 internal_noise_value = "Noise value"
 internal_run_number = "Run number"
+internal_mag_value = "Magnitude"
+internal_teff = "T_eff"
+internal_path = "Working Path"
 

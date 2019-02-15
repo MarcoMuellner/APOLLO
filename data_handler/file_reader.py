@@ -139,7 +139,7 @@ def list_available_files_in_path(kwargs, filter=[".txt", ".fits",".dat"]):
                 resultList.append(file)
 
     if resultList == []:
-        print_int("NoFile",kwargs)
+        #print_int("NoFile",kwargs)
         raise InputFileNotFound("No files found",kwargs)
 
     return resultList

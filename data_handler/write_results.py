@@ -15,7 +15,7 @@ from background.fileModels.bg_file_creator import nsmc_configuring_parameters
 from evaluators.compute_delta_nu import get_delta_nu
 
 
-def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, n_runs : int,kwargs: Dict):
+def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, f_list : List[float],f_fliper : float,kwargs: Dict):
     np.savetxt("lc.txt", data)
 
     res_set,psd,err, exception_text = compose_results(priors,nu_max,params,data,kwargs)
@@ -24,7 +24,8 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
         res_set["{key}: Number of runs"] = val
 
     res_set["NSMC configuring parameters"] = nsmc_configuring_parameters().tolist()
-    res_set["Number of iterations"] = n_runs
+    res_set["List of Frequencies"] = f_list
+    res_set["Fliper frequency"] = f_fliper
 
     np.savetxt("psd.txt",psd)
 

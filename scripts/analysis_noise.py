@@ -7,11 +7,12 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent
 import numpy as np
-from uncertainties import ufloat_fromstr,unumpy as unp,ufloat
+from uncertainties import ufloat_fromstr,unumpy as unp,ufloat,nominal_value,std_dev
 from scipy.optimize import curve_fit
 from os import makedirs
 from shutil import rmtree
 from typing import Union
+from res.conf_file_str import internal_literature_value
 
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
@@ -28,6 +29,18 @@ def get_val(dictionary: dict, key: str, default_value=None) ->Union[ufloat,str,f
             return dictionary[key]
     else:
         return default_value
+
+def running_mean(x, y):
+    arg_sort = np.argsort(x)
+    ret_mean = []
+    ret_std = []
+    window = 8
+    for i in range(0, len(y)):
+        up = i+ window if i+window <= len(y) else len(y)
+        ret_mean.append(np.mean(y[arg_sort][i:up]))
+        ret_std.append(np.std(y[arg_sort][i:up]))
+
+    return x[arg_sort],np.array(ret_mean),np.array(ret_std)
     
 def single_noise_analysis(data_path : str):
     try:
@@ -49,8 +62,8 @@ def single_noise_analysis(data_path : str):
         except IndexError:
             continue
 
-        if noise > 5:
-            continue
+        #if noise > 5:
+        #    continue
 
         if 'results.json' not in files or 'conf.json' not in files:
             continue
@@ -63,7 +76,10 @@ def single_noise_analysis(data_path : str):
 
         h = get_val(result["Full Background result"], "$H_\\mathrm{osc}$")
         f = get_val(result["Full Background result"], '$f_\\mathrm{max}$ ')
-        f_lit = conf["Literature value"]
+        try:
+            f_lit = ufloat_fromstr(result[internal_literature_value]).nominal_value
+        except:
+            continue
 
         if np.abs(f.nominal_value - f_lit) / f_lit > 0.15:
             print(f"Skipping {path} due to difference between lit and result --> {np.abs(f.nominal_value - f_lit) * 100 / f_lit}")
@@ -74,6 +90,10 @@ def single_noise_analysis(data_path : str):
 
         w = get_val(result["Full Background result"], "w")
         bayes = get_val(result, "Bayes factor")
+
+        if bayes < 0:
+            print(f"Skipping {path}, bayes < 0")
+            continue
 
         if (h/w).std_dev/(h/w).nominal_value > 0.3:
             continue
@@ -101,12 +121,12 @@ def single_noise_analysis(data_path : str):
             "noise": []
         }
         for noise_key, val in res[id_key].items():
-            if len(val["h"]) <= 2:
+            if len(val["h"]) <= 1:
                 print(f"Skipping {noise_key} due to too few datapoints")
                 continue
-            mean_res[id_key]["w"].append(np.median(val["w"]))
-            mean_res[id_key]["h"].append(np.median(val["h"]))
-            mean_res[id_key]["bayes"].append(np.median(val["bayes"]))
+            mean_res[id_key]["w"].append(np.mean(val["w"]))
+            mean_res[id_key]["h"].append(np.mean(val["h"]))
+            mean_res[id_key]["bayes"].append(np.mean(val["bayes"]))
             mean_res[id_key]["noise"].append(noise_key)
 
     name_list = []
@@ -139,7 +159,8 @@ def single_noise_analysis(data_path : str):
 
         fit_snr = np.linspace(min(snr) * 0.9, max(snr), 1000)
 
-        popt, pcov = curve_fit(fit_fun, snr, np_bayes, sigma=np_bayes_err)
+        nans = np.logical_not(np.isnan(np_bayes))
+        popt, pcov = curve_fit(fit_fun, snr[nans], np_bayes[nans], sigma=np_bayes_err[nans])
         perr = np.sqrt(np.diag(pcov))
 
         popt_min = popt - 1 * perr
@@ -158,11 +179,15 @@ def single_noise_analysis(data_path : str):
         ax.set_xlabel("Noise value")
         ax.set_ylabel("Bayes")
 
+        x, running_mean_values, running_std = running_mean(snr[nans], np_bayes[nans])
+        lower_std = running_mean_values - 1 * running_std
+        upper_std = running_mean_values + 1 * running_std
+
         ax: Axes = fig.add_subplot(1, 2, 2)
         ax.errorbar(snr, np_bayes, xerr=snr_err, yerr=np_bayes_err, fmt='x', color='k')
         ax.axhline(y=5, linestyle='dashed', color='black', label='Strong evidence')
-        ax.plot(fit_snr, fit_fun(fit_snr, *popt), color='red', label='Fit', linewidth=2)
-        ax.fill_between(fit_snr, fit_fun(fit_snr, *popt_min), fit_fun(fit_snr, *popt_max), color='red', alpha=0.1)
+        ax.plot(x, running_mean_values, color='red', label='Fit', linewidth=2)
+        ax.fill_between(x, lower_std,upper_std, color='red', alpha=0.1)
         ax.plot(fit_snr, fit_fun(fit_snr, *popt_min), color='red', linewidth=2, alpha=0.5)
         ax.plot(fit_snr, fit_fun(fit_snr, *popt_max), color='red', linewidth=2, alpha=0.5)
         ax.set_xscale('log')
@@ -183,18 +208,32 @@ def single_noise_analysis(data_path : str):
 
     fit_snr = np.linspace(min(snr_full) * 0.9, max(snr_full), 1000)
 
-    popt, pcov = curve_fit(fit_fun, snr_full, bayes_full, sigma=bayes_full_err)
+    nans = np.logical_not(np.isnan(bayes_full))
+    popt, pcov = curve_fit(fit_fun, snr_full[nans], bayes_full[nans], sigma=bayes_full_err[nans])
     perr = np.sqrt(np.diag(pcov))
 
     popt_min = popt - 1 * perr
     popt_max = popt + 1 * perr
 
+    a = ufloat(popt[0], perr[0])
+    b = ufloat(popt[1], perr[1])
+    fit_values = fit_fun(snr_full, a, b)
+    for i in np.where(np.abs(unp.nominal_values(fit_values) - bayes_full) > 4 * unp.std_devs(fit_values))[0]:
+        sigma = float(np.abs(unp.nominal_values(fit_values[i]) - bayes_full[i])/unp.std_devs(fit_values[i]))
+        print(f"{name_list[i]} : {' % .2f' % sigma}sigma")
+        print(f"Expected: {unp.nominal_values(fit_values[i])}")
+        print(f"Got: {bayes_full[i]}\n")
+
+    x, running_mean_values, running_std = running_mean(snr_full[nans], bayes_full[nans])
+    lower_std = running_mean_values - 1 * running_std
+    upper_std = running_mean_values + 1 * running_std
+
     fig = pl.figure(figsize=(16, 10))
     pl.errorbar(snr_full, bayes_full, xerr=snr_full_err, yerr=bayes_full_err, fmt='x', color='k')
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt), color='red', label='Fit', linewidth=2)
-    pl.fill_between(fit_snr, fit_fun(fit_snr, *popt_min), fit_fun(fit_snr, *popt_max), color='red', alpha=0.1)
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color='red', linewidth=2, alpha=0.5)
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color='red', linewidth=2, alpha=0.5)
+    pl.plot(x, running_mean_values, color='red', label='Fit', linewidth=2)
+    pl.fill_between(x, lower_std, upper_std, color='red', alpha=0.1)
+    #pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color='red', linewidth=2, alpha=0.5)
+    #pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color='red', linewidth=2, alpha=0.5)
     pl.axhline(y=5, linestyle='dashed', color='black', label='Strong evidence')
     # pl.axhline(y=2.5, linestyle='dotted', color='red', label='Moderate evidence')
     # pl.yscale('log')
@@ -246,12 +285,12 @@ for key,value in res.items():
     fit_snr = np.linspace(min(value["SNR"]) * 0.9, max(value["SNR"]),1000)
 
     bounds =[[0,-np.inf],[np.inf,np.inf]]
-    popt, pcov = curve_fit(fit_fun, value["SNR"], value["Bayes"],sigma=value["Bayes_err"],bounds=bounds)
+    nans = np.logical_not(np.isnan(value["Bayes"]))
+    popt, pcov = curve_fit(fit_fun, value["SNR"][nans], value["Bayes"][nans],sigma=value["Bayes_err"][nans],bounds=bounds)
     perr = np.sqrt(np.diag(pcov))
 
     a = ufloat(popt[0], perr[0])
     b = ufloat(popt[1], perr[1])
-
 
     snr_strong = 10 ** ((5 - a) / b)
     snr_moderate = 10 ** ((3 - a) / b)
@@ -266,11 +305,15 @@ for key,value in res.items():
     popt_min = popt - 1 * perr
     popt_max = popt + 1 * perr
 
+    x, running_mean_values, running_std = running_mean(value["SNR"][nans], value["Bayes"][nans])
+    lower_std = running_mean_values - 1*running_std
+    upper_std = running_mean_values + 1*running_std
+
     pl.errorbar(value["SNR"], value["Bayes"],color=c_l[c], xerr=value["SNR_err"], yerr=value["Bayes_err"], fmt='x',label=f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt), color=c_l[c],linewidth=2,alpha=0.7)
-    pl.fill_between(fit_snr, fit_fun(fit_snr, *popt_min), fit_fun(fit_snr, *popt_max), color=c_l[c], alpha=0.1)
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color=c_l[c], linewidth=2, alpha=0.5)
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color=c_l[c], linewidth=2, alpha=0.5)
+    pl.plot(x, running_mean_values, color=c_l[c], linewidth=2, alpha=0.7)
+    pl.fill_between(x, lower_std, upper_std, color=c_l[c], alpha=0.1)
+    #pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color=c_l[c], linewidth=2, alpha=0.5)
+    #pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color=c_l[c], linewidth=2, alpha=0.5)
     pl.xscale('log')
     pl.legend()
     pl.xlabel("Signal to noise ratio")

@@ -94,7 +94,7 @@ ax_guess : Axes = fig.add_subplot(111)
 ax_guess.plot(df.f_lit,df.f_delta,'o',markersize=2,color='k')
 ax_guess.plot(df.f_lit,df.f_lit,linewidth=2,color='gray',alpha=0.8)
 ax_guess.set_xlabel(r"$\Delta\nu_{{literature}}$")
-ax_guess.set_ylabel(r"$\Delta\nu_{{max,guess}}$")
+ax_guess.set_ylabel(r"$\Delta\nu$")
 
 def onclick(event):
     print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
