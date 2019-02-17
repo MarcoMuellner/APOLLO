@@ -23,7 +23,7 @@ parser.add_argument("input_path", help="Result path for a given dataset", type=s
 
 args = parser.parse_args()
 
-res_list = load_results(args.input_path, ["checked.txt"])
+res_list = load_results(args.input_path)#, ["checked.txt"])
 
 
 class b:
@@ -38,7 +38,7 @@ def press(event):
 path_list = []
 
 print(len(res_list))
-sigma = 0.1
+sigma = 0.5
 
 redo_list = []
 

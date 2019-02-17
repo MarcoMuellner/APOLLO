@@ -1,0 +1,26 @@
+{
+  "General": {
+    "Binary path": "/home/marco/prog/Background/build/",
+    "Background result path": "/home/marco/prog/Background/results/",
+    "Background data path": "/home/marco/prog/Background/data/",
+    "Path for results": "/home/marco/prog/LCA/ys_results_golden_sample_reduced/",
+    "Number of cores used": 32,
+    "Sequential run": false
+  },
+  "Files": {
+    "Flux column": "FLUX",
+    "Time column": "TIME",
+    "Data column for hdulist": 1,
+    "Skipped rows in ascii file": 1,
+    "Used columns in ascii file": null
+  },
+  "Analysis": {
+    "Paths to lightcurves": "/home/marco/Sterndaten/golden_sample_smoothed/",
+    "Prefix of folder": "YS"
+  },
+  "Plot": {
+    "Show plots": false,
+    "Save plots": true
+  },
+  "List of IDs": "ys_golden_sample.txt"
+}

@@ -1,0 +1,25 @@
+{
+  "General": {
+    "Binary path": "/home/marco/prog/Background/build/",
+    "Background result path": "/home/marco/prog/Background/results/",
+    "Background data path": "/home/marco/prog/Background/data/",
+    "Path for results": "/home/marco/prog/LCA/rg_results/",
+    "Number of cores used": 30
+  },
+  "Files": {
+    "Flux column": "SAP_FLUX",
+    "Time column": "TIME",
+    "Data column for hdulist": 0,
+    "Skipped rows in ascii file": 1,
+    "Used columns in ascii file": null
+  },
+  "Analysis": {
+    "Paths to lightcurves": "/home/marco/Sterndaten/RG_ENRICO/",
+    "Prefix of folder": "RG"
+  },
+  "Plot": {
+    "Show plots": false,
+    "Save plots": true
+  },
+  "List of IDs": "rg_enrico_targets.txt"
+}

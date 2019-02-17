@@ -1,0 +1,41 @@
+{
+  "General": {
+    "Binary path": "/home/marco/prog/Background/build/",
+    "Background result path": "/home/marco/prog/Background/results/",
+    "Background data path": "/home/marco/prog/Background/data/",
+    "Path for results": "/home/marco/prog/LCA/8694723_split_up/",
+    "Number of cores used": 32,
+    "Sequential run": true
+  },
+  "Files": {
+    "Flux column": "SAP_FLUX",
+    "Time column": "TIME",
+    "Data column for hdulist": 0,
+    "Skipped rows in ascii file": 0,
+    "Used columns in ascii file": [
+      0,
+      1
+    ]
+  },
+  "Analysis": {
+    "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_targets_dwarfs/split_up_data/",
+    "Prefix of folder": "APO"
+  },
+  "Plot": {
+    "Show plots": false,
+    "Save plots": true
+  },
+  "List of IDs": [[86947230,1471],
+    [86947231,1471],
+    [86947232,1471],
+    [86947233,1471],
+    [86947234,1471],
+    [86947235,1471],
+    [86947236,1471],
+    [86947237,1471],
+    [86947238,1471],
+    [86947239,1471],
+    [86947230,1471],
+    [86947231,1471]
+  ]
+}

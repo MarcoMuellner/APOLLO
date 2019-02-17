@@ -14,7 +14,9 @@ args = parser.parse_args()
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
-    with open(args.runfile, 'r') as f:
+    conf_file_list = args.runfile.split(",")
+
+    with open(conf_file_list[0], 'r') as f:
         kwargs = json.load(f)
 
     try:

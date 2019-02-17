@@ -7,7 +7,7 @@ import numpy as np
 
 from scripts.helper_functions import load_results,get_val,recreate_dir
 from scripts.helper_functions import f_max,full_background, delta_nu
-from res.conf_file_str import general_kic,internal_literature_value
+from res.conf_file_str import general_kic,internal_literature_value,internal_delta_nu,internal_mag_value,internal_teff
 from pandas import DataFrame
 from scipy.optimize import curve_fit
 from uncertainties import ufloat,ufloat_fromstr
@@ -55,13 +55,14 @@ good_list = {
 
 for path,result,conf in res_list:
     f_lit = ufloat_fromstr(conf[internal_literature_value])
+    f_delta_nu = ufloat_fromstr(conf[internal_delta_nu])
     f_max_f = get_val(result[full_background],f_max).nominal_value
     f_guess = result["Nu max guess"]
 
     if np.abs(f_max_f - f_lit)/f_lit < 0.01 and np.abs(f_guess - f_lit)/f_lit < 0.05:
         for (minimum,maximum) in good_list.keys():
             if minimum < f_max_f < maximum:
-                good_list[(minimum,maximum)].append((conf[general_kic],f_lit.std_dev))
+                good_list[(minimum,maximum)].append((conf[general_kic],f_lit.nominal_value,f_lit.std_dev,f_delta_nu.nominal_value,f_delta_nu.std_dev,conf[internal_mag_value],conf[internal_teff]))
                 break
         print(f"Minima ID: {conf[general_kic]},max : {f_max_f}")
 
@@ -77,7 +78,14 @@ for path,result,conf in res_list:
 
 cnt = 0
 for key,value in good_list.items():
-    np.savetxt(f"{args.output_path}{key[0]}-{key[1]}.txt",np.array(value)[0:10],fmt="%10d %.2f")
+    arr = np.array(value,dtype={
+        'names':['id','nu_max','nu_max_err','delta_nu','delta_nu_err','mag','T_eff'],
+        'formats': ['i4', 'f4', 'f4', 'f4', 'f4', 'f4','i4'],
+    })
+    #'formats': ['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.2f', '%d'],
+    np.savetxt(f"{args.output_path}/{key[0]}-{key[1]}.txt",arr[0:10]
+               ,fmt=['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.2f', '%d'],
+               header='id nu_max nu_max_err delta_nu delta_nu_err mag T_eff')
     if cnt >9:
         break
     cnt +=1

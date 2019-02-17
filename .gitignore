@@ -105,13 +105,11 @@ venv.bak/
 
 endurance_results/
 
-sample_lists/
-
-run_cfg/
-
 .idea/
 
 noise_results/
 
 .DS_Store
 acf_out/
+
+results/

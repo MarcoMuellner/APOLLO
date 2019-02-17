@@ -22,7 +22,7 @@ def fit_fun(x,a,b):
     return a+b*np.log(x)
 
 def get_val(dictionary: dict, key: str, default_value=None) ->Union[ufloat,str,float]:
-    if key in dictionary.keys():
+    if key  in dictionary.keys():
         try:
             return ufloat_fromstr(dictionary[key])
         except (ValueError, AttributeError) as e:
@@ -267,8 +267,8 @@ def single_noise_analysis(data_path : str):
 
 res = {}
 
-res[(30,40)] = single_noise_analysis("endurance_results/n_30_40/")
-res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
+res[(30,40)] = single_noise_analysis("n_30_40/")
+#res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
 #res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
 #res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
 #res[(70,80)] = single_noise_analysis("endurance_results/n_70_80/")

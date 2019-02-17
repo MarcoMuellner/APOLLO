@@ -1,0 +1,26 @@
+{
+  "General": {
+    "Binary path": "/Users/marco/Documents/Dev/Background/build/",
+    "Background result path": "/Users/marco/Documents/Dev/Background/results/",
+    "Background data path": "/Users/marco/Documents/Dev/Background/data/",
+    "Path for results": "/Users/marco/Documents/Dev/LCA/redo_result/",
+    "Number of cores used": 1,
+    "Sequential run": true
+  },
+  "Files": {
+    "Flux column": "FLUX",
+    "Time column": "TIME",
+    "Data column for hdulist": 1,
+    "Skipped rows in ascii file": 1,
+    "Used columns in ascii file": null
+  },
+  "Analysis": {
+    "Paths to lightcurves": "/Users/marco/Google_Drive/Astroseismology/Sterndaten/APOKASC_targets/",
+    "Prefix of folder": "REDO"
+  },
+  "Plot": {
+    "Show plots": false,
+    "Save plots": true
+  },
+   "List of IDs": "sample_lists/apokasc_targets_1000.txt"
+}
