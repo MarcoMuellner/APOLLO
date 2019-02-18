@@ -3,10 +3,9 @@
     "Binary path": "/home/marco/prog/Background/build/",
     "Background result path": "/home/marco/prog/Background/results/",
     "Background data path": "/home/marco/prog/Background/data/",
-    "Path for results": "/home/marco/prog/LCA/n_30_40/",
-    "Number of cores used": 32,
-    "Sequential run": false,
-    "Temperature": 4500
+    "Path for results": "/home/marco/prog/LCA/results/n_30_40/",
+    "Number of cores used": 10,
+    "Sequential run": false
   },
   "Files": {
     "Flux column": "SAP_FLUX",

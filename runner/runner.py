@@ -232,7 +232,7 @@ def run_star(kwargs: Dict):
 
             create_files(data, nyqFreq(data), prior, kwargs)
             proc = BackgroundProcess(kwargs)
-            proc.run()
+            #proc.run()
 
             print_int("Saving results", kwargs)
             # save results

@@ -135,14 +135,9 @@ def compute_fliper_exact(data_f : np.ndarray,kwargs : Dict) -> Union[float,None]
     Fp7 = Fliper_20_d.fp7[0]
     Fp20 = Fliper_20_d.fp20[0]
     Fp50 = Fliper_20_d.fp50[0]
-    logg = ML().PREDICTION(T_eff, mag, Fp02, Fp07, Fp7, Fp20, Fp50, f"{kwargs[internal_path]}/FLIPER/ML_logg_training_paper")
+    numax = 10 ** (ML().PREDICTION(T_eff, mag, Fp02, Fp07, Fp7, Fp20, Fp50, f"{kwargs[internal_path]}/FLIPER/ML_numax_training_paper"))
 
-    t_sun = 5778
-    nu_max_sun = 3090
-    logg_sun = 4.44
-
-    nu_max = (10 ** logg / 10 ** logg_sun) * 1 / unp.sqrt(T_eff / t_sun) * nu_max_sun
-    return nu_max[0]
+    return float(numax[0])
 
 def compute_fliper_nu_max(f_data : np.ndarray,kwargs : Dict) -> Union[float,None]:
     ret_dict = {}
@@ -244,14 +239,7 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> Tuple[fl
     :param f_flicker: flicker frequency from the flicker amplitude. In uHz
     :return: guess for nu_max. In uHz
     """
-    f_fliper = compute_fliper_nu_max(compute_periodogram(data), kwargs)
-    if f_fliper != {}:
-        if "Fliper exact" in f_fliper.keys():
-            f = f_fliper["Fliper exact"]
-        else:
-            f = f_fliper["Fliper rough"]
 
-        return f,{},f_fliper
     f_list = []
 
     f_list.append((f_flicker, rf"F_flicker_{'%.2f' % f_flicker}$\mu Hz$"))
@@ -288,4 +276,12 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> Tuple[fl
     f_list_ret = {}
     for val,name in f_list:
         f_list_ret[name] = val
+
+    f_fliper = compute_fliper_nu_max(compute_periodogram(data), kwargs)
+    if f_fliper != {}:
+        if "Fliper exact" in f_fliper.keys():
+            f = f_fliper["Fliper exact"]
+        else:
+            f = f_fliper["Fliper rough"]
+
     return f,f_list_ret,f_fliper

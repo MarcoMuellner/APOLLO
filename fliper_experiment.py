@@ -65,7 +65,7 @@ with warnings.catch_warnings():
 
         print(f"ID: {i[general_kic]}")
         print(f"lit: {i[internal_literature_value]}")
-        print(f"ACF: {nu_max_it}")
+        print(f"ACF: {f_list[list(f_list.keys())[-1]]}")
         print(f"List: {f_list}")
         print(f"nu_max Flipper: {f_fliper}")
         if internal_noise_value in i.keys():

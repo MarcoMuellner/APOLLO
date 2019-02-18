@@ -5,8 +5,7 @@
     "Background data path": "/home/marco/prog/Background/data/",
     "Path for results": "/home/marco/prog/LCA/n_40_50/",
     "Number of cores used": 32,
-    "Sequential run": false,
-    "Temperature": 4500
+    "Sequential run": false
   },
   "Files": {
     "Flux column": "SAP_FLUX",

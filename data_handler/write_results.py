@@ -16,9 +16,10 @@ from evaluators.compute_delta_nu import get_delta_nu
 
 
 def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, f_list : List[float],f_fliper : float,kwargs: Dict):
-    np.savetxt("lc.txt", data)
+    np.save("lc", data)
 
     res_set,psd,err, exception_text = compose_results(priors,nu_max,params,data,kwargs)
+    np.save("psd",psd)
 
     for key,val in proc.run_count.items():
         res_set["{key}: Number of runs"] = val
@@ -27,7 +28,6 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
     res_set["List of Frequencies"] = f_list
     res_set["Fliper frequency"] = f_fliper
 
-    np.savetxt("psd.txt",psd)
 
     with open("results.json", 'w') as f:
         json.dump(res_set, f, indent=4)
