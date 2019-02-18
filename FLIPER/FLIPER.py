@@ -62,11 +62,11 @@ class FLIPER:
         """
         star_tab_psd_20 =   DATA_PREPARATION().APODIZATION(star_tab_psd_20)
         end_20          =   (np.amax(DATA_PREPARATION().GET_ARRAY(star_tab_psd_20)[0]*1e6))
-        noise           =   DATA_PREPARATION().MAG_COR_KEP(star_tab_psd_20, kepmag)
-        Fp07_val        =   DATA_PREPARATION().REGION(star_tab_psd_20, 0.7, end_20) - noise
-        Fp7_val         =   DATA_PREPARATION().REGION(star_tab_psd_20, 7, end_20) - noise
-        Fp20_val        =   DATA_PREPARATION().REGION(star_tab_psd_20, 20, end_20) - noise
-        Fp50_val        =   DATA_PREPARATION().REGION(star_tab_psd_20, 50, end_20) - noise
+        noise_jenkins           =   DATA_PREPARATION().MAG_COR_KEP(star_tab_psd_20, kepmag)
+        Fp07_val        =   DATA_PREPARATION().REGION(star_tab_psd_20, 0.7, end_20) - noise_jenkins
+        Fp7_val         =   DATA_PREPARATION().REGION(star_tab_psd_20, 7, end_20) - noise_jenkins
+        Fp20_val        =   DATA_PREPARATION().REGION(star_tab_psd_20, 20, end_20) - noise_jenkins
+        Fp50_val        =   DATA_PREPARATION().REGION(star_tab_psd_20, 50, end_20) - noise_jenkins
         sig_Fp07        =   self.Fp_error(DATA_PREPARATION().CUT_SPECTRA(star_tab_psd_20, 0.7, end_20))
         sig_Fp7         =   self.Fp_error(DATA_PREPARATION().CUT_SPECTRA(star_tab_psd_20, 7, end_20))
         sig_Fp20        =   self.Fp_error(DATA_PREPARATION().CUT_SPECTRA(star_tab_psd_20, 20, end_20))
