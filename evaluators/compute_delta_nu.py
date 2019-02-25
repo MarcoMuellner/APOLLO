@@ -98,14 +98,14 @@ def perform_fit(x : np.ndarray,y : np.ndarray,kwargs):
 
     popt,perr = scipyFit(x,y,gaussian_amp,[initY0,initAmp,initCen,initWid])
 
-    plot_delta_nu_fit(np.array((x,y)),popt,kwargs)
+    return popt,perr
 
-    return ufloat(popt[2],perr[2])
+
 
 
 def get_delta_nu(data: np.ndarray, result: BackgroundResults, kwargs):
     model = result.createBackgroundModel()
-    f_data = compute_periodogram(data)
+    f_data = compute_periodogram(data,kwargs)
 
     background = np.sum(model[:4], axis=0)
 
@@ -134,5 +134,9 @@ def get_delta_nu(data: np.ndarray, result: BackgroundResults, kwargs):
 
     mask = np.logical_and(deltaF > delta_nu/1.4,deltaF < 1.5* delta_nu)
     plot_delta_nu_acf(np.array((deltaF[mask], corrs[mask])), delta_nu, kwargs)
-    delta_nu = perform_fit(deltaF[mask], corrs[mask],kwargs)
+    popt,perr = perform_fit(deltaF[mask], corrs[mask],kwargs)
+    plot_delta_nu_fit(np.array((deltaF[mask], corrs[mask])),popt,kwargs)
+
+    delta_nu = ufloat(popt[2],perr[2])
+
     return delta_nu

@@ -78,7 +78,6 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         None it will read both in the parent directory
         '''
         filesToLoad = []
-        values = []
         dataFolder = self.kwargs[general_background_result_path]
         basePath = dataFolder + "KIC" + self.kicID + "/"
         if self.runID is not None:
@@ -102,16 +101,18 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
             filesToLoad.append(file)
         try:
             for files in filesToLoad:
-                values = values + np.loadtxt(files).T.tolist()
+                try:
+                    values = np.vstack((values,np.loadtxt(files)))
+                except UnboundLocalError:
+                    values = np.loadtxt(files)
         except (FileNotFoundError,IOError) as e:
             pass
 
-        for priorList in values:
-            for it,(priorMin,priorMax) in enumerate(zip(priorList[0],priorList[1])):
-                if len(priorList[0])>7:
-                    self._fullPriors[self._parameterNames[it]] = (priorMin,priorMax)
-                else:
-                    self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
+        for it,(priorMin,priorMax) in enumerate(values):
+            if len(values)>7:
+                self._fullPriors[self._parameterNames[it]] = (priorMin,priorMax)
+            else:
+                self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
 
     def rewritePriors(self,priors : Dict[str,Tuple[float,float]]):
         dataFolder = self.kwargs[general_background_result_path]

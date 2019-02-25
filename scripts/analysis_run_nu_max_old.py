@@ -106,33 +106,8 @@ for path,result,conf in res_list:
     res["bayes factor error"].append(get_val(result, "Bayes factor").std_dev)
     res["image_path"].append(f"{path}/images")
 
-cnt = 0
-for key,value in good_list.items():
-    arr = np.array(value,dtype={
-        'names':['id','nu_max','nu_max_err','delta_nu','delta_nu_err','mag','T_eff'],
-        'formats': ['i4', 'f4', 'f4', 'f4', 'f4', 'f4','i4'],
-    })
-    #'formats': ['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.2f', '%d'],
-    np.savetxt(f"{args.output_path}/{key[0]}-{key[1]}.txt",arr[0:10]
-               ,fmt=['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.2f', '%d'],
-               header='id nu_max nu_max_err delta_nu delta_nu_err mag T_eff')
-    if cnt >9:
-        break
-    cnt +=1
+np.savetxt(f"{args.output_path}/{redo_name}.txt",np.array(redo_list),fmt=['%d','%d','%.2f','%.2f','%.2f','%.2f','%.3f'])
 
-if len(redo_list) > 0:
-    np.savetxt(f'{args.output_path}/{redo_name}',np.array(redo_list)
-                   ,fmt=['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.2f', '%d'],
-                   header='id nu_max nu_max_err delta_nu delta_nu_err mag T_eff')
-
-if len(full_list_noise) > 0:
-    np.savetxt(f'{args.output_path}/noise.txt',np.array(full_list_noise)
-                   ,fmt=['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.2f', '%d'],
-                   header='id nu_max nu_max_err delta_nu delta_nu_err mag T_eff')
-used = len(res["id"])
-
-print(min(res['f_lit']))
-print(max(res['f_lit']))
 df = DataFrame(data=res)
 df = df.sort_values(by=['f_lit'])
 
@@ -201,6 +176,6 @@ def onclick(event):
 cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
 print(f"{ufloat(popt[0],perr[0])},{ufloat(popt[1],perr[1])}")
-print(f"{used}/{total} --> {used*100/total}%")
+#print(f"{used}/{total} --> {used*100/total}%")
 pl.savefig(f"{args.output_path}nu_max_trend.pdf")
 pl.show()

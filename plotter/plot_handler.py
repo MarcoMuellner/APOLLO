@@ -83,7 +83,7 @@ def plot_parameter_trend(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Di
     :param kwargs: Run conf
     """
 
-    fig : Figure = pl.figure(figsize=(15, 9))
+    fig : Figure = pl.figure(figsize=(20, 9))
     y = len(data_dict) // 2 +1
     n = 1
     for name, (values, unit) in data_dict.items():
@@ -91,7 +91,7 @@ def plot_parameter_trend(data_dict : Dict[str,Tuple[np.ndarray,str]],kwargs : Di
             ax : Axes = fig.add_subplot(2,y,n,sharex=ax)
         except UnboundLocalError:
             ax: Axes = fig.add_subplot(2, y, n)
-        ax.plot(values,color='k',linewidth=1)
+        ax.plot(values,'o',color='k',markersize=1)
         ax.set_xlabel("Iteration")
         ax.set_ylabel(unit)
         ax.set_title(name)
@@ -319,7 +319,7 @@ def plot_peridogramm_from_timeseries(data: np.ndarray, kwargs: dict, add_smoothi
     :param add_smoothing: Show smoothing
     :param f_list: List of frequency markers
     """
-    f_space = compute_periodogram(data)
+    f_space = compute_periodogram(data,kwargs)
     plot_f_space(f_space, kwargs, add_smoothing, f_list,bg_model,plot_name)
 
 
@@ -380,4 +380,25 @@ def plot_delta_nu_fit(data : np.ndarray, popt : List[float],kwargs : Dict):
 
     if plot_save in kwargs.keys() and kwargs[plot_save]:
         save_fig(fig, f"ACF_fit_delta_nu{get_appendix(kwargs)}")
+    pl.close(fig)
+
+def plot_nu_max_fit(data : np.ndarray, popt : List[float],old_nu_max :float,kwargs : Dict):
+    fig: Figure = pl.figure(figsize=(10, 6))
+    ax: Axes = fig.add_subplot(111)
+
+    if general_kic in kwargs.keys():
+        ax.set_title(f"KIC{get_appendix(kwargs)}")
+
+    pl.plot(data[0],data[1],color='k',linewidth=2)
+    pl.plot(data[0],gaussian_amp(data[0],*popt),color='red',linewidth=2)
+    pl.axvline(x=popt[2],linestyle='dashed',color='blue',linewidth=2,label=fr"Nu max fitted = {'%.2f' % popt[2]}$\mu$Hz")
+    pl.axvline(x=old_nu_max, linestyle='dashed', color='green', linewidth=2, label=fr"Nu max Diamonds = {'%.2f' % old_nu_max}$\mu$Hz")
+    pl.xlabel("Frequency ($\mu$Hz)")
+    pl.ylabel(r'PSD [ppm$^2$/$\mu$Hz]')
+    pl.legend()
+    if plot_show in kwargs.keys() and kwargs[plot_show]:
+        pl.show(fig)
+
+    if plot_save in kwargs.keys() and kwargs[plot_save]:
+        save_fig(fig, f"Nu_max_fit_gaussian{get_appendix(kwargs)}")
     pl.close(fig)

@@ -67,11 +67,9 @@ def sigma(nu_max: float) -> float:
     :param nu_max: nu_max value determined by pipe
     :return: envelope of oscillation
     """
+    sigma_env = 0.66*pow(nu_max,0.88) #Full Width Half maximum
 
-    k = 1.124
-    s = 0.505
-
-    return k * pow(nu_max, s)
+    return sigma_env*(1/(2*np.sqrt(2*np.log(2))))
 
 
 def amp(nu_max: float, sigma: float, f_data: np.ndarray):
@@ -96,7 +94,7 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
     :param photon_noise: photon_noise determined in signal_features
     :return: List of Lists of priors in correct order
     """
-    f_data = compute_periodogram(data)
+    f_data = compute_periodogram(data,kwargs)
 
     bg_model = background_model(f_data, nyqFreq(data), noise(f_data), harvey_amp(nu_max), first_harvey(nu_max),
                                 harvey_amp(nu_max), second_harvey(nu_max), harvey_amp(nu_max), third_harvey(nu_max),
@@ -122,7 +120,7 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
 
 
     return [
-        [0.5 * noise(f_data)                        , 2 * noise(f_data)],
+        [0.5 * noise(f_data)                        , 2.5 * noise(f_data)],
         [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
         [lower_harvey_1                                      , minimum_percentage_harvey_1*second_harvey(nu_max)],
         [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
@@ -130,6 +128,6 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
         [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
         [0.7 * third_harvey(nu_max)                 , 1.4 * third_harvey(nu_max)],
         [0.1 * amp(nu_max, sigma(nu_max), f_data)  , 3.5 * amp(nu_max, sigma(nu_max), f_data)],
-        [0.7 * nu_max                               , 1.3 * nu_max],
+        [0.75 * nu_max                               , 1.25 * nu_max],
         [0.7 * sigma(nu_max)                       , 1.3 * sigma(nu_max)]
     ],params

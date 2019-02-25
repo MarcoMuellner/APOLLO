@@ -5,6 +5,8 @@ from res.conf_file_str import general_kic,internal_noise_value,internal_run_numb
 import time
 import numpy as np
 import platform
+import datetime
+from res.conf_file_str import general_nr_of_cores
 
 
 def print_int(msg: str, kwargs: Dict):
@@ -18,6 +20,7 @@ class Printer:
     no_file_avail = []
     no_evidence = []
     summary_err = []
+    timer = []
     screen = None
     kill = False
     queue = Queue()
@@ -30,6 +33,9 @@ class Printer:
             while not Printer.queue.empty():
                 val = Printer.queue.get()
                 key = val[1][general_kic]
+                if "time" in val[1].keys():
+                    Printer.timer.append(val[1]["time"]/val[1][general_nr_of_cores])
+
                 if internal_run_number in val[1]:
                     key = f"{key}_r_{val[1][internal_run_number]}"
 
@@ -60,7 +66,7 @@ class Printer:
             return
 
         n = 0
-
+        text = ""
         Printer.screen.clear()
         for key, value in Printer.objMap.items():
             if "Done" in value:
@@ -77,7 +83,9 @@ class Printer:
                 Printer.kill = True
                 return
             try:
-                Printer.screen.print_at(f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n", 0, n, colour=Printer.screen.COLOUR_YELLOW)
+                print_text = f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n"
+                Printer.screen.print_at(print_text, 0, n, colour=Printer.screen.COLOUR_YELLOW)
+                text +=print_text
             except IndexError:
                 pass
             n += 1
@@ -103,8 +111,8 @@ class Printer:
         str_no_evidence = f"No evidence files: {Printer.no_evidence}"
         str_no_file_avail = f"No files ids: {Printer.no_file_avail}"
         str_failed_list = f"Failed ids: {Printer.failed_list}"
-        str_done_list = f"Done ids: {Printer.done_list}"
-        str_current = f"Current ids: {list(Printer.objMap.keys())}"
+        str_done_list = f"Done ids ({len(Printer.done_list)}): {Printer.done_list}"
+        str_current = f"Current ids ({len(Printer.objMap.keys())}): {list(Printer.objMap.keys())}"
 
         summary_err_list = [str_summary_err[i:i + n] for i in range(0, len(str_summary_err), n)]
         no_evidence_list = [str_no_evidence[i:i + n] for i in range(0, len(str_no_evidence), n)]
@@ -119,7 +127,7 @@ class Printer:
         j = 0
 
         total = len(Printer.done_list) + len(Printer.failed_list) + len(Printer.no_file_avail) + \
-                len(Printer.summary_err) + len(Printer.no_evidence) + len(Printer.objMap.keys())
+                len(Printer.summary_err) + len(Printer.no_evidence)
         for i in summary_err_list:
             Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_RED)
             j+=1
@@ -144,7 +152,18 @@ class Printer:
             Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_CYAN)
             j+=1
 
-        Printer.screen.print_at(f"Worked off: {total}/{Printer.total_runs}",0,Printer.screen.height -1,colour=Printer.screen.COLOUR_WHITE)
+        if Printer.timer != []:
+            time_left = str(datetime.timedelta(seconds=float(np.mean(np.array(Printer.timer))*(Printer.total_runs - total))))
+        else:
+            time_left = f"{np.nan}"
+
+        worked_off_str = f"Worked off: {total}/{Printer.total_runs}, time left: {time_left}"
+        Printer.screen.print_at(worked_off_str,0,Printer.screen.height -1,colour=Printer.screen.COLOUR_WHITE)
+        with open('worked_off.txt','w') as f:
+            f.write(text)
+            f.write(f"{done_list}\n")
+            f.write(f"{current_list}\n")
+            f.writelines(worked_off_str)
 
         Printer.screen.refresh()
 

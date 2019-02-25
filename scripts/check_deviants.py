@@ -17,13 +17,9 @@ pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
 pl.rc('ytick', labelsize='x-small')
 
-parser = argparse.ArgumentParser()
+input_path = ["../results/apokasc_results_full"]
 
-parser.add_argument("input_path", help="Result path for a given dataset", type=str)
-
-args = parser.parse_args()
-
-res_list = load_results(args.input_path)#, ["checked.txt"])
+res_list = load_results(input_path[0], ["checked.txt"])
 
 
 class b:
@@ -45,16 +41,19 @@ redo_list = []
 for path, result, conf in res_list:
     f_max_f = get_val(result[full_background], f_max)
     f_guess = result["Nu max guess"]
+    if get_val(result,"Bayes factor").nominal_value < 5:
+        print(f"Skpping {conf[general_kic]} --> bayes value: {get_val(result,'Bayes factor')}")
+        continue
     try:
         f_lit = ufloat_fromstr(result[internal_literature_value])
-        if np.abs(f_max_f - f_lit) < f_lit.std_dev:
+        if np.abs(f_max_f - f_lit) < 2*f_lit.std_dev:
             continue
 
     except:
         f_lit = result["Literature value"]
 
-    if np.abs(f_max_f - f_lit) / f_lit < sigma:
-        continue
+    #if np.abs(f_max_f - f_lit) / f_lit < sigma:
+    #    continue
     kic_id = conf[general_kic]
 
     app = conf[general_kic]

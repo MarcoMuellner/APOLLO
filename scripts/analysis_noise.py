@@ -19,7 +19,8 @@ pl.rc('xtick', labelsize='x-small')
 pl.rc('ytick', labelsize='x-small')
 
 def fit_fun(x,a,b):
-    return a+b*np.log(x)
+    #return a+b*np.log10(x)
+    return a+b*x
 
 def get_val(dictionary: dict, key: str, default_value=None) ->Union[ufloat,str,float]:
     if key  in dictionary.keys():
@@ -62,8 +63,8 @@ def single_noise_analysis(data_path : str):
         except IndexError:
             continue
 
-        #if noise > 5:
-        #    continue
+        #if noise > 9:
+            #continue
 
         if 'results.json' not in files or 'conf.json' not in files:
             continue
@@ -81,19 +82,19 @@ def single_noise_analysis(data_path : str):
         except:
             continue
 
-        if np.abs(f.nominal_value - f_lit) / f_lit > 0.15:
-            print(f"Skipping {path} due to difference between lit and result --> {np.abs(f.nominal_value - f_lit) * 100 / f_lit}")
-            print(f"Literature value: {f_lit}")
-            print(f"Result value: {f.nominal_value}\n")
-            continue
-
-
         w = get_val(result["Full Background result"], "w")
         bayes = get_val(result, "Bayes factor")
 
         if bayes < 0:
             print(f"Skipping {path}, bayes < 0")
             continue
+
+        if np.abs(f.nominal_value - f_lit) / f_lit > 0.25:
+            print(f"Skipping {path} due to difference between lit and result --> {np.abs(f.nominal_value - f_lit) * 100 / f_lit}")
+            print(f"Literature value: {f_lit}")
+            print(f"Result value: {f.nominal_value}\n")
+            continue
+
 
         if (h/w).std_dev/(h/w).nominal_value > 0.3:
             continue
@@ -121,7 +122,7 @@ def single_noise_analysis(data_path : str):
             "noise": []
         }
         for noise_key, val in res[id_key].items():
-            if len(val["h"]) <= 1:
+            if len(val["h"]) < 1:
                 print(f"Skipping {noise_key} due to too few datapoints")
                 continue
             mean_res[id_key]["w"].append(np.mean(val["w"]))
@@ -190,7 +191,7 @@ def single_noise_analysis(data_path : str):
         ax.fill_between(x, lower_std,upper_std, color='red', alpha=0.1)
         ax.plot(fit_snr, fit_fun(fit_snr, *popt_min), color='red', linewidth=2, alpha=0.5)
         ax.plot(fit_snr, fit_fun(fit_snr, *popt_max), color='red', linewidth=2, alpha=0.5)
-        ax.set_xscale('log')
+        #ax.set_xscale('log')
         ax.legend()
         ax.set_xlabel("SNR")
         ax.set_ylabel("Bayes value")
@@ -238,7 +239,7 @@ def single_noise_analysis(data_path : str):
     # pl.axhline(y=2.5, linestyle='dotted', color='red', label='Moderate evidence')
     # pl.yscale('log')
     pl.title(data_path)
-    pl.xscale('log')
+    #pl.xscale('log')
     pl.legend()
     pl.xlabel("Signal to noise ratio")
     pl.ylabel("Bayes factor")
@@ -267,7 +268,7 @@ def single_noise_analysis(data_path : str):
 
 res = {}
 
-res[(30,40)] = single_noise_analysis("n_30_40/")
+res[(30,40)] = single_noise_analysis("results/noise_mixed/")
 #res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
 #res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
 #res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
@@ -284,7 +285,7 @@ c = 0
 for key,value in res.items():
     fit_snr = np.linspace(min(value["SNR"]) * 0.9, max(value["SNR"]),1000)
 
-    bounds =[[0,-np.inf],[np.inf,np.inf]]
+    bounds =[[-np.inf,-np.inf],[np.inf,np.inf]]
     nans = np.logical_not(np.isnan(value["Bayes"]))
     popt, pcov = curve_fit(fit_fun, value["SNR"][nans], value["Bayes"][nans],sigma=value["Bayes_err"][nans],bounds=bounds)
     perr = np.sqrt(np.diag(pcov))
@@ -292,9 +293,9 @@ for key,value in res.items():
     a = ufloat(popt[0], perr[0])
     b = ufloat(popt[1], perr[1])
 
-    snr_strong = 10 ** ((5 - a) / b)
-    snr_moderate = 10 ** ((3 - a) / b)
-    snr_zero = 10 ** (-a / b)
+    snr_strong = 10**((5 - a) / b)
+    snr_moderate = 10**((3 - a) / b)
+    snr_zero = 10**((-a) / b)
 
     print(f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
     print(a, b)
@@ -310,11 +311,11 @@ for key,value in res.items():
     upper_std = running_mean_values + 1*running_std
 
     pl.errorbar(value["SNR"], value["Bayes"],color=c_l[c], xerr=value["SNR_err"], yerr=value["Bayes_err"], fmt='x',label=f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
-    pl.plot(x, running_mean_values, color=c_l[c], linewidth=2, alpha=0.7)
-    pl.fill_between(x, lower_std, upper_std, color=c_l[c], alpha=0.1)
-    #pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color=c_l[c], linewidth=2, alpha=0.5)
-    #pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color=c_l[c], linewidth=2, alpha=0.5)
-    pl.xscale('log')
+    pl.plot(fit_snr, fit_fun(fit_snr, *popt), color=c_l[c], linewidth=2, alpha=0.7)
+    #pl.fill_between(fit_snr, fit_fun(fit_snr,*popt_min), fit_fun(fit_snr, *popt_max), upper_std, color=c_l[c], alpha=0.1)
+    pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color=c_l[c], linewidth=2, alpha=0.5)
+    pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color=c_l[c], linewidth=2, alpha=0.5)
+    #pl.xscale('log')
     pl.legend()
     pl.xlabel("Signal to noise ratio")
     pl.ylabel("Bayes factor")

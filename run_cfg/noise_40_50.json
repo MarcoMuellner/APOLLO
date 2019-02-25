@@ -3,8 +3,8 @@
     "Binary path": "/home/marco/prog/Background/build/",
     "Background result path": "/home/marco/prog/Background/results/",
     "Background data path": "/home/marco/prog/Background/data/",
-    "Path for results": "/home/marco/prog/LCA/n_40_50/",
-    "Number of cores used": 32,
+    "Path for results": "/home/marco/prog/LCA/results/n_40_50/",
+    "Number of cores used": 16,
     "Sequential run": false
   },
   "Files": {
@@ -20,8 +20,8 @@
   "Analysis": {
     "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_targets/",
     "Prefix of folder": "APO",
-    "Noise values for run": [0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,11.5,12,12.5,13],
-    "Number of repeats": 10
+    "Noise values for run": [0,1,2,3,4,5,6,7,8,9,10,11,12,13],
+    "Number of repeats": 3
   },
   "Plot": {
     "Show plots": false,

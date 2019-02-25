@@ -4,29 +4,31 @@ import platform
 from copy import deepcopy
 from typing import Dict, List, Tuple
 import json
-from os import makedirs,getcwd
+from os import makedirs, getcwd
+import os
 import traceback
 import shutil
 from uncertainties import ufloat, ufloat_fromstr
+import time
 # scientific imports
 import numpy as np
 # project imports
-from data_handler.file_reader import load_file,look_for_file
+from data_handler.file_reader import load_file, look_for_file
 from data_handler.data_refiner import refine_data
 from data_handler.signal_features import nyqFreq
 from evaluators.compute_flicker import calculate_flicker_amplitude, flicker_amplitude_to_frequency
-from evaluators.compute_nu_max import compute_nu_max
+from evaluators.compute_nu_max import compute_nu_max, compute_fliper_exact
 from evaluators.compute_priors import priors
 from background.fileModels.bg_file_creator import create_files
 from background.backgroundProcess import BackgroundProcess
-from data_handler.write_results import save_results
+from data_handler.write_results import save_results,is_bayes_factor_good
 from res.conf_file_str import general_analysis_result_path
 from support.directoryManager import cd
 from support.printer import print_int, Printer
 from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general_kic, cat_analysis, cat_files, \
     cat_general, cat_plot, internal_literature_value, analysis_folder_prefix, general_sequential_run, \
     analysis_noise_values, internal_noise_value, analysis_number_repeats, internal_run_number, internal_delta_nu, \
-    internal_mag_value, internal_teff,internal_path
+    internal_mag_value, internal_teff, internal_path, general_run_diamonds, internal_force_run,general_check_bayes_run
 from support.exceptions import ResultFileNotFound, InputFileNotFound, EvidenceFileNotFound
 
 
@@ -96,6 +98,8 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
         if nr_of_cores > cpu_count():
             nr_of_cores = cpu_count()
 
+        kwargs[cat_general][general_nr_of_cores] = nr_of_cores
+
         # Check analysis list!
         if analysis_list_of_ids not in kwargs.keys():
             raise ValueError(f"You need to set a list of ids to be analyzed with '{analysis_list_of_ids}'")
@@ -141,7 +145,10 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
                     cp = add_value_to_kwargs(cp, i, ['mag'], internal_mag_value, float)
                     cp = add_value_to_kwargs(cp, i, ['T_eff'], internal_teff, float)
                 except:
-                    cp[general_kic] = int(i)
+                    try:
+                        cp[general_kic] = int(i)
+                    except:
+                        continue
 
                 cp[internal_path] = getcwd()
 
@@ -180,12 +187,23 @@ def run_star(kwargs: Dict):
     Runs a full analysis for a given kwargs file.
     :param kwargs: Run conf
     """
+    t1 = time.time()
     if analysis_folder_prefix in kwargs.keys():
         prefix = kwargs[analysis_folder_prefix]
     else:
         prefix = "KIC"
 
     path = f"{kwargs[general_analysis_result_path]}{prefix}_{kwargs[general_kic]}/"
+    if os.path.exists(path) and ((internal_force_run in kwargs.keys() and not kwargs[
+        internal_force_run]) or internal_force_run not in kwargs.keys()):
+        with cd(path):
+            if os.path.exists("results.json") and not os.path.exists("errors.txt"):
+                with open('results.json','r') as f:
+                    old_res = json.load(f)
+                kwargs["time"] = float(old_res['Runtime'])
+                print_int("Done", kwargs)
+                return
+
     try:
         shutil.rmtree(path)
     except FileNotFoundError:
@@ -216,13 +234,18 @@ def run_star(kwargs: Dict):
             data = refine_data(data, kwargs)
 
             # compute nu_max
+            print_int("Computing nu_max", kwargs)
+            """
             sigma_ampl = calculate_flicker_amplitude(data)
             f_ampl = flicker_amplitude_to_frequency(sigma_ampl)
-            print_int("Computing nu_max", kwargs)
             nu_max, f_list, f_fliper = compute_nu_max(data, f_ampl, kwargs)
+            """
+            nu_max = compute_fliper_exact(data, kwargs)
+            f_fliper = nu_max
+            f_list = []
 
             if internal_literature_value in kwargs.keys():
-                print_int(f"Nu_max guess: {'%.2f' % nu_max}, fliper: { f_fliper} literature: {kwargs[internal_literature_value]}",kwargs)
+                print_int(f"Nu_max guess: {'%.2f' % nu_max}, fliper: {f_fliper} literature: {kwargs[internal_literature_value]}", kwargs)
             else:
                 print_int(f"Nu max guess: {'%.2f' % nu_max}, fliper: {f_fliper}", kwargs)
 
@@ -230,15 +253,31 @@ def run_star(kwargs: Dict):
             prior, params = priors(nu_max, data, kwargs)
             print_int(f"Priors: {prior}", kwargs)
 
-            create_files(data, nyqFreq(data), prior, kwargs)
-            proc = BackgroundProcess(kwargs)
-            #proc.run()
+            cnt =1
+            while cnt <=2:
+                create_files(data, nyqFreq(data), prior, kwargs)
+                proc = BackgroundProcess(kwargs)
+                if general_run_diamonds in kwargs.keys():
+                    if kwargs[general_run_diamonds]:
+                        proc.run()
+                else:
+                    proc.run()
+                if general_check_bayes_run in kwargs.keys() and ((general_run_diamonds in kwargs.keys() and kwargs[general_run_diamonds]) or general_run_diamonds not in kwargs.keys()):
+                    if is_bayes_factor_good(kwargs):
+                        break
+                else:
+                    break
+
+                cnt +=1
 
             print_int("Saving results", kwargs)
             # save results
 
-            save_results(prior, data, nu_max, params, proc, f_list, f_fliper, kwargs)
+            save_results(prior, data, nu_max, params, proc, f_list, f_fliper, t1, kwargs)
+            delta_t = time.time() -t1
+            kwargs["time"] = delta_t
             print_int("Done", kwargs)
+
         except (EvidenceFileNotFound, ResultFileNotFound, InputFileNotFound) as e:
             error = f"{e.__class__.__name__} : {str(e)}\n"
             print_int("Done", kwargs)

@@ -1,5 +1,5 @@
 # standard imports
-from typing import Dict
+from typing import Dict,Tuple
 # scientific imports
 import numpy as np
 from scipy.signal import periodogram, butter, filtfilt
@@ -7,6 +7,10 @@ from astropy.convolution import convolve, Box1DKernel
 from astropy.stats import LombScargle
 import matplotlib.pyplot as pl
 from scipy.integrate import simps
+from res.conf_file_str import internal_literature_value,internal_noise_value
+from support.printer import print_int
+from data_handler.parameters import priors_only
+import time
 
 
 # project imports
@@ -35,7 +39,7 @@ def fundamental_spacing_integral(df,nyq,ls):
     df = simps(window, freq)
     return df*1e-6
 
-def compute_periodogram(data: np.ndarray) -> np.ndarray:
+def compute_periodogram(data: np.ndarray,kwargs : Dict) -> np.ndarray:
     """
     Computes a given periodogram from the lightcurve
     :param data: Lightcurve dataset
@@ -57,7 +61,13 @@ def compute_periodogram(data: np.ndarray) -> np.ndarray:
     normfactor = tot_MS / tot_lomb
     freq *=10**6
     power *= normfactor/(df*10**6)
+
+    if internal_literature_value in kwargs.keys() and internal_noise_value in kwargs.keys():
+        prior_values = priors_only(kwargs[internal_literature_value].nominal_value,np.array((freq,power)),noise(np.array((freq,power))))
+        #freq,power = reduce_signal(np.array((freq,power)),prior_values,nyqFreq(data),kwargs)
+
     return np.array((freq,power))
+
 def get_time_step(data: np.ndarray) -> float:
     """
     Returns the most common time steps in the datapoints.
@@ -153,4 +163,47 @@ def background_model(psd: np.ndarray, nyq: float, w: float, sigma_long: float, f
 
     return retVal
 
+def _butter_lowpass_filtfilt(data, nyq, level, order=5):
+    '''
+    Smoothing function to make the fitting easier. Filters out high frequencies of the signal.
+    The the butter function in scipy.signal
+    :param data:The autocorrelated dataset from the initial PSD
+    :type data:2-D numpy array
+    :param nyq:The nyquist frequency of the data
+    :type nyq:float
+    :param level:The cutoff frequency which should be filtered
+    :type level:float
+    :param order:Order of the filter. Defines the "steepness". Probably not necessary to adapt
+    :type order:int
+    :return:The y-axis of the dataset. This data is filtered using the frequencies.
+    :rtype:1-D numpy array
+    '''
+    normal_cutoff = level / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    y = filtfilt(b, a, data)
+    return y
+
+def reduce_signal(f_data : np.ndarray,priors : Dict[str,float], nyq : float, kwargs : Dict)-> Tuple[np.ndarray,np.ndarray]:
+    """
+    Reduces the oscillation signal to a given level to hide it in the noise.
+    :param f_data: PSD
+    :param priors: priors determined using the literature value
+    :param nyq: nyquist frequency
+    :param kwargs: settings
+    :return: frequency and power
+    """
+    bg_model = background_model(f_data, nyq, priors['w'], priors['sigma_1'], priors['b_1'], priors['sigma_2'],
+                                priors['b_2'], priors['sigma_3'], priors['b_3'], priors['nu_max'], priors['H_osc'],
+                                priors['sigma'])
+
+    factor = (priors['H_osc']/priors['w'])/270 #empirically determined
+
+    f_without_bg = f_data[1] / np.sum(bg_model[0:3]) #divide by background
+    gauss = bg_model[4] / np.amax(bg_model[4]) #normalize gauss
+    f_without_bg_gauss = f_without_bg * gauss #multiply signal with gauss
+    f_without_bg -= f_without_bg_gauss #get residual
+    f_without_bg_gauss /= ((kwargs[internal_noise_value]+1)*factor) #reduce by noise value
+    f_without_bg += f_without_bg_gauss #add residual again
+    f_without_bg *= np.sum(bg_model[0:3]) #multiply with
+    return f_data[0],f_without_bg
 

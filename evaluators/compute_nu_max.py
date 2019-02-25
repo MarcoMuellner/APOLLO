@@ -8,7 +8,7 @@ from scipy.signal import find_peaks
 # project imports
 from fitter.fit_functions import trismooth, sinc, sin,sinc_sin,linearPolynomial
 from data_handler.signal_features import get_time_step
-from plotter.plot_handler import plot_peridogramm_from_timeseries, plot_acf_fit
+from plotter.plot_handler import plot_peridogramm_from_timeseries, plot_acf_fit,plot_nu_max_fit
 from support.printer import print_int
 from uncertainties import ufloat, unumpy as unp
 from evaluators.compute_priors import noise
@@ -16,6 +16,10 @@ from fitter.fit_functions import quadraticPolynomial
 from res.conf_file_str import internal_teff,internal_mag_value,internal_path
 from data_handler.signal_features import compute_periodogram
 from FLIPER.FLIPER import FLIPER, ML
+from background.backgroundResults import BackgroundResults
+from evaluators.compute_delta_nu import _butter_lowpass_filtfilt,perform_fit
+from data_handler.signal_features import nyqFreq
+from fitter.fit_functions import gaussian_amp,scipyFit
 
 def f_to_t(f: float) -> float:
     """
@@ -113,7 +117,7 @@ def compute_fliper_guess(f_data : np.ndarray,kwargs : Dict) -> Union[float,None]
     nu_max = (10 ** log_g / 10 ** logg_sun) * 1 / unp.sqrt(T_eff / t_sun) * nu_max_sun
     return nu_max.nominal_value
 
-def compute_fliper_exact(data_f : np.ndarray,kwargs : Dict) -> Union[float,None]:
+def compute_fliper_exact(data : np.ndarray,kwargs : Dict) -> Union[float,None]:
     if internal_teff in kwargs.keys():
         T_eff = kwargs[internal_teff]
     else:
@@ -123,6 +127,8 @@ def compute_fliper_exact(data_f : np.ndarray,kwargs : Dict) -> Union[float,None]
         mag = kwargs[internal_mag_value]
     else:
         return None
+
+    data_f = compute_periodogram(data,kwargs)
 
     mask = data_f[0] < 277
     data_f_new = np.array((data_f[0][mask], data_f[1][mask]))
@@ -240,6 +246,15 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> Tuple[fl
     :return: guess for nu_max. In uHz
     """
 
+    f_fliper = compute_fliper_nu_max(compute_periodogram(data,kwargs), kwargs)
+    if f_fliper != {}:
+        if "Fliper exact" in f_fliper.keys():
+            f = f_fliper["Fliper exact"]
+        else:
+            f = f_fliper["Fliper rough"]
+
+        return f,{},f_fliper
+
     f_list = []
 
     f_list.append((f_flicker, rf"F_flicker_{'%.2f' % f_flicker}$\mu Hz$"))
@@ -277,7 +292,7 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> Tuple[fl
     for val,name in f_list:
         f_list_ret[name] = val
 
-    f_fliper = compute_fliper_nu_max(compute_periodogram(data), kwargs)
+    f_fliper = compute_fliper_nu_max(compute_periodogram(data,kwargs), kwargs)
     if f_fliper != {}:
         if "Fliper exact" in f_fliper.keys():
             f = f_fliper["Fliper exact"]
@@ -285,3 +300,28 @@ def compute_nu_max(data: np.ndarray, f_flicker: float, kwargs: Dict) -> Tuple[fl
             f = f_fliper["Fliper rough"]
 
     return f,f_list_ret,f_fliper
+
+def look_for_nu_max_osc_region(data : np.ndarray,kwargs: Dict) -> ufloat:
+    result = BackgroundResults(kwargs, runID="FullBackground")
+    model = result.createBackgroundModel()
+
+    f_data = compute_periodogram(data, kwargs)
+
+    background = np.sum(model[:4], axis=0)
+
+    cleared_data = np.divide(f_data[1], background)
+    cleared_data = _butter_lowpass_filtfilt(cleared_data, nyqFreq(data), 0.267 * pow(result.nuMax.nominal_value, 0.760)*10)
+
+    mask = np.logical_and(f_data[0] > (result.nuMax - 3 * result.sigma).nominal_value,
+                          f_data[0] < (result.nuMax + 3 * result.sigma).nominal_value)
+
+    f_x = f_data[0][mask]
+    f_y = cleared_data[mask]
+
+    popt,perr = perform_fit(f_x,f_y,kwargs)
+
+    mask = np.logical_and(f_x > (result.nuMax - 1 * result.sigma).nominal_value,
+                          f_x < (result.nuMax + 1 * result.sigma).nominal_value)
+
+    plot_nu_max_fit(np.array((f_x[mask],f_y[mask])),popt,result.nuMax.nominal_value,kwargs)
+    return ufloat(popt[2],(perr[2]+popt[3] + perr[3]))

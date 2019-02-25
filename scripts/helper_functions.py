@@ -10,7 +10,7 @@ delta_nu = "Delta nu"
 full_background = "Full Background result"
 
 
-def load_results(path : str,ignore_list : List[str] = None) -> List[Tuple[str,Dict,Dict]]:
+def load_results(path : str,ignore_list : List[str] = None,ignore_ignore = False) -> List[Tuple[str,Dict,Dict]]:
     """
     Loads result files and conf files for a given path
     :param path: input path
@@ -24,7 +24,7 @@ def load_results(path : str,ignore_list : List[str] = None) -> List[Tuple[str,Di
 
         cnt +=1
 
-        if "ignore.txt" in files:
+        if "ignore.txt" in files and not ignore_ignore:
             continue
 
         try:
@@ -34,7 +34,10 @@ def load_results(path : str,ignore_list : List[str] = None) -> List[Tuple[str,Di
             pass
 
         with open(f"{path}/results.json") as f:
-            result = load(f)
+            try:
+                result = load(f)
+            except:
+                pass
 
         with open(f"{path}/conf.json") as f:
             conf = load(f)
@@ -43,6 +46,19 @@ def load_results(path : str,ignore_list : List[str] = None) -> List[Tuple[str,Di
 
     print(f"Total: {cnt}")
     return res_list
+
+def full_nr_of_runs(path : str) -> int:
+    """
+    Loads result files and conf files for a given path
+    :param path: input path
+    :return: List containing this values
+    """
+    cnt = 0
+    for path,sub_path,files in  os.walk(path):
+        if 'conf.json' in files:
+            cnt +=1
+
+    return cnt
 
 def get_val(dictionary: dict, key: str, default_value=None):
     if key in dictionary.keys():

@@ -7,8 +7,9 @@ import numpy as np
 from res.conf_file_str import general_background_result_path, general_kic, general_background_data_path
 from data_handler.signal_features import compute_periodogram
 from support.directoryManager import cd
-from res.conf_file_str import internal_noise_value
+from res.conf_file_str import internal_noise_value,general_run_diamonds
 from support.printer import print_int
+import shutil
 
 
 def full_result_path(kwargs: Dict) -> str:
@@ -37,21 +38,28 @@ def create_files(data: np.ndarray, nyq_f: float, priors: List[List[float]], kwar
     :param kwargs: Run configuratio
     """
     print_int(f"Path: {full_result_path(kwargs)}",kwargs)
-    create_folder(full_result_path(kwargs))
-    create_data(compute_periodogram(data), kwargs)
+    create_folder(full_result_path(kwargs),kwargs)
+    create_data(compute_periodogram(data,kwargs), kwargs)
     create_priors(np.array(priors), full_result_path(kwargs))
     create_nsmc_configuring_parameters(full_result_path(kwargs))
     create_xmeans_configuring_parameters(full_result_path(kwargs))
     create_nyquist_frequency(nyq_f, full_result_path(kwargs))
 
 
-def create_folder(res_path: str):
+def create_folder(res_path: str,kwargs : Dict):
     """
     Creates the result folder
     :param res_path: Results path
     """
+    if (general_run_diamonds in kwargs.keys() and kwargs[general_run_diamonds]) or general_run_diamonds not in kwargs.keys():
+        try:
+            shutil.rmtree(res_path)
+        except FileNotFoundError:
+            pass
+
     if not os.path.exists(res_path):
         os.makedirs(res_path)
+
 
 
 def create_priors(priors: np.ndarray, res_path: str):

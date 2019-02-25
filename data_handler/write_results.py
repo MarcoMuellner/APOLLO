@@ -2,6 +2,8 @@
 from collections import OrderedDict as od
 from typing import List, Dict,Tuple
 import json
+import time
+from uncertainties import ufloat_fromstr
 # scientific imports
 import numpy as np
 # project imports
@@ -13,9 +15,21 @@ from support.exceptions import ResultFileNotFound
 from background.backgroundProcess import BackgroundProcess
 from background.fileModels.bg_file_creator import nsmc_configuring_parameters
 from evaluators.compute_delta_nu import get_delta_nu
+from evaluators.compute_nu_max import look_for_nu_max_osc_region
 
+def is_bayes_factor_good(kwargs):
+    try:
+        result_full = BackgroundResults(kwargs, runID="FullBackground")
+        result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
+    except:
+        return True
 
-def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, f_list : List[float],f_fliper : float,kwargs: Dict):
+    _, factor = bayes_factor(result_full.evidence._evidence["Skillings log with Error"],
+                                result_noise.evidence._evidence["Skillings log with Error"])
+
+    return ufloat_fromstr(factor) > 5
+
+def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, f_list : List[float],f_fliper : float, t1 : float,kwargs: Dict):
     np.save("lc", data)
 
     res_set,psd,err, exception_text = compose_results(priors,nu_max,params,data,kwargs)
@@ -28,7 +42,8 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
     res_set["List of Frequencies"] = f_list
     res_set["Fliper frequency"] = f_fliper
 
-
+    t2 = time.time()
+    res_set["Runtime"] = f"{t2 - t1}"
     with open("results.json", 'w') as f:
         json.dump(res_set, f, indent=4)
 
@@ -80,7 +95,8 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
 
     full_res_set = od()
 
-    #full_res_set["priors"] = get_priors(priors, result_full)
+    full_res_set["Priors Full Background"] = get_priors(priors, result_full)
+    full_res_set["Priors Noise only"] = get_priors(priors, result_noise)
 
     full_res_set["Determined params"] = params
 
@@ -122,7 +138,13 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
         delta_nu = get_delta_nu(data,result_full,kwargs)
         full_res_set["Delta nu"] = f"{delta_nu}"
     except:
-        full_res_set["Delta nu"] = "Can't determine delta nu!"
+        full_res_set["Delta nu"] = None
+
+    try:
+        nu_max_fit = look_for_nu_max_osc_region(data,kwargs)
+        full_res_set["nu_max_gauss"] = f"{nu_max_fit}"
+    except:
+        full_res_set["nu_max_gauss"] = None
 
     if err == [] and exception_text is None:
         full_res_set[internal_flag_worked] = True
