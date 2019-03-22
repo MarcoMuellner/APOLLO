@@ -5,10 +5,10 @@ from typing import Dict
 import numpy as np
 
 from res.strings import *
-from res.conf_file_str import general_background_data_path
+from res.conf_file_str import general_background_data_path,internal_path
 from support.printer import print_int
 
-from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from background_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 
 
 class BackgroundDataFileModel(BackgroundBaseFileModel):
@@ -42,7 +42,10 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
         '''
         Internal reader function. Reads the file according to the settings
         '''
-        dataFolder = kwargs[general_background_data_path]
+        if general_background_data_path in kwargs.keys():
+            dataFolder = kwargs[general_background_data_path]
+        else:
+            dataFolder = kwargs[internal_path] + "/Background/data/"
         file = dataFolder+"KIC"+self.kicID+".txt"
         try:
             self._psd = np.loadtxt(file)

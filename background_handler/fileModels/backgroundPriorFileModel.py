@@ -3,10 +3,10 @@ import logging
 from typing import List,Tuple,Dict
 import numpy as np
 
-from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from background_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
 from support.printer import print_int
-from res.conf_file_str import general_background_result_path
+from res.conf_file_str import general_background_result_path,internal_path
 
 
 class BackgroundPriorFileModel(BackgroundBaseFileModel):
@@ -78,7 +78,11 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         None it will read both in the parent directory
         '''
         filesToLoad = []
-        dataFolder = self.kwargs[general_background_result_path]
+        if general_background_result_path in kwargs.keys():
+            dataFolder = self.kwargs[general_background_result_path]
+        else:
+            dataFolder = self.kwargs[internal_path] + "/Background/results/"
+
         basePath = dataFolder + "KIC" + self.kicID + "/"
         if self.runID is not None:
             if self.runID == "FullBackground":
@@ -115,7 +119,11 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
                 self._noisePriors[self._parameterNames[it]] = (priorMin,priorMax)
 
     def rewritePriors(self,priors : Dict[str,Tuple[float,float]]):
-        dataFolder = self.kwargs[general_background_result_path]
+        if general_background_result_path in self.kwargs.keys():
+            dataFolder = self.kwargs[general_background_result_path]
+        else:
+            dataFolder = self.kwargs[internal_path] + "/Background/results/"
+
         basePath = dataFolder + "KIC" + self.kicID + "/"
 
         if len(priors) == 10:

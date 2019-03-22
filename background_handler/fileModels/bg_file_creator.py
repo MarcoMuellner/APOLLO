@@ -7,7 +7,8 @@ import numpy as np
 from res.conf_file_str import general_background_result_path, general_kic, general_background_data_path
 from data_handler.signal_features import compute_periodogram
 from support.directoryManager import cd
-from res.conf_file_str import internal_noise_value,general_run_diamonds,internal_mag_value,internal_multiple_mag
+from res.conf_file_str import internal_noise_value,general_run_diamonds,internal_mag_value,internal_multiple_mag,\
+    internal_path
 from support.printer import print_int
 import shutil
 
@@ -18,12 +19,13 @@ def full_result_path(kwargs: Dict) -> str:
     :param kwargs: Run config
     """
     if general_background_result_path not in kwargs.keys():
-        raise AttributeError(f"You need to set '{general_background_result_path}' in job file!")
+        bg_result_path = kwargs[internal_path] + "/Background/results/"
+    else:
+        bg_result_path = kwargs[general_background_result_path]
 
     if general_kic not in kwargs.keys():
         raise AttributeError(f"You need to set '{general_kic}' in job file!")
 
-    bg_result_path = f"{kwargs[general_background_result_path]}"
     bg_result_path = bg_result_path + "" if bg_result_path.endswith("/") else "/"
 
     if internal_noise_value in kwargs.keys():
@@ -139,7 +141,10 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
     :param kwargs: Run configuration
     """
     if general_background_data_path not in kwargs.keys():
-        raise AttributeError(f"You need to set '{general_background_data_path}' in job file!")
+        path = kwargs[internal_path] + "/Background/data/"
+    else:
+        path = kwargs[general_background_data_path]
+
 
     if internal_noise_value in kwargs.keys():
         filename = f"KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}.txt"
@@ -148,4 +153,4 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
     else:
         filename = f"KIC{kwargs[general_kic]}.txt"
 
-    save_numpy_array(kwargs[general_background_data_path], filename, f_data.T)
+    save_numpy_array(path, filename, f_data.T)

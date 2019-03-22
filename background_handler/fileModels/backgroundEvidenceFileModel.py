@@ -3,9 +3,9 @@ import logging
 
 import numpy as np
 
-from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from background_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path
+from res.conf_file_str import general_background_result_path,internal_path
 from uncertainties import ufloat
 from support.printer import print_int
 from support.exceptions import EvidenceFileNotFound
@@ -29,6 +29,7 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
         BackgroundBaseFileModel.__init__(self, kwargs, runID)
 
         self._evidence = {}
+        self.kwargs = kwargs
 
         if(runID is not None):
             self._readData(kwargs)
@@ -50,7 +51,7 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
             try:
                 return self._evidence[key]
             except:
-                print_int("No value for key '"+key+"', returning full dict",kwargs)
+                print_int("No value for key '"+key+"', returning full dict",self.kwargs)
                 return self._evidence
 
     def _readData(self,kwargs):
@@ -60,7 +61,10 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
         :return: Dict containing the values in the evidence file
         :rtype:dict{string:float}
         '''
-        self._dataFolder = kwargs[general_background_result_path]
+        if general_background_result_path in kwargs.keys():
+            self._dataFolder = kwargs[general_background_result_path]
+        else:
+            self._dataFolder = kwargs[internal_path] + "/Background/results/"
         file = self._dataFolder + "KIC" + self.kicID + "/" + self.runID + "/background_evidenceInformation.txt"
         try:
             values = np.loadtxt(file).T

@@ -4,9 +4,9 @@ import logging
 import numpy as np
 from uncertainties import ufloat
 
-from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from background_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path
+from res.conf_file_str import general_background_result_path,internal_path
 from support.printer import print_int
 
 
@@ -90,7 +90,10 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         the background model. If something fails in reading, the raw values and the
         background model will be set empty.
         '''
-        dataFolder = kwargs[general_background_result_path]
+        if general_background_result_path in kwargs.keys():
+            dataFolder = kwargs[general_background_result_path]
+        else:
+            dataFolder = kwargs[general_background_result_path] + "/Background/results/"
 
         file = dataFolder+"KIC"+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"
         try:

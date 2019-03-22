@@ -1,3 +1,9 @@
 [submodule "FLIPER"]
 	path = FLIPER
 	url = https://github.com/muma7490/FLIPER
+[submodule "Diamonds"]
+	path = Diamonds
+	url = https://github.com/muma7490/DIAMONDS
+[submodule "Background"]
+	path = Background
+	url = https://github.com/muma7490/Background

@@ -2,9 +2,9 @@ import logging
 
 import numpy as np
 
-from background.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from background_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path
+from res.conf_file_str import general_background_result_path,internal_path
 
 
 class BackgroundParameterFileModel(BackgroundBaseFileModel):
@@ -29,7 +29,10 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         self._id = id
         self._name = name
         self._unit = unit
-        self._dataFolder = kwargs[general_background_result_path]
+        if general_background_result_path in kwargs.keys():
+            self._dataFolder = kwargs[general_background_result_path]
+        else:
+            self._dataFolder = kwargs[internal_path] + "/Background/results/"
 
         if (runID is not None and id is not None):
             self._readData()

@@ -5,7 +5,7 @@ from res.strings import *
 from support.directoryManager import cd
 import time
 from res.conf_file_str import general_background_result_path,general_binary_path,general_kic\
-    ,internal_noise_value,internal_mag_value,internal_multiple_mag,general_use_pcb
+    ,internal_noise_value,internal_mag_value,internal_multiple_mag,general_use_pcb,internal_path
 from support.printer import print_int
 
 class BackgroundProcess:
@@ -20,11 +20,18 @@ class BackgroundProcess:
             self.kicID = str(kwargs[general_kic]) + f"_m_{kwargs[internal_mag_value]}"
         else:
             self.kicID = str(kwargs[general_kic])
-        self.binaryPath = kwargs[general_binary_path]
+
+        if general_binary_path in kwargs.keys():
+            self.binaryPath = kwargs[general_binary_path]
+        else:
+            self.binaryPath = kwargs[internal_path] + "/Background/build/"
         self.model = strRunIDBoth
         self.kwargs = kwargs
 
-        self.resultsPath = kwargs[general_background_result_path]
+        if general_background_result_path in kwargs.keys():
+            self.resultsPath = kwargs[general_background_result_path]
+        else:
+            self.resultsPath = kwargs[internal_path] + "/Background/results/"
 
         self.modes = {strDiModeFull: strDiIntModeFull
             ,strDiModeNoise :  strDiIntModeNoise}

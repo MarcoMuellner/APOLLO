@@ -6,17 +6,17 @@ import numpy as np
 from copy import deepcopy
 from uncertainties import ufloat
 
-from background.fileModels.backgroundDataFileModel import BackgroundDataFileModel
-from background.fileModels.backgroundEvidenceFileModel import BackgroundEvidenceFileModel
-from background.fileModels.backgroundMarginalDistrFileModel import BackgroundMarginalDistrFileModel
-from background.fileModels.backgroundParamSummaryModel import BackgroundParamSummaryModel
-from background.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
-from background.fileModels.backgroundPriorFileModel import BackgroundPriorFileModel
+from background_handler.fileModels.backgroundDataFileModel import BackgroundDataFileModel
+from background_handler.fileModels.backgroundEvidenceFileModel import BackgroundEvidenceFileModel
+from background_handler.fileModels.backgroundMarginalDistrFileModel import BackgroundMarginalDistrFileModel
+from background_handler.fileModels.backgroundParamSummaryModel import BackgroundParamSummaryModel
+from background_handler.fileModels.backgroundParameterFileModel import BackgroundParameterFileModel
+from background_handler.fileModels.backgroundPriorFileModel import BackgroundPriorFileModel
 from res.strings import *
 from support.printer import print_int
 from data_handler.signal_features import background_model
 
-from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value,internal_mag_value,internal_multiple_mag
+from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value,internal_mag_value,internal_multiple_mag,internal_path
 
 
 class BackgroundResults:
@@ -62,7 +62,11 @@ class BackgroundResults:
         self._backgroundPriors = BackgroundPriorFileModel(self.kwargs, runID)
         self._backgroundParameter = []
         self._marginalDistributions = []
-        self._dataFolder = self.kwargs[general_background_result_path]
+
+        if general_background_result_path in kwargs.keys():
+            self._dataFolder = self.kwargs[general_background_result_path]
+        else:
+            self._dataFolder = self.kwargs[internal_path] + "/Background/results/"
         self._nyq = float(
             np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(self.kwargs[general_kic]))[0]))
         self._names = priorNames
