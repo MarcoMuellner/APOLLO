@@ -28,6 +28,9 @@ def full_result_path(kwargs: Dict) -> str:
 
     bg_result_path = bg_result_path + "" if bg_result_path.endswith("/") else "/"
 
+    if not os.path.exists(bg_result_path):
+        os.makedirs(bg_result_path)
+
     if internal_noise_value in kwargs.keys():
         return f"{bg_result_path}KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}"
     elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
@@ -145,6 +148,8 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
     else:
         path = kwargs[general_background_data_path]
 
+    if not os.path.exists(path):
+        os.makedirs(path)
 
     if internal_noise_value in kwargs.keys():
         filename = f"KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}.txt"

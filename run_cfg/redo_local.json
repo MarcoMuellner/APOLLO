@@ -1,8 +1,5 @@
 {
   "General": {
-    "Binary path": "/Users/marco/Documents/Dev/Background/build/",
-    "Background result path": "/Users/marco/Documents/Dev/Background/results/",
-    "Background data path": "/Users/marco/Documents/Dev/Background/data/",
     "Path for results": "/Users/marco/Documents/Dev/LCA/results/YS_golden_sample/",
     "Number of cores used": 1,
     "Sequential run": true

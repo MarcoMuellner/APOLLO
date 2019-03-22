@@ -93,7 +93,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         if general_background_result_path in kwargs.keys():
             dataFolder = kwargs[general_background_result_path]
         else:
-            dataFolder = kwargs[general_background_result_path] + "/Background/results/"
+            dataFolder = kwargs[internal_path] + "/Background/results/"
 
         file = dataFolder+"KIC"+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"
         try:

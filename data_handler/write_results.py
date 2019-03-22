@@ -7,12 +7,12 @@ from uncertainties import ufloat_fromstr
 # scientific imports
 import numpy as np
 # project imports
-from background.backgroundResults import BackgroundResults
+from background_handler.backgroundResults import BackgroundResults
 from plotter.plot_handler import plot_f_space,plot_parameter_trend,plot_marginal_distributions
 from res.conf_file_str import internal_literature_value,internal_flag_worked,internal_delta_nu,internal_mag_value
 from support.exceptions import ResultFileNotFound
-from background.backgroundProcess import BackgroundProcess
-from background.fileModels.bg_file_creator import nsmc_configuring_parameters
+from background_handler.backgroundProcess import BackgroundProcess
+from background_handler.fileModels.bg_file_creator import nsmc_configuring_parameters
 from evaluators.compute_delta_nu import get_delta_nu
 from evaluators.compute_nu_max import look_for_nu_max_osc_region
 

@@ -1,6 +1,6 @@
 import numpy as np
 from uncertainties import ufloat
-from background.backgroundResults import BackgroundResults
+from background_handler.backgroundResults import BackgroundResults
 from data_handler.signal_features import compute_periodogram, nyqFreq
 from scipy.signal import butter, filtfilt
 from plotter.plot_handler import plot_f_space, plot_delta_nu_acf,plot_delta_nu_fit

@@ -1,8 +1,5 @@
 {
   "General": {
-    "Binary path": "/home/marco/prog/Background/build/",
-    "Background result path": "/home/marco/prog/Background/results/",
-    "Background data path": "/home/marco/prog/Background/data/",
     "Path for results": "/home/marco/prog/LCA/results/apokasc_results_full_82_days/",
     "Number of cores used": 32,
     "Check Bayes factor after run": true,
