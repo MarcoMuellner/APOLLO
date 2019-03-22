@@ -5,13 +5,14 @@ from matplotlib.axes import Axes
 import matplotlib.image as mpimg
 import numpy as np
 
-from scripts.helper_functions import load_results,get_val,recreate_dir
+from scripts.helper_functions import load_results,get_val,recreate_dir,full_nr_of_runs
 from scripts.helper_functions import f_max,full_background, delta_nu
 from res.conf_file_str import general_kic,internal_literature_value,internal_delta_nu,internal_mag_value,internal_teff
 from pandas import DataFrame
 from scipy.optimize import curve_fit
 from uncertainties import ufloat,ufloat_fromstr
 from fitter.fit_functions import scipyFit,gaussian
+import datetime
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
 pl.rc('ytick', labelsize='x-small')
@@ -21,6 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_path", help="Result path for a given dataset", type=str)
 args = parser.parse_args()
 res_list = load_results(args.input_path)
+total = full_nr_of_runs(args.input_path)
 
 print(f"Usable: {len(res_list)}")
 
@@ -37,7 +39,8 @@ for path,result,conf in res_list:
     res["id"].append(conf[general_kic])
     res["Runtime"].append(float(result["Runtime"]))
 
-print(f"Runtime: {ufloat(np.mean(res['Runtime']),0)/60}")
+print(f"Runtime single star: {datetime.timedelta(seconds=np.mean(res['Runtime']))}")
+print(f"Total: {datetime.timedelta(seconds=np.sum(res['Runtime'])/32)}")
 arr = np.array(res['Runtime'])
 arr = arr[arr<np.median(arr)+np.std(arr)/2]
 

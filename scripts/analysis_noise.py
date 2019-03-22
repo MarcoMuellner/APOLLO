@@ -14,13 +14,14 @@ from shutil import rmtree
 from typing import Union
 from res.conf_file_str import internal_literature_value
 
+
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
 pl.rc('ytick', labelsize='x-small')
 
 def fit_fun(x,a,b):
-    #return a+b*np.log10(x)
-    return a+b*x
+    return a+b*np.sqrt(x)
+    #return a+b*x
 
 def get_val(dictionary: dict, key: str, default_value=None) ->Union[ufloat,str,float]:
     if key  in dictionary.keys():
@@ -35,7 +36,7 @@ def running_mean(x, y):
     arg_sort = np.argsort(x)
     ret_mean = []
     ret_std = []
-    window = 8
+    window = 2
     for i in range(0, len(y)):
         up = i+ window if i+window <= len(y) else len(y)
         ret_mean.append(np.mean(y[arg_sort][i:up]))
@@ -74,8 +75,10 @@ def single_noise_analysis(data_path : str):
 
         with open(f"{path}/conf.json") as f:
             conf = load(f)
-
-        h = get_val(result["Full Background result"], "$H_\\mathrm{osc}$")
+        try:
+            h = get_val(result["Full Background result"], "$H_\\mathrm{osc}$")
+        except KeyError:
+            continue
         f = get_val(result["Full Background result"], '$f_\\mathrm{max}$ ')
         try:
             f_lit = ufloat_fromstr(result[internal_literature_value]).nominal_value
@@ -86,10 +89,11 @@ def single_noise_analysis(data_path : str):
         bayes = get_val(result, "Bayes factor")
 
         if bayes < 0:
-            print(f"Skipping {path}, bayes < 0")
-            continue
+            pass
+            #print(f"Skipping {path}, bayes < 0")
+            #continue
 
-        if np.abs(f.nominal_value - f_lit) / f_lit > 0.25:
+        if np.abs(f.nominal_value - f_lit) / ufloat_fromstr(result[internal_literature_value]).std_dev > 1:
             print(f"Skipping {path} due to difference between lit and result --> {np.abs(f.nominal_value - f_lit) * 100 / f_lit}")
             print(f"Literature value: {f_lit}")
             print(f"Result value: {f.nominal_value}\n")
@@ -207,6 +211,7 @@ def single_noise_analysis(data_path : str):
     bayes_full_err = unp.std_devs(bayes_full)
     bayes_full = unp.nominal_values(bayes_full)
 
+
     fit_snr = np.linspace(min(snr_full) * 0.9, max(snr_full), 1000)
 
     nans = np.logical_not(np.isnan(bayes_full))
@@ -263,67 +268,74 @@ def single_noise_analysis(data_path : str):
         "SNR_err": snr_full_err,
         "Bayes": bayes_full,
         "Bayes_err": bayes_full_err,
-    }
+    },fig
 
 
-res = {}
+while True:
+    res = {}
 
-res[(30,40)] = single_noise_analysis("results/noise_mixed/")
-#res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
-#res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
-#res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
-#res[(70,80)] = single_noise_analysis("endurance_results/n_70_80/")
+    res[(30,40)],fig_single = single_noise_analysis("../results/noise_upper_range_frequency/")
+    #res[(40,50)] = single_noise_analysis("endurance_results/n_40_50/")
+    #res[(50,60)] = single_noise_analysis("endurance_results/n_50_60/")
+    #res[(60,70)] = single_noise_analysis("endurance_results/n_60_70/")
+    #res[(70,80)] = single_noise_analysis("endurance_results/n_70_80/")
 
-
-
-fig = pl.figure(figsize=(16, 10))
-
-c_l = ["red","green","blue","black","cyan","yellow"]
-
-c = 0
-
-for key,value in res.items():
-    fit_snr = np.linspace(min(value["SNR"]) * 0.9, max(value["SNR"]),1000)
-
-    bounds =[[-np.inf,-np.inf],[np.inf,np.inf]]
-    nans = np.logical_not(np.isnan(value["Bayes"]))
-    popt, pcov = curve_fit(fit_fun, value["SNR"][nans], value["Bayes"][nans],sigma=value["Bayes_err"][nans],bounds=bounds)
-    perr = np.sqrt(np.diag(pcov))
-
-    a = ufloat(popt[0], perr[0])
-    b = ufloat(popt[1], perr[1])
-
-    snr_strong = 10**((5 - a) / b)
-    snr_moderate = 10**((3 - a) / b)
-    snr_zero = 10**((-a) / b)
-
-    print(f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
-    print(a, b)
-    print(f"Boundary strong evidence: {snr_strong}")
-    print(f"Boundary moderate evidence: {snr_moderate}")
-    print(f"Boundary zero: {snr_zero}\n")
-
-    popt_min = popt - 1 * perr
-    popt_max = popt + 1 * perr
-
-    x, running_mean_values, running_std = running_mean(value["SNR"][nans], value["Bayes"][nans])
-    lower_std = running_mean_values - 1*running_std
-    upper_std = running_mean_values + 1*running_std
-
-    pl.errorbar(value["SNR"], value["Bayes"],color=c_l[c], xerr=value["SNR_err"], yerr=value["Bayes_err"], fmt='x',label=f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt), color=c_l[c], linewidth=2, alpha=0.7)
-    #pl.fill_between(fit_snr, fit_fun(fit_snr,*popt_min), fit_fun(fit_snr, *popt_max), upper_std, color=c_l[c], alpha=0.1)
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color=c_l[c], linewidth=2, alpha=0.5)
-    pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color=c_l[c], linewidth=2, alpha=0.5)
-    #pl.xscale('log')
-    pl.legend()
-    pl.xlabel("Signal to noise ratio")
-    pl.ylabel("Bayes factor")
-    #pl.xlim(max(value["SNR"]) * 1.1, min(value["SNR"]) *0.9)
-    pl.xlim(max(value["SNR"]) * 2, min(value["SNR"]) / 2)
-    c +=1
+    fig : Figure = pl.figure(figsize=(16, 10))
 
 
-pl.axhline(y=5, linestyle='dashed', color='black', label='Strong evidence')
-pl.savefig(f"noise_results/full_behaviour.pdf")
-pl.show()
+
+    c_l = ["red","green","blue","black","cyan","yellow"]
+
+    c = 0
+
+    for key,value in res.items():
+        fit_snr = np.linspace(min(value["SNR"]) * 0.9, max(value["SNR"]),1000)
+
+        bounds =[[-np.inf,-np.inf],[np.inf,np.inf]]
+        nans = np.logical_not(np.isnan(value["Bayes"]))
+        popt, pcov = curve_fit(fit_fun, value["SNR"][nans], value["Bayes"][nans],sigma=value["Bayes_err"][nans],bounds=bounds)
+        perr = np.sqrt(np.diag(pcov))
+
+        a = ufloat(popt[0], perr[0])
+        b = ufloat(popt[1], perr[1])
+
+        #return a + b * x
+
+        #return a + b * np.log10(x)
+
+        snr_strong = ((5-a)/b)**2
+        snr_moderate = ((3-a)/b)**2
+
+        print(f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
+        print(a, b)
+        print(f"Boundary strong evidence: {snr_strong}")
+        print(f"Boundary moderate evidence: {snr_moderate}")
+    #    print(f"Boundary zero: {snr_zero}\n")
+
+        popt_min = popt - 1 * perr
+        popt_max = popt + 1 * perr
+
+        x, running_mean_values, running_std = running_mean(value["SNR"][nans], value["Bayes"][nans])
+        lower_std = running_mean_values - 1*running_std
+        upper_std = running_mean_values + 1*running_std
+
+        pl.errorbar(value["SNR"], value["Bayes"],color=c_l[c], xerr=value["SNR_err"], yerr=value["Bayes_err"], fmt='o',label=f"{key[0]} $\mu$Hz - {key[1]} $\mu$Hz")
+        pl.plot(fit_snr, fit_fun(fit_snr, *popt), color=c_l[c], linewidth=2, alpha=0.7)
+        #pl.fill_between(fit_snr, fit_fun(fit_snr,*popt_min), fit_fun(fit_snr, *popt_max), upper_std, color=c_l[c], alpha=0.1)
+        pl.plot(fit_snr, fit_fun(fit_snr, *popt_min), color=c_l[c], linewidth=2, alpha=0.5)
+        pl.plot(fit_snr, fit_fun(fit_snr, *popt_max), color=c_l[c], linewidth=2, alpha=0.5)
+        #pl.xscale('log')
+        pl.legend()
+        pl.xlabel("Signal to noise ratio")
+        pl.ylabel("Bayes factor")
+        #pl.xlim(max(value["SNR"]) * 1.1, min(value["SNR"]) *0.9)
+        pl.xlim(max(value["SNR"]) * 2, min(value["SNR"]) / 2)
+        c +=1
+
+
+    pl.axhline(y=5, linestyle='dashed', color='black', label='Strong evidence')
+    pl.savefig(f"noise_results/full_behaviour.pdf")
+    pl.draw()
+    pl.show()
+    pl.close(fig)
+    pl.close(fig_single)

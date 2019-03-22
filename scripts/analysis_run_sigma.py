@@ -4,7 +4,6 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 import matplotlib.image as mpimg
 import numpy as np
-import os
 
 from scripts.helper_functions import load_results, get_val, recreate_dir, full_nr_of_runs
 from scripts.helper_functions import f_max, full_background, delta_nu
@@ -15,6 +14,7 @@ from scipy.optimize import curve_fit
 from uncertainties import ufloat, ufloat_fromstr
 from matplotlib import gridspec
 from matplotlib.ticker import FuncFormatter
+
 from matplotlib import rcParams
 import matplotlib as mpl
 
@@ -29,20 +29,7 @@ params = {
    }
 rcParams.update(params)
 
-def perc_symbol(y, position):
-    # Ignore the passed in position. This has the effect of scaling the default
-    # tick locations.
-    s = str(int(y))
-    if y == 0 :
-        return ""
-
-    # The percent symbol needs escaping in latex
-    if mpl.rcParams['text.usetex'] is True:
-        return s + r'$\%$'
-    else:
-        return s + '%'
-
-def plot_data(x, y, err, x_label, y_label, savepath):
+def plot_data(x, y, err, x_label, y_label, save_path):
     fig, (a_plot, a_residual) = pl.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]}, figsize=(16, 10), sharex=True)
     fig: Figure
     a_plot: Axes
@@ -50,28 +37,26 @@ def plot_data(x, y, err, x_label, y_label, savepath):
     pos_err = x + err
     neg_err = x - err
 
-    a_plot.plot(x, y, 'o', markersize=4, color='k')
+    a_plot.plot(x, y, 'o', markersize=2, color='k')
     a_plot.plot(x, x, linewidth=1, color='grey', alpha=0.2)
     a_plot.fill_between(x, pos_err, neg_err, color='red', alpha=0.2)
 
-    a_residual.plot(x, (y - x) * 100 / x, 'o', markersize=4, color='k')
+    print(f"Mean err: {'%.2f' % np.mean((y - x)/err)}")
+
+    a_residual.plot(x, (y - x)/err, 'o', markersize=2, color='k')
     a_residual.plot(x, np.zeros(len(x)), linewidth=1, color='black', alpha=0.5)
-    a_residual.fill_between(x, err * 100 / x,
-                            -err * 100 / x, color='red', alpha=0.2)
+    a_residual.fill_between(x, 1,-1, color='red', alpha=0.2)
+
     a_plot.set_xlabel(x_label)
     a_plot.set_ylabel(y_label)
     a_residual.set_xlabel(x_label)
-    a_residual.set_ylabel("Residual in percentile")
+    a_residual.set_ylabel("Residual in sigma")
 
-    a_plot.set_xlim(min(x) * 0.95, max(x))
-    a_residual.set_xlim(min(x) * 0.95, max(x))
+    a_plot.set_xlim(min(x)*0.95,max(x))
 
     fig.tight_layout()
     fig.subplots_adjust(hspace=0)
-    formatter_y = FuncFormatter(perc_symbol)
-    a_residual.yaxis.set_major_formatter(formatter_y)
-
-    fig.savefig(savepath)
+    fig.savefig(save_path)
 
 
 pl.rc('font', family='serif')
@@ -111,8 +96,8 @@ for path, result, conf in res_list:
     nu_max_lit = ufloat_fromstr(conf[internal_literature_value])
     delta_nu_lit = ufloat_fromstr(conf[internal_delta_nu])
     try:
-        nu_max = get_val(result, "nu_max_gauss")
-        #nu_max = get_val(result[full_background], f_max)
+        #nu_max = get_val(result, "nu_max_gauss")
+        nu_max = get_val(result[full_background], f_max)
         if nu_max is None:
             nu_max = get_val(result[full_background], f_max)
     except:
@@ -125,11 +110,15 @@ for path, result, conf in res_list:
         delta_nu = ufloat(np.nan, np.nan)
 
     f_guess = result["Nu max guess"]
-    bayes_factor = get_val(result, "Baykes factor")
+    bayes_factor = get_val(result, "Bayes factor")
 
     if bayes_factor < 5:
         print(f"Skpping {conf[general_kic]} --> bayes value: {get_val(result, 'Bayes factor')}")
         continue
+
+    mask = np.abs(np.array(res['nu_max_lit'])-nu_max_lit.nominal_value) < 0.1
+    if len(np.array(res['nu_max_lit'])) > 1:
+        pass
 
     res["id"].append(kic_id)
     res["nu_max"].append(nu_max.nominal_value)
@@ -153,15 +142,12 @@ for path, result, conf in res_list:
 df = DataFrame(data=res)
 df = df.sort_values(by=['nu_max_lit'])
 
-#plot_data(df.nu_max_lit, df.nu_max, df.nu_max_lit_err, r"$\nu_{{\mathrm{{max,literature}}}}$",
-#          r"$\nu_{{\mathrm{{max,LCA}}}}$", r"$\nu_{{\mathrm{{max}}}}$ Analysis")
+plot_data(df.nu_max_lit, df.nu_max, df.nu_max_lit_err, r"$\nu_{{\mathrm{{max,literature}}}}$",
+          r"$\nu_{{\mathrm{{max,LCA}}}}$", f"{res_path}nu_max_values.pdf")
 
-#df = df.sort_values(by=['delta_nu_lit'])
+df = df.sort_values(by=['delta_nu_lit'])
 
-#plot_data(df.delta_nu_lit, df.delta_nu, df.delta_nu_lit_err, r"$\Delta\nu_{{\mathrm{{literature}}}}$",
-#          r"$\Delta\nu_{{\mathrm{{max,LCA}}}}$", r"$\Delta\nu_{{\mathrm{{max}}}}$ Analysis")
-
-plot_data(df.nu_max_lit, df.f_guess, df.nu_max_lit_err, r"$\nu_{{\mathrm{{max,literature}}}}$",
-          r"$\nu_{{\mathrm{{max,FliPer}}}}$", f"{res_path}plot_FliPer_values.pdf")
+plot_data(df.delta_nu_lit, df.delta_nu, df.delta_nu_lit_err, r"$\Delta\nu_{{\mathrm{{literature}}}}$",
+          r"$\Delta\nu_{{\mathrm{{max,LCA}}}}$", f"{res_path}delta_nu_values.pdf")
 
 #pl.show()

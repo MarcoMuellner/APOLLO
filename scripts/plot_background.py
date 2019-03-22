@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
 
     psd = readPowerspectrumTxt(kicID)
-    nyquistFrequency = 283
+    nyquistFrequency = max(psd[0])
     print('Nyquist Frequency (microHz):', nyquistFrequency)
     #data = butter_lowpass_filtfilt(psd[1], nyquistFrequency)
 
