@@ -3,7 +3,7 @@
     "Binary path": "/home/marco/prog/Background/build/",
     "Background result path": "/home/marco/prog/Background/results/",
     "Background data path": "/home/marco/prog/Background/data/",
-    "Path for results": "/home/marco/prog/LCA/ys_results_golden_sample/",
+    "Path for results": "/home/marco/prog/LCA/results/ys_results_golden_sample/",
     "Number of cores used": 32,
     "Sequential run": false
   },
@@ -15,12 +15,12 @@
     "Used columns in ascii file": null
   },
   "Analysis": {
-    "Paths to lightcurves": "/home/marco/Sterndaten/golden_sample/",
+    "Paths to lightcurves": "/home/marco/Sterndaten/golden_sample_sc_pre_whiten/",
     "Prefix of folder": "YS"
   },
   "Plot": {
     "Show plots": false,
     "Save plots": true
   },
-  "List of IDs": "ys_golden_sample.txt"
+  "List of IDs": "sample_lists/ys_golden_sample.txt"
 }

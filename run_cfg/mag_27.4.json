@@ -1,0 +1,36 @@
+{
+    "General": {
+        "Binary path": "/home/marco/prog/Background/build/",
+        "Background result path": "/home/marco/prog/Background/results/",
+        "Background data path": "/home/marco/prog/Background/data/",
+        "Path for results": "/home/marco/prog/LCA/results/mag_27.4/",
+        "Number of cores used": 32,
+        "Sequential run": false,
+        "Check Bayes factor after run": true,
+        "Run DIAMONDS": true,
+        "Force run": false
+    },
+    "Files": {
+        "Flux column": "SAP_FLUX",
+        "Time column": "TIME",
+        "Data column for hdulist": 0,
+        "Skipped rows in ascii file": 0,
+        "Used columns in ascii file": [
+            0,
+            1
+        ]
+    },
+    "Analysis": {
+        "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_full/",
+        "Prefix of folder": "APO",
+        "Target observation time": 27.4,
+        "Target magnitude for run": 15,
+        "Number of magnitude points": 10,
+        "Number of repeats": 2
+    },
+    "Plot": {
+        "Show plots": false,
+        "Save plots": true
+    },
+    "List of IDs": "sample_lists/27.4_mag_run.txt"
+}

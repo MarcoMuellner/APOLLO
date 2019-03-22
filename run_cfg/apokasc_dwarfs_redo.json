@@ -6,7 +6,7 @@
     "Path for results": "/home/marco/prog/LCA/results/legacy_sample_lund/",
     "Number of cores used": 32,
     "Sequential run": false,
-    "Check Bayes factor after run": true
+    "Force run": true
   },
   "Files": {
     "Flux column": "SAP_FLUX",
@@ -26,5 +26,5 @@
     "Show plots": false,
     "Save plots": true
   },
-  "List of IDs": "sample_lists/apokasc_dwarfs.txt"
+  "List of IDs": "sample_lists/legacy_sample_lund_redo.txt"
 }

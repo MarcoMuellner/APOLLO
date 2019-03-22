@@ -3,7 +3,7 @@
     "Binary path": "/Users/marco/Documents/Dev/Background/build/",
     "Background result path": "/Users/marco/Documents/Dev/Background/results/",
     "Background data path": "/Users/marco/Documents/Dev/Background/data/",
-    "Path for results": "/Users/marco/Documents/Dev/LCA/redo_result/",
+    "Path for results": "/Users/marco/Documents/Dev/LCA/results/YS_golden_sample/",
     "Number of cores used": 1,
     "Sequential run": true
   },
@@ -15,12 +15,12 @@
     "Used columns in ascii file": null
   },
   "Analysis": {
-    "Paths to lightcurves": "/Users/marco/Google_Drive/Astroseismology/Sterndaten/APOKASC_targets/",
-    "Prefix of folder": "REDO"
+    "Paths to lightcurves": "/Users/marco/Google_Drive/Astroseismology/Sterndaten/golden_sample_sc_pre_whiten/",
+    "Prefix of folder": "YS"
   },
   "Plot": {
-    "Show plots": false,
+    "Show plots": true,
     "Save plots": true
   },
-   "List of IDs": "sample_lists/apokasc_targets_1000.txt"
+   "List of IDs": "sample_lists/ys_golden_sample.txt"
 }

@@ -3,10 +3,12 @@
     "Binary path": "/home/marco/prog/Background/build/",
     "Background result path": "/home/marco/prog/Background/results/",
     "Background data path": "/home/marco/prog/Background/data/",
-    "Path for results": "/home/marco/prog/LCA/results/legacy_sample_lund/",
+    "Path for results": "/home/marco/prog/LCA/results/apokasc_results_full/",
     "Number of cores used": 32,
     "Sequential run": false,
-    "Check Bayes factor after run": true
+    "Check Bayes factor after run": true,
+    "Run DIAMONDS": true,
+    "Force run": true
   },
   "Files": {
     "Flux column": "SAP_FLUX",
@@ -19,12 +21,12 @@
     ]
   },
   "Analysis": {
-    "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_targets_dwarfs/",
+    "Paths to lightcurves": "/home/marco/Sterndaten/APOKASC_full/",
     "Prefix of folder": "APO"
   },
   "Plot": {
     "Show plots": false,
     "Save plots": true
   },
-  "List of IDs": "sample_lists/apokasc_dwarfs.txt"
+  "List of IDs": "sample_lists/apokasc_targets_2000.txt"
 }
