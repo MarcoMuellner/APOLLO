@@ -1,26 +1,20 @@
-import argparse
 import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
-import matplotlib.image as mpimg
 import numpy as np
 import os
 
-from scripts.helper_functions import load_results, get_val, recreate_dir, full_nr_of_runs
-from scripts.helper_functions import f_max, full_background, delta_nu
-from res.conf_file_str import general_kic, internal_literature_value, internal_delta_nu, internal_mag_value, \
-    internal_teff
+from scripts.helper_functions import load_results, get_val
+from scripts.helper_functions import f_max, full_background
+from res.conf_file_str import general_kic, internal_literature_value, internal_delta_nu
 from pandas import DataFrame
-from scipy.optimize import curve_fit
 from uncertainties import ufloat, ufloat_fromstr
-from matplotlib import gridspec
 from matplotlib.ticker import FuncFormatter
 from matplotlib import rcParams
 import matplotlib as mpl
 
 params = {
    'axes.labelsize': 20,
-#   'text.fontsize': 8,
    'legend.fontsize': 18,
    'xtick.labelsize': 18,
    'ytick.labelsize': 18,
@@ -153,15 +147,5 @@ for path, result, conf in res_list:
 df = DataFrame(data=res)
 df = df.sort_values(by=['nu_max_lit'])
 
-#plot_data(df.nu_max_lit, df.nu_max, df.nu_max_lit_err, r"$\nu_{{\mathrm{{max,literature}}}}$",
-#          r"$\nu_{{\mathrm{{max,LCA}}}}$", r"$\nu_{{\mathrm{{max}}}}$ Analysis")
-
-#df = df.sort_values(by=['delta_nu_lit'])
-
-#plot_data(df.delta_nu_lit, df.delta_nu, df.delta_nu_lit_err, r"$\Delta\nu_{{\mathrm{{literature}}}}$",
-#          r"$\Delta\nu_{{\mathrm{{max,LCA}}}}$", r"$\Delta\nu_{{\mathrm{{max}}}}$ Analysis")
-
 plot_data(df.nu_max_lit, df.f_guess, df.nu_max_lit_err, r"$\nu_{{\mathrm{{max,literature}}}}$",
           r"$\nu_{{\mathrm{{max,FliPer}}}}$", f"{res_path}plot_FliPer_values.pdf")
-
-#pl.show()

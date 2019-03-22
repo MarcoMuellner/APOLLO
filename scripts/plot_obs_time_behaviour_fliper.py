@@ -1,20 +1,13 @@
-import argparse
 import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
-import matplotlib.image as mpimg
-from matplotlib import cm
 import matplotlib as  mpl
 import numpy as np
-from brokenaxes import brokenaxes
-from typing import List
 import os
 
-from scripts.helper_functions import load_results,get_val,recreate_dir,full_nr_of_runs
-from scripts.helper_functions import f_max,full_background, delta_nu
+from scripts.helper_functions import load_results,get_val,full_nr_of_runs
+from scripts.helper_functions import delta_nu
 from res.conf_file_str import general_kic,internal_literature_value,internal_delta_nu,analysis_obs_time_value
-from pandas import DataFrame
-from scipy.optimize import curve_fit
 from uncertainties import ufloat,ufloat_fromstr,unumpy as unp
 from matplotlib.ticker import FuncFormatter
 from fitter.fit_functions import scipyFit,gaussian
@@ -112,8 +105,6 @@ def plot_distribution(vals,err,x_max,y_max,savefile):
 
     ax.set_xlabel("Deviation to literature value")
     ax.set_ylabel("Percentage of values")
-    #ax.axvline(x=-mean_err,linestyle='dashed',color='red',label='Mean uncertainty')
-    #ax.axvline(x=mean_err, linestyle='dashed', color='red')
     ax.legend()
 #    ax.set_ylim(0,y_max)
     formatter_y = FuncFormatter(to_percent)
@@ -241,8 +232,4 @@ for path,result,conf in res_list:
 for time,success_rate in nr_of_successes.items():
     print(f"{time}: {'%.2f' % np.sum(success_rate)}%")
 
-#plot_distribution(delta_nu_max_to_lit,delta_nu_max_to_lit_err,30,0.20,"Distribution of nu_max",f"{res_path}")
-#plot_distribution(delta_delta_nu_to_lit,delta_delta_nu_to_lit_err,50,0.30,"Distribution of delta nu")
 plot_distribution(delta_nu_max_FliPer_to_lit,delta_nu_max_to_lit_err,30,0.20,f"{res_path}plot_FliPer_distribution.pdf")
-
-#pl.show()

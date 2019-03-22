@@ -7,30 +7,16 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent
 import numpy as np
-from uncertainties import ufloat_fromstr, unumpy as unp, ufloat, nominal_value, std_dev
-from scipy.optimize import curve_fit
-from os import makedirs
-from shutil import rmtree
-from typing import Union
-from res.conf_file_str import internal_literature_value
-import json
-from scripts.helper_functions import load_results, get_val, recreate_dir, full_nr_of_runs
-from scripts.helper_functions import f_max, full_background, delta_nu
-from pandas import DataFrame
-from res.conf_file_str import general_kic, internal_literature_value, internal_delta_nu, analysis_obs_time_value, \
-    internal_mag_value, internal_teff,general_analysis_result_path,analysis_list_of_ids,cat_general,analysis_obs_time_value,cat_analysis
-from data_handler.signal_features import background_model
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.stats import kde
+from uncertainties import ufloat_fromstr
+from scripts.helper_functions import load_results, get_val
+from scripts.helper_functions import f_max, full_background
+from res.conf_file_str import internal_literature_value,internal_mag_value
 from data_handler.signal_features import noise
-from json import load,dump
 from matplotlib import rcParams
-import matplotlib as mpl
 from data_handler.signal_features import compute_periodogram
 
 params = {
    'axes.labelsize': 16,
-#   'text.fontsize': 8,
    'legend.fontsize': 18,
    'xtick.labelsize': 18,
    'ytick.labelsize': 18,

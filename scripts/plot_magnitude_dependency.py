@@ -215,21 +215,7 @@ pl.xlabel("Kepler magnitude")
 pl.ylabel("Percentage of successful values")
 pl.legend()
 
-"""
-ax = fig.add_subplot(1,1,1)
-pl.errorbar(mag_list, nr_of_successes, nr_of_successes_err, fmt='o',capsize=5,color='k')
-pl.xlabel("Kepler magnitude")
-pl.ylabel(r"Percentage of values within 1$\sigma$")
 
-
-pl.tight_layout()
-pl.savefig("../plots/magnitude_dependency.pdf")
-"""
-#pl.errorbar(mag_list, nr_of_successes_w_bayes, nr_of_successes_w_bayes_err, fmt='o')
-
-#pl.errorbar(mag_list, nr_of_successes_w_lit_check, nr_of_successes_w_lit_check_err, fmt='v')
-# pl.figure()
-# pl.hist(lit_data[1])
 pl.tight_layout()
 pl.savefig("../plots/magnitude_dependency_percentage.pdf")
 

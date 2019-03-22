@@ -1,35 +1,17 @@
-import argparse
-import os
-from json import load
-import re
-import matplotlib.pyplot as pl
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
-from matplotlib.backend_bases import MouseEvent
 import numpy as np
-from uncertainties import ufloat_fromstr, unumpy as unp, ufloat, nominal_value, std_dev
-from scipy.optimize import curve_fit
-from os import makedirs
-from shutil import rmtree
-from typing import Union
-from res.conf_file_str import internal_literature_value
+from uncertainties import ufloat_fromstr
 import json
-from scripts.helper_functions import load_results, get_val, recreate_dir, full_nr_of_runs
-from scripts.helper_functions import f_max, full_background, delta_nu
-from pandas import DataFrame
-from res.conf_file_str import general_kic, internal_literature_value, internal_delta_nu, analysis_obs_time_value, \
-    internal_mag_value, internal_teff,general_analysis_result_path,analysis_list_of_ids,cat_general,analysis_obs_time_value,cat_analysis,analysis_target_magnitude,analysis_nr_magnitude_points,analysis_number_repeats
-from data_handler.signal_features import background_model
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.stats import kde
-from data_handler.signal_features import noise,get_mag
-from json import load,dump
-from fitter.fit_functions import scipyFit,linearPolynomial
+from scripts.helper_functions import load_results, get_val
+from scripts.helper_functions import f_max, full_background
+from res.conf_file_str import general_kic, internal_literature_value, internal_mag_value, internal_teff, \
+    general_analysis_result_path, analysis_list_of_ids, cat_general, analysis_obs_time_value, cat_analysis, \
+    analysis_target_magnitude, analysis_nr_magnitude_points, analysis_number_repeats
+from data_handler.signal_features import noise, get_mag
+from json import load
 from matplotlib import rcParams
 
 params = {
     'axes.labelsize': 16,
-    #   'text.fontsize': 8,
     'legend.fontsize': 18,
     'xtick.labelsize': 18,
     'ytick.labelsize': 18,
@@ -40,6 +22,7 @@ rcParams.update(params)
 
 path = "../results/apokasc_results_full"
 time = 27.4
+
 res_list = load_results(path)
 cnt = 0
 
@@ -67,12 +50,13 @@ for path, result, conf in res_list:
 
     delta_nu = get_val(conf, 'Literature value delta nu')
     data_list.append((conf[general_kic], nu_max_lit.nominal_value, nu_max_lit.std_dev,
-                       delta_nu.nominal_value, delta_nu.std_dev, conf[internal_mag_value],
-                       conf[internal_teff]))
-    cnt +=1
+                      delta_nu.nominal_value, delta_nu.std_dev, conf[internal_mag_value],
+                      conf[internal_teff]))
+    cnt += 1
 
 np.savetxt(f"../sample_lists/{time}_mag_run.txt", np.array(data_list),
-                  fmt=['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.3f', '%d'],header='id nu_max nu_max_err delta_nu delta_nu_err mag T_eff')
+           fmt=['%d', '%.2f', '%.2f', '%.2f', '%.2f', '%.3f', '%d'],
+           header='id nu_max nu_max_err delta_nu delta_nu_err mag T_eff')
 
 with open("../run_cfg/magnitude_template.json", 'r') as f:
     kwargs_template = load(f)
@@ -89,4 +73,4 @@ with open(f"../run_cfg/mag_{time}.json",
     json.dump(kwargs_template, f, indent=4)
 
 print(cnt)
-print(cnt*10*3)
+print(cnt * 10 * 3)

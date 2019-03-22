@@ -1,18 +1,13 @@
-import argparse
 import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
-import matplotlib.image as mpimg
 import numpy as np
 from uncertainties import ufloat_fromstr
-import os
-from shutil import rmtree, copytree
 
-from scripts.helper_functions import load_results, get_val, recreate_dir, touch,load_ignored_results
+from scripts.helper_functions import load_results, get_val, touch
 from scripts.helper_functions import f_max, full_background
 from res.conf_file_str import general_kic, internal_literature_value
 from data_handler.signal_features import background_model
-from pandas import DataFrame
 from typing import List
 from data_handler.signal_features import boxcar_smoothing
 
@@ -22,7 +17,7 @@ pl.rc('ytick', labelsize='x-small')
 
 input_path = ["../results/apokasc_results_full"]
 
-res_list = load_ignored_results(input_path[0], ["fliper.txt","contamination.txt","bayes.txt","bad_fit.txt"])
+res_list = load_results(input_path[0], ["checked.txt"])
 
 def plot_f_space(ax : Axes, f_data : np.ndarray,bg_model):
     ax.loglog(f_data[0], f_data[1], linewidth=1, color='k')
@@ -89,7 +84,6 @@ for path, result, conf in res_list:
     f_guess = result["Nu max guess"]
     if get_val(result,"Bayes factor").nominal_value < 5:
         print(f"Skpping {conf[general_kic]} --> bayes value: {get_val(result,'Bayes factor')}")
-        touch(f"{path}/bayes.txt")
         continue
     try:
         f_lit = ufloat_fromstr(result[internal_literature_value])
@@ -136,16 +130,14 @@ for path, result, conf in res_list:
     pl.draw()
     pl.pause(1)
 
-    while b.button_pressed != "f" and b.button_pressed != "c" and b.button_pressed != "o"and b.button_pressed != "b":
+    while b.button_pressed != "y" and b.button_pressed != "n":
         pl.waitforbuttonpress()
         print()
 
-    if b.button_pressed == "f":
-        touch(f"{path}/fliper.txt")
-    elif b.button_pressed == "c":
-        touch(f"{path}/contamination.txt")
-    elif b.button_pressed == "b":
-        touch(f"{path}/contamination.txt")
+    if b.button_pressed == "n":
+        touch(f"{path}/ignore.txt")
+    elif b.button_pressed == "y":
+        touch(f"{path}/checked.txt")
 
     pl.close
     b.button_pressed = None

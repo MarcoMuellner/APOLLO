@@ -1,20 +1,14 @@
-import argparse
 import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
-import matplotlib.image as mpimg
-from matplotlib import cm
 import matplotlib as  mpl
 import numpy as np
-from brokenaxes import brokenaxes
 from typing import List
 
-from scripts.helper_functions import load_results, get_val, recreate_dir, full_nr_of_runs
+from scripts.helper_functions import load_results, get_val, full_nr_of_runs
 from scripts.helper_functions import f_max, full_background, delta_nu
 from res.conf_file_str import general_kic, internal_literature_value, internal_delta_nu, analysis_obs_time_value
-from pandas import DataFrame
-from scipy.optimize import curve_fit
-from uncertainties import ufloat, ufloat_fromstr, unumpy as unp
+from uncertainties import ufloat_fromstr, unumpy as unp
 from matplotlib.ticker import FuncFormatter
 from matplotlib import rcParams
 from itertools import cycle

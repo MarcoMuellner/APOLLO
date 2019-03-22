@@ -1,17 +1,12 @@
 import argparse
 import matplotlib.pyplot as pl
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
-import matplotlib.image as mpimg
 import numpy as np
 
-from scripts.helper_functions import load_results,get_val,recreate_dir
-from scripts.helper_functions import f_max,full_background, delta_nu
-from res.conf_file_str import general_kic,internal_literature_value,internal_delta_nu,internal_mag_value,internal_teff
-from pandas import DataFrame
-from scipy.optimize import curve_fit
-from uncertainties import ufloat,ufloat_fromstr
-from fitter.fit_functions import scipyFit,gaussian
+from scripts.helper_functions import load_results,get_val
+from scripts.helper_functions import f_max,full_background
+from res.conf_file_str import internal_literature_value
+from uncertainties import ufloat_fromstr
+from fitter.fit_functions import gaussian
 pl.rc('font', family='serif')
 pl.rc('xtick', labelsize='x-small')
 pl.rc('ytick', labelsize='x-small')
