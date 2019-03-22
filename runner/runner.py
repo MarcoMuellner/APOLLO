@@ -14,7 +14,7 @@ import time
 import numpy as np
 # project imports
 from data_handler.file_reader import load_file, look_for_file
-from data_handler.data_refiner import refine_data
+from data_handler.data_refiner import refine_data,get_magnitude
 from data_handler.signal_features import nyqFreq
 from evaluators.compute_flicker import calculate_flicker_amplitude, flicker_amplitude_to_frequency
 from evaluators.compute_nu_max import compute_nu_max, compute_fliper_exact
@@ -28,7 +28,8 @@ from support.printer import print_int, Printer
 from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general_kic, cat_analysis, cat_files, \
     cat_general, cat_plot, internal_literature_value, analysis_folder_prefix, general_sequential_run, \
     analysis_noise_values, internal_noise_value, analysis_number_repeats, internal_run_number, internal_delta_nu, \
-    internal_mag_value, internal_teff, internal_path, general_run_diamonds, internal_force_run,general_check_bayes_run
+    internal_mag_value, internal_teff, internal_path, general_run_diamonds, internal_force_run,general_check_bayes_run,\
+    analysis_nr_noise_points,analysis_target_magnitude,analysis_nr_magnitude_points,internal_multiple_mag
 from support.exceptions import ResultFileNotFound, InputFileNotFound, EvidenceFileNotFound
 
 
@@ -134,6 +135,13 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
             repeat = 2
             repeat_set = False
 
+        mag_list = [i['mag'] for i in data]
+
+        if analysis_target_magnitude in kwargs[cat_analysis]:
+            copy_dict[internal_multiple_mag] = True
+        else:
+            copy_dict[internal_multiple_mag] = False
+
         for i in data:
             for j in range(1, repeat):
                 cp = deepcopy(copy_dict)
@@ -162,7 +170,16 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
                     cp[internal_run_number] = j
 
                 if analysis_noise_values in kwargs[cat_analysis]:
-                    for k in kwargs[cat_analysis][analysis_noise_values]:
+
+                    if analysis_nr_noise_points in kwargs[cat_analysis].keys():
+                        nr = kwargs[cat_analysis][analysis_nr_noise_points]
+                    else:
+                        nr = kwargs[cat_analysis][analysis_noise_values]*10
+
+                    noise_values = np.linspace(0,kwargs[cat_analysis][analysis_noise_values],nr)
+
+                    for k in noise_values:
+                        k = float('%.1f' % k)
                         newcp = deepcopy(cp)
                         newcp[internal_noise_value] = k
                         if analysis_folder_prefix in cp:
@@ -176,6 +193,33 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
                             pre = f"{pre}_{cp[general_kic]}/noise_{k}"
                         newcp[analysis_folder_prefix] = pre
                         kwarg_list.append(newcp)
+
+                elif analysis_target_magnitude in kwargs[cat_analysis]:
+                    min_mag = max(mag_list)
+
+                    if analysis_nr_magnitude_points in kwargs[cat_analysis].keys():
+                        nr = kwargs[cat_analysis][analysis_nr_magnitude_points]
+                    else:
+                        nr = 5
+
+                    mag_values = np.linspace(min_mag,kwargs[cat_analysis][analysis_target_magnitude],nr)
+                    for k in mag_values:
+                        k = float('%.1f' % k)
+                        newcp = deepcopy(cp)
+                        copy_dict["Original magnitude"] = i['mag']
+                        newcp[internal_mag_value] = k
+                        if analysis_folder_prefix in cp:
+                            pre = newcp[analysis_folder_prefix]
+                        else:
+                            pre = "KIC"
+
+                        if repeat_set:
+                            pre = f"{pre}/mag_{k}"
+                        else:
+                            pre = f"{pre}_{cp[general_kic]}/mag_{k}"
+                        newcp[analysis_folder_prefix] = pre
+                        kwarg_list.append(newcp)
+
                 else:
                     kwarg_list.append(cp)
 
@@ -215,6 +259,9 @@ def run_star(kwargs: Dict):
 
     with cd(path):
         try:
+            #print_int("Starting run", kwargs)
+            # load and refine data
+            data = load_file(kwargs)
             with open("conf.json", 'w') as f:
                 if internal_literature_value in kwargs.keys():
                     kwargs[internal_literature_value] = f"{kwargs[internal_literature_value]}"
@@ -228,10 +275,9 @@ def run_star(kwargs: Dict):
                 if internal_delta_nu in kwargs.keys():
                     kwargs[internal_delta_nu] = ufloat_fromstr(kwargs[internal_delta_nu])
 
-            print_int("Starting run", kwargs)
-            # load and refine data
-            data = load_file(kwargs)
-            data = refine_data(data, kwargs)
+            data,kwargs = refine_data(data, kwargs)
+
+            np.save("lc", data)
 
             # compute nu_max
             print_int("Computing nu_max", kwargs)
@@ -240,7 +286,12 @@ def run_star(kwargs: Dict):
             f_ampl = flicker_amplitude_to_frequency(sigma_ampl)
             nu_max, f_list, f_fliper = compute_nu_max(data, f_ampl, kwargs)
             """
+#            if internal_literature_value in kwargs:
+#                nu_max = kwargs[internal_literature_value].nominal_value
+#            else:
             nu_max = compute_fliper_exact(data, kwargs)
+            #nu_max = kwargs[internal_literature_value].nominal_value
+
             f_fliper = nu_max
             f_list = []
 
@@ -254,7 +305,7 @@ def run_star(kwargs: Dict):
             print_int(f"Priors: {prior}", kwargs)
 
             cnt =1
-            while cnt <=2:
+            while cnt <=3:
                 create_files(data, nyqFreq(data), prior, kwargs)
                 proc = BackgroundProcess(kwargs)
                 if general_run_diamonds in kwargs.keys():
@@ -262,7 +313,8 @@ def run_star(kwargs: Dict):
                         proc.run()
                 else:
                     proc.run()
-                if general_check_bayes_run in kwargs.keys() and ((general_run_diamonds in kwargs.keys() and kwargs[general_run_diamonds]) or general_run_diamonds not in kwargs.keys()):
+
+                if general_check_bayes_run in kwargs.keys():
                     if is_bayes_factor_good(kwargs):
                         break
                 else:
@@ -270,6 +322,7 @@ def run_star(kwargs: Dict):
 
                 cnt +=1
 
+            kwargs['Number of DIAMONDS runs'] = cnt
             print_int("Saving results", kwargs)
             # save results
 

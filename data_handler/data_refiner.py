@@ -1,14 +1,35 @@
 #standard imports
-from typing import Tuple,List,Dict
+from typing import Tuple,Dict
 #scientific imports
 import numpy as np
 #project imports
 from fitter.fit_functions import scipyFit,gaussian
-from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual,plot_f_space
-from res.conf_file_str import internal_noise_value,analysis_obs_time_value
-from data_handler.signal_features import compute_periodogram
+from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual
+from res.conf_file_str import internal_noise_value,analysis_obs_time_value,internal_mag_value,analysis_upper_mag_limit,internal_multiple_mag,internal_mag_noise
+from data_handler.signal_features import compute_periodogram,noise,get_mag
 
-def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
+
+def get_magnitude(data : np.ndarray,kwargs : Dict,mag_check : bool = True ) -> Dict:
+    """
+    Changes magnitude according to Panda et al. 2018 if noise is added
+    :param kwargs: run config
+    :return: run config with magnitude changed
+    """
+    f_data = compute_periodogram(data,kwargs)
+    noise_val = noise(f_data)
+    mag = get_mag(noise_val)
+
+    upper_limit_mag = 14.5 if analysis_upper_mag_limit not in kwargs else kwargs[analysis_upper_mag_limit]
+    np.savetxt("computed_magnitude.txt",np.array([mag]))
+
+    if mag > upper_limit_mag and mag_check:
+        raise ValueError(f"Magnitude for noise {kwargs[internal_noise_value]} too high! Computed mag: {'%.2f' % mag}, upper limit: {'%.2f' % upper_limit_mag}")
+
+    kwargs[internal_mag_value] = mag
+
+    return kwargs
+
+def refine_data(data : np.ndarray, kwargs : Dict) -> Tuple[np.ndarray,Dict]:
     """
     Refines the dataset and returns it
     :param data: Dataset that needs refining
@@ -17,10 +38,10 @@ def refine_data(data : np.ndarray, kwargs : Dict) -> np.ndarray:
     """
     data = normalize_data(data)
     data = reduce_data_to_observation_time(data,kwargs)
-    data = add_noise(data,kwargs)
+    data,kwargs = add_noise(data,kwargs)
     data = remove_stray(data,kwargs)
     data = interpolate(data,kwargs)
-    return data
+    return data,kwargs
 
 def get_total_gap(data : np.ndarray) -> float:
     """
@@ -144,12 +165,12 @@ def get_diff_values_counts_most_common(data : np.ndarray) -> Tuple[np.ndarray,np
     :return: Tuple of 2 arrays, consisting of values and counts as well as a float with the most common value
     """
     x = data[0]
-    diff = x[1:len(x)] - x[0:len(x) - 1]
+    diff = x[1:] - x[:-1]
     (values, counts) = np.unique(diff, return_counts=True)
     most_common = values[np.argmax(counts)]
     return values,counts,most_common
 
-def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
+def get_gaps(data:np.ndarray) -> Tuple[int,float]:
     """
     Finds gaps in a given dataset
     :param data: Dataset
@@ -157,17 +178,16 @@ def get_gaps(data:np.ndarray) -> Tuple[List[int],float]:
     """
     x = data[0]
     #approximation of difference
-    diff = np.round(x[1:len(x)] - x[0:len(x)-1],decimals=2)
-    #real difference
-    values,counts,most_common = get_diff_values_counts_most_common(data)
+    diff = np.round(x[1:] - x[0:-1],decimals=2)
+    values, counts, most_common = get_diff_values_counts_most_common(data)
 
-    gap_ids = np.where(np.abs(diff - np.round(most_common,decimals=2)) > 350 * np.round(most_common,decimals=2) )
+    gap_ids = np.where(diff > 3)
     if len(gap_ids[0]) == 0:
         gap_ids = None
     else:
-        gap_ids = gap_ids[0]
+        gap_ids = gap_ids[0][0]
 
-    return gap_ids, most_common
+    return gap_ids,most_common
 
 def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
     """
@@ -205,60 +225,59 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
 
     return data
 
+def get_line(x1,x2,y1,y2,most_common):
+    """
+    Creates a line between two points
+    :param x1: x1 point
+    :param x2: x2 point
+    :param y1: y1 pint
+    :param y2: y2 point
+    :param most_common: most common value in dataset
+    :return:
+    """
+    b = (y1 - y2)/(x1 -x2)
+    a = y1 - b*x1
+
+    delta_t = x2 -x1
+    n = delta_t//most_common
+    x = np.linspace(x1+most_common,x2,n,endpoint=False)
+    y = a+b*x
+    return np.array((x,y))
+
 def interpolate(data : np.ndarray,kwargs : Dict)->np.ndarray:
     """
     Interpolates the dataset within the gaps
     :param data: dataset
     :return: interpolated dataset
     """
-
-    gap_ids,most_common = get_gaps(data)
-
-    if gap_ids is None or not gap_ids.size:
-        return data
-
-
-    ids_interpolated = []
-
-    incrementer = 0
-
     gap_arr_ids = []
+    while True:
+        gap,most_common = get_gaps(data)
 
-    for i in gap_ids:
-        #ident moves the ID after each
-        ident = i+incrementer
+        if gap is None or not gap.size:
+            break
 
-        count = int(np.round((data[0][ident + 1] - data[0][ident]) / most_common))
+        line_data = get_line(data[0][gap],data[0][gap+1],data[1][gap],data[1][gap+1],most_common)
+        x = np.hstack((data[0][:gap],line_data[0],data[0][gap+1:]))
+        y = np.hstack((data[1][:gap], line_data[1], data[1][gap + 1:]))
+        ids = np.arange(0,len(line_data[0])) + gap
 
-        delta_y = (data[1][ident + 1] - data[1][ident]) / count
-        lister = [(0, data[0], most_common), (1, data[1], delta_y)]
-        data = []
-
-        #inserts new block of data into the dataset for x and y
-        for (id,raw,adder) in lister:
-            insert = np.linspace(raw[ident]+adder,raw[ident+1]-adder,num=count-1)
-            data.append(np.insert(raw, ident + 1, insert))
-            added_arr = np.searchsorted(data[-1],insert).tolist()
-            for i in added_arr:
-                if i not in gap_arr_ids and i != 0:
-                    gap_arr_ids.append(i-1)
-
-        data = np.array((data[0], data[1]))
-        incrementer += count - 1
+        data = np.array((x,y))
+        gap_arr_ids = gap_arr_ids + ids.tolist()
 
     plot_interpolation(data,gap_arr_ids,kwargs)
 
     return data
 
 
-def add_noise(data : np.ndarray, kwargs : Dict) -> np.ndarray:
+def add_noise(data : np.ndarray, kwargs : Dict) -> Tuple[np.ndarray,Dict]:
     """
     Adds noise to the signal configured within the conf dict
     :param data: Dataset
     :param kwargs: Run conf
     :return: Noisier signal
     """
-    if internal_noise_value in kwargs.keys():
+    if internal_noise_value in kwargs.keys() or (internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]):
         range_data = np.amax(data[1]) - np.amin(data[1])
         binsize = int(range_data * np.exp(-range_data / 9500000))  # empirically brought down to a reasonable value
 
@@ -279,10 +298,24 @@ def add_noise(data : np.ndarray, kwargs : Dict) -> np.ndarray:
         x = data[0]
         y = data[1]
 
-        noise = float(kwargs[internal_noise_value]) * (np.random.normal(cen,100,len(y)))
+        if internal_noise_value in kwargs.keys():
+            noise = float(kwargs[internal_noise_value]) * (np.random.normal(cen,100,len(y)))
+            plot_noise_residual(data,np.array((x,(y + noise))),kwargs)
+            kwargs = get_magnitude(np.array((x,(y + noise))), kwargs)
+        else:
+            old_mag = kwargs[internal_mag_value]
+            kwargs = get_magnitude(np.array((x, y)), kwargs, False)
+            noise_val = 0
+            noise = 0
+            while old_mag - kwargs[internal_mag_value] > 0:
+                noise_val +=0.1
+                noise = noise_val * (np.random.normal(cen, 100, len(y)))
+                kwargs = get_magnitude(np.array((x, (y+noise))), kwargs,False)
 
-        plot_noise_residual(data,np.array((x,(y + noise))),kwargs)
+            kwargs[internal_mag_value] = old_mag
+            kwargs[internal_mag_noise] = noise_val
+            plot_noise_residual(data, np.array((x, (y + noise))), kwargs)
 
-        return np.array((x,(y + noise)))
+        return np.array((x,(y + noise))),kwargs
     else:
-        return data
+        return data,kwargs

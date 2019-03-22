@@ -4,14 +4,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def scipyFit(x, y, method,p0 = None,boundaries = (-np.inf, np.inf)):
+def scipyFit(x, y, method,p0 = None,boundaries = (-np.inf, np.inf),sigma = None):
     if boundaries is not None and len(boundaries) != 2:
         raise ValueError("Boundaries need to be a two 2D tuple")
 
     if p0 is not None and boundaries is not None and boundaries != (-np.inf, np.inf) and len(p0) != len(boundaries[0]) :
         raise ValueError("P0 and Fixed Array have to have the same length")
 
-    popt, pcov = optimize.curve_fit(method, x, y,p0=p0,bounds = boundaries)
+    popt, pcov = optimize.curve_fit(method, x, y,p0=p0,bounds = boundaries,sigma=sigma)
     perr = np.sqrt(np.diag(pcov))
     return popt, perr
 
@@ -121,7 +121,6 @@ def trismooth(x,window_width):
 
     smoothed = np.zeros(lend+1)
     offset = int(window_width/2)
-    local = np.zeros(window_width)
 
     for i in range(offset,lend-offset):
         smoothed[i]=np.sum(x[i-offset:i+offset+1]*weights)

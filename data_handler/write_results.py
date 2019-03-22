@@ -9,8 +9,7 @@ import numpy as np
 # project imports
 from background.backgroundResults import BackgroundResults
 from plotter.plot_handler import plot_f_space,plot_parameter_trend,plot_marginal_distributions
-from res.conf_file_str import internal_literature_value,internal_flag_worked,internal_delta_nu
-from support.printer import print_int
+from res.conf_file_str import internal_literature_value,internal_flag_worked,internal_delta_nu,internal_mag_value
 from support.exceptions import ResultFileNotFound
 from background.backgroundProcess import BackgroundProcess
 from background.fileModels.bg_file_creator import nsmc_configuring_parameters
@@ -27,7 +26,7 @@ def is_bayes_factor_good(kwargs):
     _, factor = bayes_factor(result_full.evidence._evidence["Skillings log with Error"],
                                 result_noise.evidence._evidence["Skillings log with Error"])
 
-    return ufloat_fromstr(factor) > 5
+    return ufloat_fromstr(factor) > np.log10(5)
 
 def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, params: Dict, proc : BackgroundProcess, f_list : List[float],f_fliper : float, t1 : float,kwargs: Dict):
     np.save("lc", data)
@@ -41,6 +40,9 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
     res_set["NSMC configuring parameters"] = nsmc_configuring_parameters().tolist()
     res_set["List of Frequencies"] = f_list
     res_set["Fliper frequency"] = f_fliper
+    res_set["Computed magnitude"] = kwargs[internal_mag_value]
+    res_set['Number of DIAMONDS runs'] = kwargs['Number of DIAMONDS runs']
+
 
     t2 = time.time()
     res_set["Runtime"] = f"{t2 - t1}"
@@ -155,13 +157,14 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
 
 
 def bayes_factor(evidence_full_background: float, evidence_noise_background: float):
+
     evidence = evidence_full_background - evidence_noise_background
 
-    if evidence < 1:
+    if evidence < np.log(1):
         conclusion = "Inconclusive"
-    elif 1 < evidence < 2.5:
+    elif np.log(1) < evidence < np.log(2.5):
         conclusion = "Weak evidence"
-    elif 2.5 < evidence < 5:
+    elif np.log(2.5) < evidence < np.log(5):
         conclusion = "Moderate evidence"
     else:
         conclusion = "Strong evidence"

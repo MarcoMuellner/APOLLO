@@ -16,7 +16,7 @@ from res.strings import *
 from support.printer import print_int
 from data_handler.signal_features import background_model
 
-from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value
+from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value,internal_mag_value,internal_multiple_mag
 
 
 class BackgroundResults:
@@ -44,7 +44,9 @@ class BackgroundResults:
 
         kic = self.kwargs[general_kic]
         if internal_noise_value in kwargs.keys():
-            kic_new = str(kic) + f"_{kwargs[internal_noise_value]}"
+            kic_new = str(kic) + f"_n_{kwargs[internal_noise_value]}"
+        elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
+            kic_new = str(kic) + f"_m_{kwargs[internal_mag_value]}"
         else:
             kic_new = kic
         self.kwargs[general_kic] = kic_new

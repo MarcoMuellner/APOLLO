@@ -1,12 +1,12 @@
 # library imports
-from typing import List, Dict, Tuple
+from typing import Dict
 # scientific imports
 import numpy as np
 # project imports
 from data_handler.signal_features import noise
 from data_handler.signal_features import compute_periodogram
 from plotter.plot_handler import plot_f_space
-from data_handler.signal_features import background_model, nyqFreq, boxcar_smoothing
+from data_handler.signal_features import background_model, nyqFreq
 
 '''
 The prior calculator computes initial guesses for the priors, which then can be used as Priors for DIAMONDS.
@@ -67,9 +67,9 @@ def sigma(nu_max: float) -> float:
     :param nu_max: nu_max value determined by pipe
     :return: envelope of oscillation
     """
-    sigma_env = 0.66*pow(nu_max,0.88) #Full Width Half maximum
+    sigma_env = 0.66 * pow(nu_max, 0.88)  # Full Width Half maximum
 
-    return sigma_env*(1/(2*np.sqrt(2*np.log(2))))
+    return sigma_env * (1 / (2 * np.sqrt(2 * np.log(2))))
 
 
 def amp(nu_max: float, sigma: float, f_data: np.ndarray):
@@ -80,7 +80,7 @@ def amp(nu_max: float, sigma: float, f_data: np.ndarray):
     :param f_data: f_data periodogram
     :return: amplitude of oscillation
     """
-    #f_data = boxcar_smoothing(f_data)
+    # f_data = boxcar_smoothing(f_data)
     x = f_data[0]
     y = f_data[1]
     region = y[np.logical_and(x > (nu_max - sigma), x < (nu_max + sigma))]
@@ -94,7 +94,7 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
     :param photon_noise: photon_noise determined in signal_features
     :return: List of Lists of priors in correct order
     """
-    f_data = compute_periodogram(data,kwargs)
+    f_data = compute_periodogram(data, kwargs)
 
     bg_model = background_model(f_data, nyqFreq(data), noise(f_data), harvey_amp(nu_max), first_harvey(nu_max),
                                 harvey_amp(nu_max), second_harvey(nu_max), harvey_amp(nu_max), third_harvey(nu_max),
@@ -118,16 +118,39 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
     lower_harvey_1 = min(f_data[0])
     minimum_percentage_harvey_1 = 0.7
 
+    max_harvey_1 = minimum_percentage_harvey_1 * second_harvey(nu_max) if minimum_percentage_harvey_1 * second_harvey(
+        nu_max) < 20 else 20
 
-    return [
-        [0.5 * noise(f_data)                        , 2.5 * noise(f_data)],
-        [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [lower_harvey_1                                      , minimum_percentage_harvey_1*second_harvey(nu_max)],
-        [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [minimum_percentage_harvey_1 * second_harvey(nu_max)              , 1.3 * second_harvey(nu_max)],
-        [0.05 * harvey_amp(nu_max)                   , 3 * harvey_amp(nu_max)],
-        [0.7 * third_harvey(nu_max)                 , 1.4 * third_harvey(nu_max)],
-        [0.1 * amp(nu_max, sigma(nu_max), f_data)  , 3.5 * amp(nu_max, sigma(nu_max), f_data)],
-        [0.75 * nu_max                               , 1.25 * nu_max],
-        [0.7 * sigma(nu_max)                       , 1.3 * sigma(nu_max)]
-    ],params
+    max_harvey_amp = np.amax(f_data[1][f_data[0] < nu_max - sigma(nu_max)])
+    harvey_upper_prior = 3 * harvey_amp(nu_max) if 3 * harvey_amp(nu_max) < max_harvey_amp else max_harvey_amp
+
+    #LC Data (red giants)
+    if nyqFreq(data) * 24 * 60 < 15:
+        return [
+               [1 * noise(f_data), 2 * noise(f_data)],
+               [0.05 * harvey_amp(nu_max), harvey_upper_prior],
+               [lower_harvey_1, max_harvey_1],
+               [0.05 * harvey_amp(nu_max), harvey_upper_prior],
+               [minimum_percentage_harvey_1 * second_harvey(nu_max), 1.3 * second_harvey(nu_max)],
+               [0.05 * harvey_amp(nu_max), harvey_upper_prior],
+               [0.7 * third_harvey(nu_max), 1.4 * third_harvey(nu_max)],
+               [0.1 * amp(nu_max, sigma(nu_max), f_data), 3.5 * amp(nu_max, sigma(nu_max), f_data)],
+               # [0.75 * nu_max                               , 1.25 * nu_max],
+               [0.6 * nu_max, 1.4 * nu_max],
+               [0.7 * sigma(nu_max), 1.3 * sigma(nu_max)]
+           ], params
+    #SC Data (dwarfs)
+    else:
+        return [
+                   [0.5 * noise(f_data), 3 * noise(f_data)],
+                   [0.05 * harvey_amp(nu_max), 1.5*harvey_upper_prior],
+                   [lower_harvey_1, max_harvey_1],
+                   [0.05 * harvey_amp(nu_max), harvey_upper_prior],
+                   [minimum_percentage_harvey_1 * second_harvey(nu_max), 1.3 * second_harvey(nu_max)],
+                   [0.05 * harvey_amp(nu_max), harvey_upper_prior],
+                   [0.7 * third_harvey(nu_max), 1.4 * third_harvey(nu_max)],
+                   [0.1 * amp(nu_max, sigma(nu_max), f_data), 3.5 * amp(nu_max, sigma(nu_max), f_data)],
+                   # [0.75 * nu_max                               , 1.25 * nu_max],
+                   [0.9 * nu_max, 1.1 * nu_max],
+                   [0.7 * sigma(nu_max), 1.5 * sigma(nu_max)]
+               ], params

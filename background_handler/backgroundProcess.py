@@ -1,13 +1,11 @@
-from logging import getLogger
 import re
 import subprocess
-from multiprocessing.pool import ThreadPool,Pool
-from itertools import product
 
 from res.strings import *
 from support.directoryManager import cd
 import time
-from res.conf_file_str import general_background_result_path,general_binary_path,general_kic,internal_noise_value,general_prior_mode
+from res.conf_file_str import general_background_result_path,general_binary_path,general_kic\
+    ,internal_noise_value,internal_mag_value,internal_multiple_mag,general_use_pcb
 from support.printer import print_int
 
 class BackgroundProcess:
@@ -16,10 +14,12 @@ class BackgroundProcess:
     """
 
     def __init__(self,kwargs):
-        if internal_noise_value not in kwargs:
-            self.kicID = str(kwargs[general_kic])
+        if internal_noise_value in kwargs.keys():
+            self.kicID = str(kwargs[general_kic]) + f"_n_{kwargs[internal_noise_value]}"
+        elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
+            self.kicID = str(kwargs[general_kic]) + f"_m_{kwargs[internal_mag_value]}"
         else:
-            self.kicID = str(kwargs[general_kic]) + f"_{kwargs[internal_noise_value]}"
+            self.kicID = str(kwargs[general_kic])
         self.binaryPath = kwargs[general_binary_path]
         self.model = strRunIDBoth
         self.kwargs = kwargs
@@ -57,12 +57,7 @@ class BackgroundProcess:
             self.priorChanges[runID] = {}
             runResPath = f"{self.resultsPath}KIC{self.kicID}/{runID}/"
 
-            if runID == strDiModeNoise:
-                binPath = self._getFullPath(self.binaryPath + strDiBinary_noise)
-            elif runID == strDiModeFull:
-                binPath = self._getFullPath(self.binaryPath + strDiBinary_standard)
-            else:
-                raise ValueError(f"Cannot determine binary for {diIntMode}")
+            binPath = self._getFullPath(self.binaryPath + strDiBinary)
 
             if not os.path.exists(runResPath):
                 print_int(f"Directory {runResPath} does not exist. Creating ...",self.kwargs)
@@ -71,7 +66,14 @@ class BackgroundProcess:
             self.check_paths[runID] = runResPath
 
             print_int(f"{runID}: Results path {runResPath}",self.kwargs)
-            cmdStrings[runID] = [binPath, self.kicID, runID]
+
+            model = "ThreeHarveyNoGaussian" if runID == "NoiseOnly" else "ThreeHarvey"
+            if general_use_pcb in self.kwargs.keys():
+                use_pcb = 1 if self.kwargs[general_use_pcb] else 0
+            else:
+                use_pcb = 1
+
+            cmdStrings[runID] = [binPath,"KIC", self.kicID, runID,model,str(use_pcb)]
             print_int(f"{runID}: Command --> {cmdStrings[runID]}",self.kwargs)
 
         return cmdStrings
@@ -99,7 +101,7 @@ class BackgroundProcess:
         return p
 
     def _runCmd(self,runID, cmd):
-        for runCounter in range(1,21):
+        for runCounter in range(1,11):
             self.run_count[runID] = runCounter
             print_int(f"Starting {runID}:no {runCounter}",self.kwargs)
             with cd(self.binaryPath):

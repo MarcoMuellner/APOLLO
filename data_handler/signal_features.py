@@ -1,19 +1,106 @@
 # standard imports
-from typing import Dict,Tuple
+from typing import Dict
 # scientific imports
 import numpy as np
-from scipy.signal import periodogram, butter, filtfilt
+from scipy.signal import  butter, filtfilt
 from astropy.convolution import convolve, Box1DKernel
 from astropy.stats import LombScargle
-import matplotlib.pyplot as pl
 from scipy.integrate import simps
-from res.conf_file_str import internal_literature_value,internal_noise_value
-from support.printer import print_int
-from data_handler.parameters import priors_only
-import time
 
 
 # project imports
+
+mag_list = np.array([
+    7,
+    7.4,
+    8.1,
+    8.7,
+    9.1,
+    9.95,
+    10.5,
+    11.1,
+    11.5,
+    12.5,
+    12.9,
+    13.5,
+    14.1,
+    14.7,
+    15.15,
+    15.75
+])
+
+w_list = np.array([
+    0.28,
+    0.4,
+    0.7,
+    1.01,
+    1.92,
+    3.3,
+    5.9,
+    10,
+    13,
+    43,
+    83,
+    180,
+    330,
+    610,
+    1500,
+    2100
+
+
+])
+
+def get_w(mag):
+    """
+    Returns the expected noise according to Pande (2018)
+    :param mag: Magnitude value to convert
+    :return: White noise value
+    """
+    idx  = np.argsort(np.abs(mag_list - mag))[0]
+    try:
+        if mag_list[idx] > mag:
+            min_mag,max_mag = mag_list[idx-1],mag_list[idx]
+            min_w,max_w = w_list[idx-1],w_list[idx]
+        else:
+            min_mag, max_mag = mag_list[idx], mag_list[idx+1]
+            min_w, max_w = w_list[idx], w_list[idx+1]
+    except:
+        min_mag, max_mag = mag_list[-2], mag_list[-1]
+        min_w, max_w = w_list[-2], w_list[-1]
+
+    b = (np.log10(min_w) - np.log10(max_w))/(min_mag - max_mag)
+    a = np.log10(min_w) - b*min_mag
+
+    return 10**(a + b * mag)
+
+def get_mag(w):
+    """
+    Returns the expected magnitude according to Pande(2018)
+    :param w: Noise value to convert
+    :return: Magnitude value
+    """
+    idx  = np.argsort(np.abs(w_list - w))[0]
+    try:
+        if w_list[idx] > w:
+            min_mag,max_mag = mag_list[idx-1],mag_list[idx]
+            min_w,max_w = w_list[idx-1],w_list[idx]
+        else:
+            min_mag, max_mag = mag_list[idx], mag_list[idx+1]
+            min_w, max_w = w_list[idx], w_list[idx+1]
+    except:
+        min_mag, max_mag = mag_list[-2], mag_list[-1]
+        min_w, max_w = w_list[-2], w_list[-1]
+
+    b = (np.log10(min_w) - np.log10(max_w))/(min_mag - max_mag)
+    a = np.log10(min_w) - b*min_mag
+
+    return (np.log10(w) - a)/b
+
+
+def rebin(arr, n):
+    end =  n * int(len(arr)/n)
+    return np.mean(arr[:end].reshape(-1, n), 1)
+
 
 def window_function(df,nyq,ls,width = None, oversampling = 10):
     if width is None:
@@ -39,7 +126,7 @@ def fundamental_spacing_integral(df,nyq,ls):
     df = simps(window, freq)
     return df*1e-6
 
-def compute_periodogram(data: np.ndarray,kwargs : Dict) -> np.ndarray:
+def compute_periodogram(data: np.ndarray,kwargs : Dict= None) -> np.ndarray:
     """
     Computes a given periodogram from the lightcurve
     :param data: Lightcurve dataset
@@ -62,11 +149,7 @@ def compute_periodogram(data: np.ndarray,kwargs : Dict) -> np.ndarray:
     freq *=10**6
     power *= normfactor/(df*10**6)
 
-    if internal_literature_value in kwargs.keys() and internal_noise_value in kwargs.keys():
-        prior_values = priors_only(kwargs[internal_literature_value].nominal_value,np.array((freq,power)),noise(np.array((freq,power))))
-        #freq,power = reduce_signal(np.array((freq,power)),prior_values,nyqFreq(data),kwargs)
-
-    return np.array((freq,power))
+    return np.array((rebin(freq,1),rebin(power,1)))
 
 def get_time_step(data: np.ndarray) -> float:
     """
@@ -182,28 +265,3 @@ def _butter_lowpass_filtfilt(data, nyq, level, order=5):
     b, a = butter(order, normal_cutoff, btype='low', analog=False)
     y = filtfilt(b, a, data)
     return y
-
-def reduce_signal(f_data : np.ndarray,priors : Dict[str,float], nyq : float, kwargs : Dict)-> Tuple[np.ndarray,np.ndarray]:
-    """
-    Reduces the oscillation signal to a given level to hide it in the noise.
-    :param f_data: PSD
-    :param priors: priors determined using the literature value
-    :param nyq: nyquist frequency
-    :param kwargs: settings
-    :return: frequency and power
-    """
-    bg_model = background_model(f_data, nyq, priors['w'], priors['sigma_1'], priors['b_1'], priors['sigma_2'],
-                                priors['b_2'], priors['sigma_3'], priors['b_3'], priors['nu_max'], priors['H_osc'],
-                                priors['sigma'])
-
-    factor = (priors['H_osc']/priors['w'])/270 #empirically determined
-
-    f_without_bg = f_data[1] / np.sum(bg_model[0:3]) #divide by background
-    gauss = bg_model[4] / np.amax(bg_model[4]) #normalize gauss
-    f_without_bg_gauss = f_without_bg * gauss #multiply signal with gauss
-    f_without_bg -= f_without_bg_gauss #get residual
-    f_without_bg_gauss /= ((kwargs[internal_noise_value]+1)*factor) #reduce by noise value
-    f_without_bg += f_without_bg_gauss #add residual again
-    f_without_bg *= np.sum(bg_model[0:3]) #multiply with
-    return f_data[0],f_without_bg
-

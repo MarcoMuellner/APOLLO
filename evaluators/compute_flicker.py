@@ -1,5 +1,5 @@
 #standard imports
-from typing import Tuple,Union,Dict
+from typing import Tuple,Union
 #scientific imports
 import numpy as np
 from sympy.ntheory import factorint

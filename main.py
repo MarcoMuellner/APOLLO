@@ -13,6 +13,7 @@ parser.add_argument("runfile",help="The runfile",type=str)
 args = parser.parse_args()
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     conf_file_list = args.runfile.split(",")
 

@@ -10,9 +10,7 @@ from res.file_load_str import fits_type
 from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols, \
     analysis_file_path, general_kic
 from support.directoryManager import cd
-from support.printer import print_int
 from support.exceptions import InputFileNotFound
-
 
 def load_file(kwargs: Dict) -> np.ndarray:
     """
@@ -22,7 +20,6 @@ def load_file(kwargs: Dict) -> np.ndarray:
     :return: 2D numpy array
     """
     file_name = look_for_file(kwargs)
-    print_int(f"Loading file {file_name}",kwargs)
 
     if file_name.endswith(fits_type):
         data = load_fits_file(file_name, kwargs)
@@ -139,7 +136,6 @@ def list_available_files_in_path(kwargs, filter=[".txt", ".fits",".dat"]):
                 resultList.append(file)
 
     if resultList == []:
-        #print_int("NoFile",kwargs)
         raise InputFileNotFound("No files found",kwargs)
 
     return resultList

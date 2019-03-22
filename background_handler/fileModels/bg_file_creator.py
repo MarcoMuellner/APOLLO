@@ -7,7 +7,7 @@ import numpy as np
 from res.conf_file_str import general_background_result_path, general_kic, general_background_data_path
 from data_handler.signal_features import compute_periodogram
 from support.directoryManager import cd
-from res.conf_file_str import internal_noise_value,general_run_diamonds
+from res.conf_file_str import internal_noise_value,general_run_diamonds,internal_mag_value,internal_multiple_mag
 from support.printer import print_int
 import shutil
 
@@ -23,10 +23,15 @@ def full_result_path(kwargs: Dict) -> str:
     if general_kic not in kwargs.keys():
         raise AttributeError(f"You need to set '{general_kic}' in job file!")
 
-    if internal_noise_value not in kwargs:
-        return f"{kwargs[general_background_result_path]}/KIC{kwargs[general_kic]}"
+    bg_result_path = f"{kwargs[general_background_result_path]}"
+    bg_result_path = bg_result_path + "" if bg_result_path.endswith("/") else "/"
+
+    if internal_noise_value in kwargs.keys():
+        return f"{bg_result_path}KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}"
+    elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
+        return f"{bg_result_path}KIC{kwargs[general_kic]}_m_{kwargs[internal_mag_value]}"
     else:
-        return f"{kwargs[general_background_result_path]}/KIC{kwargs[general_kic]}_{kwargs[internal_noise_value]}"
+        return f"{bg_result_path}KIC{kwargs[general_kic]}"
 
 
 def create_files(data: np.ndarray, nyq_f: float, priors: List[List[float]], kwargs: Dict):
@@ -76,7 +81,10 @@ def create_priors(priors: np.ndarray, res_path: str):
     save_numpy_array(res_path, filename_min, arr_min, '2','%.')
 
 def nsmc_configuring_parameters() -> np.ndarray:
-    return np.array([500, 500, 50000, 2000, 50, 2.10, 0.1, 1.0]).transpose()
+    """
+    Lists the nsmc configuring parameters.
+    """
+    return np.array([500, 500, 50000, 1000, 50, 2.10, 0.0, 1.0]).transpose()
 
 def create_nsmc_configuring_parameters(res_path: str):
     """
@@ -133,9 +141,11 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
     if general_background_data_path not in kwargs.keys():
         raise AttributeError(f"You need to set '{general_background_data_path}' in job file!")
 
-    if internal_noise_value not in kwargs:
-        filename = f"KIC{kwargs[general_kic]}.txt"
+    if internal_noise_value in kwargs.keys():
+        filename = f"KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}.txt"
+    elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
+        filename = f"KIC{kwargs[general_kic]}_m_{kwargs[internal_mag_value]}.txt"
     else:
-        filename = f"KIC{kwargs[general_kic]}_{kwargs[internal_noise_value]}.txt"
+        filename = f"KIC{kwargs[general_kic]}.txt"
 
     save_numpy_array(kwargs[general_background_data_path], filename, f_data.T)

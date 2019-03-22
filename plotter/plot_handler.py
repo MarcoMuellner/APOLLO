@@ -7,10 +7,9 @@ import matplotlib.pyplot as pl
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 # project imports
-from res.conf_file_str import general_kic, plot_show, plot_save,internal_noise_value
+from res.conf_file_str import general_kic, plot_show, plot_save,internal_noise_value,internal_mag_value,internal_multiple_mag
 from fitter.fit_functions import gaussian
 from data_handler.signal_features import compute_periodogram, boxcar_smoothing
-from background.backgroundResults import BackgroundResults
 from fitter.fit_functions import gaussian_amp
 
 pl.rc('font', family='serif')
@@ -25,6 +24,8 @@ def get_appendix(kwargs : Dict):
 
     if internal_noise_value in kwargs.keys():
         appendix += f"n_{kwargs[internal_noise_value]}_"
+    elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
+        appendix += f"m_{kwargs[internal_mag_value]}_"
 
     return appendix
 

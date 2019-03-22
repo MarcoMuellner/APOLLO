@@ -1,10 +1,8 @@
 import numpy as np
-from scipy import optimize
 from uncertainties import ufloat
 from background.backgroundResults import BackgroundResults
 from data_handler.signal_features import compute_periodogram, nyqFreq
 from scipy.signal import butter, filtfilt
-import matplotlib.pyplot as pl
 from plotter.plot_handler import plot_f_space, plot_delta_nu_acf,plot_delta_nu_fit
 from fitter.fit_functions import gaussian_amp,scipyFit
 
@@ -72,7 +70,7 @@ def _estimateDeltaNu(nuMax=None):
     :return:An estimation of where Delta nu should be.
     :rtype:float
     '''
-    deltaNuEst = 0.267 * pow(nuMax, 0.760)
+    deltaNuEst = 0.259 * pow(nuMax, 0.765)
     return deltaNuEst
 
 
@@ -99,9 +97,6 @@ def perform_fit(x : np.ndarray,y : np.ndarray,kwargs):
     popt,perr = scipyFit(x,y,gaussian_amp,[initY0,initAmp,initCen,initWid])
 
     return popt,perr
-
-
-
 
 def get_delta_nu(data: np.ndarray, result: BackgroundResults, kwargs):
     model = result.createBackgroundModel()
