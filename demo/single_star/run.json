@@ -8,10 +8,11 @@
   },
   "Analysis": {
     "Paths to lightcurves": "demo/data/",
-    "Prefix of folder": "DEMO",
-    "Target observation time": 82.2
+    "Prefix of folder": "DEMO"
   },
   "Plot": {
+    "Show plots": false,
+    "Save plots": true
   },
   "List of IDs": "demo/targets_single.txt"
 }
