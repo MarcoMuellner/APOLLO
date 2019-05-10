@@ -116,3 +116,6 @@ results/
 plots/
 scripts_old/
 scripts/
+sample_lists/
+pre_ms_tracks/
+run_cfg/
