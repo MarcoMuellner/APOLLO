@@ -114,7 +114,6 @@ class BackgroundProcess:
             with cd(self.binaryPath):
                 self.status[runID] = strDiStatRunning
                 p = self._runBinary(cmd)
-
                 logCounter = 0
                 r = re.compile(r"(Nit:\s\d+).+(Ratio: [\w\d\.\+]+)")
                 time.sleep(5)
@@ -147,12 +146,12 @@ class BackgroundProcess:
 
     def _logRatio(self,runID,line,counter,r,runCounter):
         match = r.findall(line)
-        if len(match) > 0 and counter >= 10:
+        if len(match) > 0 and counter >= 5:
             for it,ratio in match:
                 print_int(f"{runID} : no {runCounter}  --> {it},{ratio}",self.kwargs)
 
             counter = 0
-        elif len(match) == 0 and counter >= 10:
+        elif len(match) == 0 and counter >= 5:
             print_int(f"{runID} : no {runCounter} --> {line}",self.kwargs)
             counter = 0
         return counter

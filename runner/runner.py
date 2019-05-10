@@ -118,12 +118,18 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
             copy_dict[key] = value
 
         # Copy all items from the file category
-        for key, value in kwargs[cat_files].items():
-            copy_dict[key] = value
+        try:
+            for key, value in kwargs[cat_files].items():
+                copy_dict[key] = value
+        except KeyError:
+            pass
 
         # Copy all items from the plot category
-        for key, value in kwargs[cat_plot].items():
-            copy_dict[key] = value
+        try:
+            for key, value in kwargs[cat_plot].items():
+                copy_dict[key] = value
+        except:
+            pass
 
         # Copy all items from analysis category
         for key, value in kwargs[cat_analysis].items():

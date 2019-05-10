@@ -89,7 +89,7 @@ def nsmc_configuring_parameters() -> np.ndarray:
     """
     Lists the nsmc configuring parameters.
     """
-    return np.array([500, 500, 50000, 1000, 50, 2.10, 0.0, 1.0]).transpose()
+    return np.array([500, 500, 50000, 1000, 50, 2.10, 0.1, 1.0]).transpose()
 
 def create_nsmc_configuring_parameters(res_path: str):
     """

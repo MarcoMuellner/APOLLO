@@ -127,13 +127,13 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
     #LC Data (red giants)
     if nyqFreq(data) * 24 * 60 < 15:
         return [
-               [1 * noise(f_data), 2 * noise(f_data)],
+               [0.5 * noise(f_data), 2 * noise(f_data)],
                [0.05 * harvey_amp(nu_max), harvey_upper_prior],
                [lower_harvey_1, max_harvey_1],
                [0.05 * harvey_amp(nu_max), harvey_upper_prior],
                [minimum_percentage_harvey_1 * second_harvey(nu_max), 1.3 * second_harvey(nu_max)],
                [0.05 * harvey_amp(nu_max), harvey_upper_prior],
-               [0.7 * third_harvey(nu_max), 1.4 * third_harvey(nu_max)],
+               [0.7 * third_harvey(nu_max), 1.3 * third_harvey(nu_max)],
                [0.1 * amp(nu_max, sigma(nu_max), f_data), 3.5 * amp(nu_max, sigma(nu_max), f_data)],
                # [0.75 * nu_max                               , 1.25 * nu_max],
                [0.6 * nu_max, 1.4 * nu_max],

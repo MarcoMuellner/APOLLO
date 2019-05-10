@@ -11,7 +11,5 @@ python:
 cache: pip
 install:
   - pip install -r requirements.txt
-script:
-  coverage run -m pytest -s tests/ && coverage xml
 after_script:
  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT -t coverage.py --prefix muma7490/LCA
