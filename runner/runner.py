@@ -29,7 +29,8 @@ from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general
     cat_general, cat_plot, internal_literature_value, analysis_folder_prefix, general_sequential_run, \
     analysis_noise_values, internal_noise_value, analysis_number_repeats, internal_run_number, internal_delta_nu, \
     internal_mag_value, internal_teff, internal_path, general_run_diamonds, internal_force_run,general_check_bayes_run,\
-    analysis_nr_noise_points,analysis_target_magnitude,analysis_nr_magnitude_points,internal_multiple_mag,analysis_nu_max_outer_guess,internal_id
+    analysis_nr_noise_points,analysis_target_magnitude,analysis_nr_magnitude_points,internal_multiple_mag,\
+    analysis_nu_max_outer_guess,internal_id,analysis_file_path
 from support.exceptions import ResultFileNotFound, InputFileNotFound, EvidenceFileNotFound
 import uuid
 
@@ -140,7 +141,11 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
             repeat = 2
             repeat_set = False
 
-        mag_list = [i['mag'] for i in data]
+        try:
+            mag_list = [i['mag'] for i in data]
+        except TypeError:
+            data = [data] # if single target in file, we need to create a list of data to make it iterable
+            mag_list = [i['mag'] for i in data]
 
         if analysis_target_magnitude in kwargs[cat_analysis]:
             copy_dict[internal_multiple_mag] = True
@@ -164,6 +169,9 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
                         continue
 
                 cp[internal_path] = getcwd()
+                if not cp[analysis_file_path].startswith("/"):
+                    cp[analysis_file_path] = f"{cp[internal_path]}/{cp[analysis_file_path]}"
+                    #Adding working path if no absolute path was given for files
 
                 if repeat_set:
                     if analysis_folder_prefix in cp:
