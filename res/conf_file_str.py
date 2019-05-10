@@ -51,4 +51,5 @@ internal_path = "Working Path"
 internal_force_run = "Force run"
 internal_multiple_mag = "Multiple magnitudes"
 internal_id = "Internal id"
+internal_use_kp_mag = "Use kepler magnitude method for computing noise"
 
