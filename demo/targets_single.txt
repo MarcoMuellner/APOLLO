@@ -1,0 +1,2 @@
+id T_eff delta_nu delta_nu_err nu_max nu_max_err  mag
+1435573 4577 3.69 0.11 26.83 1.68 8.990

@@ -1,0 +1,17 @@
+{
+  "General": {
+    "Path for results": "demo_results/single_star/",
+    "Number of cores used": 1,
+    "Sequential run": true
+  },
+  "Files": {
+  },
+  "Analysis": {
+    "Paths to lightcurves": "demo/data/",
+    "Prefix of folder": "DEMO",
+    "Target observation time": 82.2
+  },
+  "Plot": {
+  },
+  "List of IDs": "demo/targets_single.txt"
+}
