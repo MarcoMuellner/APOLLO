@@ -1,3 +1,0 @@
-# Evidence results from nested sampling
-# Skilling's log(Evidence)          Skilling's Error log(Evidence)             Skilling's Information Gain
--1.710430523e+05                         2.352620392e-01                         2.767411354e+01
