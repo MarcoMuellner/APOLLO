@@ -215,7 +215,7 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
 
     list_data = []
     for i in [0,1]:
-        list_data.append(data[i][np.logical_and(data[1] > cen - 5 * wid, data[1] < cen + 5 * wid)])
+        list_data.append(data[i][np.logical_and(data[1] > cen - 4 * wid, data[1] < cen + 4 * wid)])
 
     data = np.array(list_data)
 

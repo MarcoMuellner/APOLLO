@@ -9,13 +9,13 @@ import numpy as np
 # project imports
 from background_handler.backgroundResults import BackgroundResults
 from plotter.plot_handler import plot_f_space,plot_parameter_trend,plot_marginal_distributions
-from res.conf_file_str import internal_literature_value,internal_flag_worked,internal_delta_nu,internal_mag_value
+from res.conf_file_str import internal_literature_value,internal_flag_worked,internal_delta_nu,internal_mag_value,internal_teff
 from support.exceptions import ResultFileNotFound
 from background_handler.backgroundProcess import BackgroundProcess
 from background_handler.fileModels.bg_file_creator import nsmc_configuring_parameters
 from evaluators.compute_delta_nu import get_delta_nu
 from evaluators.compute_nu_max import look_for_nu_max_osc_region
-
+from evaluators.compute_scaling_relations import ScalingRelations
 def is_bayes_factor_good(kwargs):
     try:
         result_full = BackgroundResults(kwargs, runID="FullBackground")
@@ -138,9 +138,14 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
 
     try:
         delta_nu = get_delta_nu(data,result_full,kwargs)
-        full_res_set["Delta nu"] = f"{delta_nu}"
     except:
-        full_res_set["Delta nu"] = None
+        delta_nu = None
+    full_res_set["Delta nu"] = f"{delta_nu}"
+
+    scaling = ScalingRelations(ufloat_fromstr(full_res_set["Full Background result"]['$f_\\mathrm{max}$ ']),delta_nu,kwargs[internal_teff])
+    full_res_set["log(g)"] = f'{scaling.log_g()}'
+    full_res_set["Radius"] = f'{scaling.radius()}'
+    full_res_set["Mass"] = f'{scaling.mass()}'
 
     try:
         nu_max_fit = look_for_nu_max_osc_region(data,kwargs)

@@ -29,9 +29,14 @@ from res.conf_file_str import general_nr_of_cores, analysis_list_of_ids, general
     cat_general, cat_plot, internal_literature_value, analysis_folder_prefix, general_sequential_run, \
     analysis_noise_values, internal_noise_value, analysis_number_repeats, internal_run_number, internal_delta_nu, \
     internal_mag_value, internal_teff, internal_path, general_run_diamonds, internal_force_run,general_check_bayes_run,\
-    analysis_nr_noise_points,analysis_target_magnitude,analysis_nr_magnitude_points,internal_multiple_mag
+    analysis_nr_noise_points,analysis_target_magnitude,analysis_nr_magnitude_points,internal_multiple_mag,analysis_nu_max_outer_guess,internal_id
 from support.exceptions import ResultFileNotFound, InputFileNotFound, EvidenceFileNotFound
+import uuid
 
+def deepcopy_dict(dict_object : Dict):
+    cp = deepcopy(dict_object)
+    cp[internal_id] = str(uuid.uuid4())
+    return cp
 
 def add_value_to_kwargs(kwargs, val, names, parameter, type_val):
     if names[0] in val.dtype.names:
@@ -144,7 +149,7 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
 
         for i in data:
             for j in range(1, repeat):
-                cp = deepcopy(copy_dict)
+                cp = deepcopy_dict(copy_dict)
 
                 try:
                     cp = add_value_to_kwargs(cp, i, ['id'], general_kic, int)
@@ -180,7 +185,7 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
 
                     for k in noise_values:
                         k = float('%.1f' % k)
-                        newcp = deepcopy(cp)
+                        newcp = deepcopy_dict(cp)
                         newcp[internal_noise_value] = k
                         if analysis_folder_prefix in cp:
                             pre = newcp[analysis_folder_prefix]
@@ -205,7 +210,7 @@ def kwarg_list(conf_file: str) -> Tuple[List[Dict], int]:
                     mag_values = np.linspace(min_mag,kwargs[cat_analysis][analysis_target_magnitude],nr)
                     for k in mag_values:
                         k = float('%.1f' % k)
-                        newcp = deepcopy(cp)
+                        newcp = deepcopy_dict(cp)
                         copy_dict["Original magnitude"] = i['mag']
                         newcp[internal_mag_value] = k
                         if analysis_folder_prefix in cp:
@@ -289,7 +294,10 @@ def run_star(kwargs: Dict):
 #            if internal_literature_value in kwargs:
 #                nu_max = kwargs[internal_literature_value].nominal_value
 #            else:
-            nu_max = compute_fliper_exact(data, kwargs)
+            if analysis_nu_max_outer_guess in kwargs.keys():
+                nu_max = kwargs[analysis_nu_max_outer_guess]
+            else:
+                nu_max = compute_fliper_exact(data, kwargs)
             #nu_max = kwargs[internal_literature_value].nominal_value
 
             f_fliper = nu_max

@@ -300,7 +300,7 @@ def plot_f_space(f_data: np.ndarray, kwargs: dict, add_smoothing: bool = False, 
     if f_list is not None:
         pl.legend()
     ax.set_xlim(min(f_data[0]), max(f_data[0]))
-    ax.set_ylim(min(f_data[1] * 0.95), max(f_data[1]) * 1.2)
+    ax.set_ylim(min(f_data[1][f_data[1] > 0] * 0.95), max(f_data[1]) * 1.2)
 
     if plot_show in kwargs.keys() and kwargs[plot_show]:
         pl.show(fig)

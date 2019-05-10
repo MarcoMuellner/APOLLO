@@ -1,7 +1,7 @@
 from typing import Dict
 from collections import OrderedDict as od
 from multiprocessing import Queue
-from res.conf_file_str import general_kic,internal_noise_value,internal_run_number
+from res.conf_file_str import general_kic,internal_noise_value,internal_run_number,internal_id,internal_multiple_mag,internal_mag_value
 import time
 import numpy as np
 import platform
@@ -16,10 +16,6 @@ def print_int(msg: str, kwargs: Dict):
 class Printer:
     objMap = od()
     done_list = []
-    failed_list = []
-    no_file_avail = []
-    no_evidence = []
-    summary_err = []
     timer = []
     screen = None
     kill = False
@@ -32,17 +28,22 @@ class Printer:
             changed = False
             while not Printer.queue.empty():
                 val = Printer.queue.get()
-                key = val[1][general_kic]
+                key = val[1][internal_id]
+                name = val[1][general_kic]
                 if "time" in val[1].keys():
                     Printer.timer.append(val[1]["time"]/val[1][general_nr_of_cores])
 
                 if internal_run_number in val[1]:
-                    key = f"{key}_r_{val[1][internal_run_number]}"
+                    name = f"{name}_r_{val[1][internal_run_number]}"
 
                 if internal_noise_value in val[1]:
-                    key = f"{key}_n_{val[1][internal_noise_value]}"
+                    name = f"{name}_n_{val[1][internal_noise_value]}"
 
-                Printer.objMap[key] = val[0]
+                if (internal_multiple_mag in val[1].keys() and val[1][internal_multiple_mag]):
+                    name = f"{name}_m_{val[1][internal_mag_value]}"
+
+
+                Printer.objMap[(key,name)] = val[0]
 
                 changed = True
 
@@ -55,35 +56,27 @@ class Printer:
     def print_map():
 
         if Printer.screen is None:
-            for key, value in Printer.objMap.items():
+            for (key,name), value in Printer.objMap.items():
                 try:
                     if "Done" in value:
-                        Printer.done_list.append(key)
+                        Printer.done_list.append(name)
                 except:
                     return
 
-                print(f"{key}:{value}")
+                print(f"{name}:{value}")
             return
 
         n = 0
         text = ""
         Printer.screen.clear()
-        for key, value in Printer.objMap.items():
+        for (key,name), value in Printer.objMap.items():
             if "Done" in value:
-                Printer.done_list.append(key)
-            elif "Failed" in value:
-                Printer.failed_list.append(key)
-            elif "NoFile" in value:
-                Printer.no_file_avail.append(key)
-            elif "summaryErr" in value:
-                Printer.summary_err.append(key)
-            elif "EvidenceErr" in value:
-                Printer.no_evidence.append(key)
+                Printer.done_list.append((key,name))
             elif "KILL_SIR" in value:
                 Printer.kill = True
                 return
             try:
-                print_text = f"[{n+1}/{len(Printer.objMap)}]{key}:{value}\n"
+                print_text = f"[{n+1}/{len(Printer.objMap)}]{name}:{value}\n"
                 Printer.screen.print_at(print_text, 0, n, colour=Printer.screen.COLOUR_YELLOW)
                 text +=print_text
             except IndexError:
@@ -94,55 +87,20 @@ class Printer:
             if i in Printer.objMap.keys():
                 del Printer.objMap[i]
 
-        for i in Printer.failed_list:
-            if i in Printer.objMap.keys():
-                del Printer.objMap[i]
-
-        for i in Printer.summary_err:
-            if i in Printer.objMap.keys():
-                del Printer.objMap[i]
-
-            if i not in Printer.failed_list:
-                Printer.failed_list.append(i)
-
         n = Printer.screen.width - 1
 
-        str_summary_err = f"No summary file ids: {Printer.summary_err}"
-        str_no_evidence = f"No evidence files: {Printer.no_evidence}"
-        str_no_file_avail = f"No files ids: {Printer.no_file_avail}"
-        str_failed_list = f"Failed ids: {Printer.failed_list}"
-        str_done_list = f"Done ids ({len(Printer.done_list)}): {Printer.done_list}"
-        str_current = f"Current ids ({len(Printer.objMap.keys())}): {list(Printer.objMap.keys())}"
+        str_done_list = f"Done ids ({len(Printer.done_list)}): {[name for i,name in Printer.done_list[-30:]]}"
+        str_current = f"Current ids ({len(Printer.objMap.keys())}): {list([name for i,name in Printer.objMap.keys()])}"
 
-        summary_err_list = [str_summary_err[i:i + n] for i in range(0, len(str_summary_err), n)]
-        no_evidence_list = [str_no_evidence[i:i + n] for i in range(0, len(str_no_evidence), n)]
-        no_file_list = [str_no_file_avail[i:i + n] for i in range(0, len(str_no_file_avail), n)]
-        failed_list = [str_failed_list[i:i + n] for i in range(0, len(str_failed_list), n)]
         done_list = [str_done_list[i:i + n] for i in range(0, len(str_done_list), n)]
         current_list = [str_current[i:i + n] for i in range(0, len(str_current), n)]
 
-        offset = len(summary_err_list) + len(no_evidence_list) + len(no_file_list) + len(failed_list) + len(done_list) + len(current_list) + 1
+        offset = len(done_list) + len(current_list) + 1
         start = Printer.screen.height - offset
 
         j = 0
 
-        total = len(Printer.done_list) + len(Printer.failed_list) + len(Printer.no_file_avail) + \
-                len(Printer.summary_err) + len(Printer.no_evidence)
-        for i in summary_err_list:
-            Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_RED)
-            j+=1
-
-        for i in no_file_list:
-            Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_RED)
-            j+=1
-
-        for i in no_evidence_list:
-            Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_RED)
-            j+=1
-
-        for i in failed_list:
-            Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_RED)
-            j+=1
+        total = len(Printer.done_list)
 
         for i in done_list:
             Printer.screen.print_at(i, 0, start+j,colour=Printer.screen.COLOUR_GREEN)

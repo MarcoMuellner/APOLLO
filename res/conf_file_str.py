@@ -30,6 +30,7 @@ analysis_nr_noise_points = "Number of noise points"
 analysis_number_repeats = "Number of repeats"
 analysis_obs_time_value = "Target observation time"
 analysis_upper_mag_limit = "Upper mag limit"
+analysis_nu_max_outer_guess = "Nu max guess"
 #categories
 cat_general = "General"
 cat_files = "Files"
@@ -49,4 +50,5 @@ internal_teff = "T_eff"
 internal_path = "Working Path"
 internal_force_run = "Force run"
 internal_multiple_mag = "Multiple magnitudes"
+internal_id = "Internal id"
 
