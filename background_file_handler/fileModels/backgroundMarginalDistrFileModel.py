@@ -3,7 +3,7 @@ import logging
 
 import numpy as np
 
-from background_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
+from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
 from res.conf_file_str import general_background_result_path,internal_path
 from support.printer import print_int

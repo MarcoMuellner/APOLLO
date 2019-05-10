@@ -15,7 +15,7 @@ from fitter.fit_functions import quadraticPolynomial
 from res.conf_file_str import internal_teff, internal_mag_value, internal_path
 from data_handler.signal_features import compute_periodogram
 from FLIPER.FLIPER import FLIPER, ML
-from background_handler.backgroundResults import BackgroundResults
+from background_file_handler.backgroundResults import BackgroundResults
 from evaluators.compute_delta_nu import _butter_lowpass_filtfilt, perform_fit
 from data_handler.signal_features import nyqFreq,rebin
 

@@ -19,8 +19,8 @@ from data_handler.signal_features import nyqFreq
 from evaluators.compute_flicker import calculate_flicker_amplitude, flicker_amplitude_to_frequency
 from evaluators.compute_nu_max import compute_nu_max, compute_fliper_exact
 from evaluators.compute_priors import priors
-from background_handler.fileModels.bg_file_creator import create_files
-from background_handler.backgroundProcess import BackgroundProcess
+from background_file_handler.fileModels.bg_file_creator import create_files
+from background_file_handler.backgroundProcess import BackgroundProcess
 from data_handler.write_results import save_results,is_bayes_factor_good
 from res.conf_file_str import general_analysis_result_path
 from support.directoryManager import cd
