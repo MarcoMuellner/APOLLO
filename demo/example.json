@@ -1,0 +1,11 @@
+{
+  "General": {
+    "Path for results": "demo_results/single_star/",
+    "Number of cores used": 1
+  },
+  "Analysis": {
+    "Paths to lightcurves": "demo/data/",
+    "Prefix of folder": "DEMO"
+  },
+  "List of IDs": "demo/sample_files/targets_single.txt"
+}
