@@ -1,7 +1,6 @@
 {
   "General": {
-    "Path for results": "demo_results/single_star/",
-    "Number of cores used": 1
+    "Path for results": "demo_results/mini_example/"
   },
   "Analysis": {
     "Paths to lightcurves": "demo/data/",
