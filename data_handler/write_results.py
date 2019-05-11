@@ -87,27 +87,27 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
     exception_text = None
 
     if result_full._summary is None:
-        err.append("Cannot find summary file for full background")
+        err.append("Cannot find summary file for oscillation model")
         exception_text = "Cannot find summary file for standard run"
 
     if result_noise._summary is None:
-        err.append("Cannot find summary file for noise background")
+        err.append("Cannot find summary file for noise model")
         exception_text = "Cannot find summary file for noise run"
 
 
     full_res_set = od()
 
-    full_res_set["Priors Full Background"] = get_priors(priors, result_full)
+    full_res_set["Priors Oscillation model"] = get_priors(priors, result_full)
     full_res_set["Priors Noise only"] = get_priors(priors, result_noise)
 
     full_res_set["Determined params"] = params
 
     try:
-        full_res_set["Full Background result"] = get_resulting_values(result_full)
-        full_res_set["Noise Background result"] = get_resulting_values(result_noise)
+        full_res_set["Oscillation model result"] = get_resulting_values(result_full)
+        full_res_set["Noise model result"] = get_resulting_values(result_noise)
 
-        full_res_set["Evidence Full Background"] = f"{result_full.evidence._evidence['Skillings log with Error']}"
-        full_res_set["Evidence Noise Background"] = f"{result_noise.evidence._evidence['Skillings log with Error']}"
+        full_res_set["Evidence Oscillation model"] = f"{result_full.evidence._evidence['Skillings log with Error']}"
+        full_res_set["Evidence Noise model"] = f"{result_noise.evidence._evidence['Skillings log with Error']}"
 
         conc, factor = bayes_factor(result_full.evidence._evidence["Skillings log with Error"],
                                     result_noise.evidence._evidence["Skillings log with Error"])
@@ -142,7 +142,7 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
         delta_nu = None
     full_res_set["Delta nu"] = f"{delta_nu}"
 
-    scaling = ScalingRelations(ufloat_fromstr(full_res_set["Full Background result"]['$f_\\mathrm{max}$ ']),delta_nu,kwargs[internal_teff])
+    scaling = ScalingRelations(ufloat_fromstr(full_res_set["Oscillation model result"]['$f_\\mathrm{max}$ ']),delta_nu,kwargs[internal_teff])
     full_res_set["log(g)"] = f'{scaling.log_g()}'
     full_res_set["Radius"] = f'{scaling.radius()}'
     full_res_set["Mass"] = f'{scaling.mass()}'

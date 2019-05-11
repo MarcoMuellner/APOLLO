@@ -50,10 +50,10 @@ which will install all necessary python packages, and build the DIAMONDS
 and Background code.
 #Minimal example
 APOLLO ships with a set of examples, to show you how it works, all of which
-are explained in [examples page](examples.md). If you just to quickly try
+are explained in [examples page](showcases.md). If you just to quickly try
 it, you can simply run the minimal example. This is done using
 ```
-./apollo demo/mini_example.json
+./apollo demo/1_mini_example.json
 ```
 which runs the pipeline for [KIC 4057076](http://simbad.u-strasbg.fr/simbad/sim-basic?Ident=KIC+4057076&submit=SIMBAD+search#lab_basic),
 a star from our Calibration sample. After the code shows done, you can
@@ -64,4 +64,4 @@ of files for the light curve, power spectral density, config and result.
 #What's next?
 [The in&output page](in_out_files.md) describes some of the various input parameters 
 that are possible using APOLLO. It will also show you what kind of output you can expect from APOLLO.
-If you are a bit more interested in some hands on examples, check the [examples page](examples.md)
+If you are a bit more interested in some hands on examples, check the [examples page](showcases.md)

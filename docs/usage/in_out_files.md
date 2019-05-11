@@ -16,7 +16,7 @@ use the temperature.
 This file configures your options for a given run. It is structured in 
 the ```json``` format, which is easily readable, but also very easy
 to use in python, only consisting of key-value pairs. For an easy example,
-lets look at the ```mini_example.json``` file in the demo folder:
+lets look at the ```1_mini_example.json``` file in the demo folder:
 ```
 {
   "General": {
@@ -45,7 +45,7 @@ Last but not least, you need the ```List of IDs``` parameter. This is the
 path to the sample file.
 
 This file has many more parameters that you can activate. Check the 
-[example](examples.md) page or the [parameters](../parameters.md) file.
+[example](showcases.md) page or the [parameters](../parameters.md) file.
 
 ## Other parameters, that are usually set
 Usually, a list of other parameters are also always set in the config file. Below

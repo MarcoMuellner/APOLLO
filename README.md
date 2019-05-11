@@ -1,8 +1,8 @@
 # APOLLO
 _**APOLLO**_ (bAyesian Pipeline for sOLar Like Oscillators) is a fully integrated, automated pipeline that can detect solar 
 like oscillations in a given star using model Bayesian model comparison. For a full description of the pipeline,
-check the paper [Muellner et al. (2019)](). For the documentation and a simple tutorial check [here](). If you 
-just want to try it and see how it works follow the simple procedure below.
+check the paper [Muellner et al. (2019)](). For the documentation check either [here]() or run it locally
+using```mkdocs serve```.
 
 # Prerequisits
 APOLLO is tested and used under Linux as well as under MacOS, which are the operating systems supported by APOLLO. It 
@@ -36,13 +36,14 @@ as executable.
 And you are done.
 
 # Demo
-_**APOLLO**_ includes a couple of little demo files, to give you a feel on how the pipeline runs. These are further
-explained in our [documentation](). To run the minimal example simply call
+_**APOLLO**_ includes a couple of little demo files, to give you a feel on how the pipeline runs. To run the minimal example simply call
 ```
-./apollo demo/mini_example.json
+./apollo demo/1_mini_example.json
 ```
 The results files are than available under ```demo_results/mini_example/``` and consists of the light curve, the 
 power spectral density, a config file and a result file.
+
+Further examples are shown in the documentation.
 
 # Questions? Problems?
 If you have any problems installing or using our code, don't hesitate to open an issue here on the github. We will

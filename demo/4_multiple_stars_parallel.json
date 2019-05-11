@@ -1,0 +1,16 @@
+{
+  "General": {
+    "Path for results": "demo_results/mini_example/",
+    "Number of cores used": 32,
+    "Check Bayes factor after run": true,
+    "Force run": false
+  },
+  "Analysis": {
+    "Paths to lightcurves": "demo/data/",
+    "Prefix of folder": "DEMO"
+  },
+  "Plot": {
+    "Save plots": true
+  },
+  "List of IDs": "demo/sample_files/targets_single.txt"
+}
