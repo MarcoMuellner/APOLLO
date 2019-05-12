@@ -137,7 +137,7 @@ save plots parameter), the ```conf.json``` file (a simple copy of the
 config file, including the stellar input parameters), ```lc.npy``` and
 ```psd.npy``` the light curve (already reduced by the pipeline) and psd of the star in a 
 [binary format](https://github.com/numpy/numpy/blob/067cb067cb17a20422e51da908920a4fbb3ab851/doc/neps/nep-0001-npy-format.rst)
-(as the raw size of these files can add up quickly) and the ```results.json```
+(as the raw size of these files can add up quickly, and reading .npy is easy using [numpy.load](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html)) and the ```results.json```
 file.
 
 You have a couple of categories in your result. These are:
@@ -147,7 +147,7 @@ distributions for each of the 10 free parameters of the oscillation model. The u
 are the 1-sigma values of the mean value.
 - ```Priors Noise model```: The upper and lower values of the prior
 distributions for each of the 7 free parameters of the noise model.
-- ```Determined params```: The centroid values for the prior distributions
+- ```Prior centroid values```: The centroid values for the prior distributions
 - ```Oscillation model result```: The resulting parameters from the fit
 for the oscillation model using DIAMONDS, including their uncertainties.
 - ```Noise model result```: The resulting parameters from the fit for the noise
@@ -161,20 +161,21 @@ oscillation model (natural logarithm)
 - ```Bayes factor```: The resulting Bayes factor from the two evidences (natural logarithm).
 If this value exceeds ln(5), the resulting fit strongly prefers the 
 oscillation model over the noise model.
+- ```Conclusion```: States in natural language how much the oscillation model is prefferable
+over the noise model.
 - ```Nu max guess```: The _guess_ of nu max with FliPer.
 - ```Delta nu```: The large frequency separation, computed using the 
 auto correlation of the oscillation region.
 - ```log(g)```: Surface gravity of the star. 
 - ```Radius```: Radius of the star. Computed using Bellinger (2018)
 - ```Mass```: Mass of the star. Computed using Bellinger (2018)
-- ```nu_max_gauss```: Legacy, will be removed
 - ```Run worked flag```: A flag if the result was successfully compiled
-- ```{key}: Number of runs```: How many iterations were needed for DIAMONDS
+- ```MODEL:Number of runs```: How many times each Model needed to be computed
 until a successful fit was done.
+- ```Number of DIAMONDS runs```: How many times DIAMONDS was applied. This is 
+usually 1, except if the checking of the Bayes factor is activated.
 - ```NSMC configuring parameters```: The configuring parameters for the nested
 sampling algorithm, used for DIAMONDS.
-- ```List of frequencies```: Legacy, will be removed in future versions
-- ```FliPer frequency```: Same value as ```Nu max guess```
 - ```Runtime```: Runtime for the star in seconds
 
 # Errors

@@ -1,7 +1,7 @@
 {
   "General": {
-    "Path for results": "demo_results/mini_example/",
-    "Number of cores used": 32,
+    "Path for results": "demo_results/3_multiple_stars_parallel/",
+    "Number of cores used": 2,
     "Check Bayes factor after run": true,
     "Force run": false
   },
@@ -12,5 +12,5 @@
   "Plot": {
     "Save plots": true
   },
-  "List of IDs": "demo/sample_files/targets_single.txt"
+  "List of IDs": "demo/sample_files/targets_multiple.txt"
 }

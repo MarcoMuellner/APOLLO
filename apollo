@@ -4,14 +4,17 @@ from runner.runner import run
 from asciimatics.screen import Screen
 from curses import error as curses_error
 import json
-from res.conf_file_str import general_sequential_run,cat_general
+from res.conf_file_str import general_sequential_run, cat_general
 import warnings
+import matplotlib
 
+matplotlib.use('agg')
 
 parser = argparse.ArgumentParser()
-parser.add_argument("runfile",help="The runfile",type=str)
+parser.add_argument("runfile", help="The runfile", type=str)
 
 args = parser.parse_args()
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -23,8 +26,8 @@ with warnings.catch_warnings():
 
     try:
         if general_sequential_run in kwargs[cat_general].keys() and kwargs[cat_general][general_sequential_run]:
-            run(None,args.runfile)
+            run(None, args.runfile)
         else:
-            Screen.wrapper(run,arguments=[args.runfile])
+            Screen.wrapper(run, arguments=[args.runfile])
     except curses_error:
-        run(None,args.runfile)
+        run(None, args.runfile)

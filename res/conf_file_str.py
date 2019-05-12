@@ -1,17 +1,15 @@
-#fits conf
-fits_flux_column = "Flux column"
-fits_time_column = "Time column"
-fits_hdulist_column = "Data column for hdulist"
-#ascii conf
-ascii_skiprows = "Skipped rows in ascii file"
-ascii_use_cols = "Used columns in ascii file"
+#file config
+file_fits_flux_column = "Flux column"
+file_fits_time_column = "Time column"
+file_fits_hdulist_column = "Data column for hdulist"
+file_ascii_skiprows = "Skipped rows in ascii file"
+file_ascii_use_cols = "Used columns in ascii file"
 #plot conf
 plot_show = "Show plots"
 plot_save = "Save plots"
 #general conf
 general_kic = "KIC ID"
 general_binary_path = "Binary path"
-general_prior_mode = "Prior mode"
 general_background_result_path = "Background result path"
 general_background_data_path = "Background data path"
 general_analysis_result_path = "Path for results"

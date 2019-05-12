@@ -113,7 +113,7 @@ def priors(nu_max: float, data: np.ndarray, kwargs: Dict):
         'sigma': sigma(nu_max)
     }
 
-    plot_f_space(f_data, kwargs, bg_model=bg_model, plot_name="PSD_guess")
+    plot_f_space(f_data, kwargs, bg_model=bg_model, plot_name="PSD_guess",add_smoothing=True)
 
     lower_harvey_1 = min(f_data[0])
     minimum_percentage_harvey_1 = 0.7

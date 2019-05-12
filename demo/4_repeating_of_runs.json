@@ -1,13 +1,14 @@
 {
   "General": {
-    "Path for results": "demo_results/2_default_parameters/",
+    "Path for results": "demo_results/4_repeating_of_runs/",
     "Number of cores used": 32,
     "Check Bayes factor after run": true,
-    "Force run": true
+    "Force run": false
   },
   "Analysis": {
     "Paths to lightcurves": "demo/data/",
-    "Prefix of folder": "DEMO"
+    "Prefix of folder": "DEMO",
+    "Number of repeats": 3
   },
   "Plot": {
     "Save plots": true

@@ -35,12 +35,10 @@ def save_results(priors: List[List[float]], data : np.ndarray, nu_max : float, p
     np.save("psd",psd)
 
     for key,val in proc.run_count.items():
-        res_set["{key}: Number of runs"] = val
+        res_set[f"{key}: Number of runs"] = val
 
     res_set["NSMC configuring parameters"] = nsmc_configuring_parameters().tolist()
-    res_set["List of Frequencies"] = f_list
-    res_set["Fliper frequency"] = f_fliper
-    res_set["Computed magnitude"] = kwargs[internal_mag_value]
+    #res_set["Computed magnitude"] = kwargs[internal_mag_value]
     res_set['Number of DIAMONDS runs'] = kwargs['Number of DIAMONDS runs']
 
 
@@ -100,7 +98,7 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
     full_res_set["Priors Oscillation model"] = get_priors(priors, result_full)
     full_res_set["Priors Noise only"] = get_priors(priors, result_noise)
 
-    full_res_set["Determined params"] = params
+    full_res_set["Prior centroid values"] = params
 
     try:
         full_res_set["Oscillation model result"] = get_resulting_values(result_full)
@@ -142,16 +140,10 @@ def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data 
         delta_nu = None
     full_res_set["Delta nu"] = f"{delta_nu}"
 
-    scaling = ScalingRelations(ufloat_fromstr(full_res_set["Oscillation model result"]['$f_\\mathrm{max}$ ']),delta_nu,kwargs[internal_teff])
+    scaling = ScalingRelations(ufloat_fromstr(full_res_set["Oscillation model result"]['nu_max']),delta_nu,kwargs[internal_teff])
     full_res_set["log(g)"] = f'{scaling.log_g()}'
     full_res_set["Radius"] = f'{scaling.radius()}'
     full_res_set["Mass"] = f'{scaling.mass()}'
-
-    try:
-        nu_max_fit = look_for_nu_max_osc_region(data,kwargs)
-        full_res_set["nu_max_gauss"] = f"{nu_max_fit}"
-    except:
-        full_res_set["nu_max_gauss"] = None
 
     if err == [] and exception_text is None:
         full_res_set[internal_flag_worked] = True

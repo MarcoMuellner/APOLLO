@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 # project imports
 from res.file_load_str import fits_type
-from res.conf_file_str import fits_flux_column, fits_time_column, fits_hdulist_column, ascii_skiprows, ascii_use_cols, \
+from res.conf_file_str import file_fits_flux_column, file_fits_time_column, file_fits_hdulist_column, file_ascii_skiprows, file_ascii_use_cols, \
     analysis_file_path, general_kic
 from support.directoryManager import cd
 from support.exceptions import InputFileNotFound
@@ -47,21 +47,21 @@ def load_fits_file(file_name: str, kwargs: Dict) -> np.ndarray:
     :param kwargs: Content of conf file.
     :return: 2D numpy array
     """
-    if fits_hdulist_column not in kwargs.keys() or not isinstance(kwargs[fits_hdulist_column], int):
-        raise AttributeError(f"Reading of fits files requires to set the '{fits_hdulist_column}' and "
+    if file_fits_hdulist_column not in kwargs.keys() or not isinstance(kwargs[file_fits_hdulist_column], int):
+        raise AttributeError(f"Reading of fits files requires to set the '{file_fits_hdulist_column}' and "
                              f"it to be an integer!")
 
     hdulist = fits.open(file_name)
-    rawData = hdulist[kwargs[fits_hdulist_column]].data
+    rawData = hdulist[kwargs[file_fits_hdulist_column]].data
 
     if len(rawData.shape) == 2:
         return rawData
 
-    if fits_flux_column not in kwargs.keys() or fits_time_column not in kwargs.keys():
-        raise AttributeError(f"Reading of this fits files requires to set the '{fits_flux_column}' "
-                             f"and '{fits_time_column}' values")
+    if file_fits_flux_column not in kwargs.keys() or file_fits_time_column not in kwargs.keys():
+        raise AttributeError(f"Reading of this fits files requires to set the '{file_fits_flux_column}' "
+                             f"and '{file_fits_time_column}' values")
 
-    return np.array((rawData[kwargs[fits_time_column]], rawData[kwargs[fits_flux_column]]))
+    return np.array((rawData[kwargs[file_fits_time_column]], rawData[kwargs[file_fits_flux_column]]))
 
 
 def load_ascii_file(file_name, kwargs):
@@ -73,13 +73,13 @@ def load_ascii_file(file_name, kwargs):
     :param kwargs: Content of conf file.
     :return: 2D numpy array
     """
-    if ascii_skiprows in kwargs:
-        skip_rows = kwargs[ascii_skiprows]
+    if file_ascii_skiprows in kwargs:
+        skip_rows = kwargs[file_ascii_skiprows]
     else:
         skip_rows = 0
 
-    if ascii_use_cols in kwargs:
-        use_cols = kwargs[ascii_use_cols]
+    if file_ascii_use_cols in kwargs:
+        use_cols = kwargs[file_ascii_use_cols]
     else:
         use_cols = (0, 1)
 
@@ -87,7 +87,7 @@ def load_ascii_file(file_name, kwargs):
         return np.loadtxt(file_name, skiprows=skip_rows, usecols=use_cols)
     except ValueError:
         raise ValueError(
-            f"Numpy couldn't read dataset. Be sure to set {ascii_skiprows} and {ascii_use_cols} if necessary")
+            f"Numpy couldn't read dataset. Be sure to set {file_ascii_skiprows} and {file_ascii_use_cols} if necessary")
 
 
 def transpose_if_necessary(data: np.ndarray) -> np.ndarray:

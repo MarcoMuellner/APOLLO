@@ -1,6 +1,5 @@
 # library imports
 from multiprocessing import Pool, cpu_count, Process
-import platform
 from copy import deepcopy
 from typing import Dict, List, Tuple
 import json
@@ -72,7 +71,8 @@ def run(screen, file: str):
     p = Process(target=Printer.run)
     p.start()
 
-    if platform.system() == 'Darwin' or sequential_run:  # MacOS cannot multiprocess for some reason. Stupid shit shit shit shit
+
+    if sequential_run:  # MacOS cannot multiprocess for some reason. Stupid shit shit shit shit
         for i in conf_list:
             run_star(i)
     else:

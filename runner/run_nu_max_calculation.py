@@ -12,7 +12,7 @@ from evaluators.compute_priors import priors
 from background.fileModels.bg_file_creator import create_files
 from background.backgroundProcess import BackgroundProcess
 from data_handler.write_results import save_results
-from res.conf_file_str import ascii_use_cols, ascii_skiprows, plot_show, general_kic, fits_hdulist_column, \
+from res.conf_file_str import file_ascii_use_cols, file_ascii_skiprows, plot_show, general_kic, file_fits_hdulist_column, \
     general_background_result_path, general_binary_path, general_background_data_path
 
 pre_path = re.findall(r'.+\/LCA\/', os.getcwd())[0]
@@ -21,11 +21,11 @@ test_file_dir = f"{pre_path}tests/testFiles/"
 file = f"{test_file_dir}YS_224319473.txt"
 
 kwargs = {
-    ascii_skiprows: 1,
-    ascii_use_cols: (0, 10),
+    file_ascii_skiprows: 1,
+    file_ascii_use_cols: (0, 10),
     plot_show: False,
     general_kic: "224319473",
-    fits_hdulist_column: 0,
+    file_fits_hdulist_column: 0,
     general_background_result_path: "/Users/marco/Documents/Dev/Background/results/",
     general_background_data_path: "/Users/marco/Documents/Dev/Background/data/",
     general_binary_path: "/Users/marco/Documents/Dev/Background/build/",
