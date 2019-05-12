@@ -50,43 +50,41 @@ if not VERSION:
 else:
     about['__version__'] = VERSION
 
+def build_diamonds():
+    try:
+        rmtree("Diamonds/build/")
+    except FileNotFoundError:
+        pass
 
-class PostInstall(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        install.run(self)
+    try:
+        rmtree("Background/build/")
+    except FileNotFoundError:
+        pass
+
+    os.makedirs("Diamonds/build/")
+    os.makedirs("Background/build/")
+
+    with cd("Diamonds/build/"):
+        check_call('cmake ..'.split())
+        check_call('make -j32'.split())
+
+    cwd = os.getcwd()
+
+    with cd("Background/build/"):
         try:
-            rmtree("Diamonds/build/")
+            os.remove("localPath.txt")
         except FileNotFoundError:
             pass
 
-        try:
-            rmtree("Background/build/")
-        except FileNotFoundError:
-            pass
+        with open("localPath.txt",'w') as f:
+            f.writelines(f"{cwd}/Background/")
 
-        os.makedirs("Diamonds/build/")
-        os.makedirs("Background/build/")
+        check_call('cmake ..'.split())
+        check_call('make -j32'.split())
 
-        with cd("Diamonds/build/"):
-            check_call('cmake ..'.split())
-            check_call('make -j32'.split())
+    check_call("chmod +x apollo".split())
 
-        cwd = os.getcwd()
-
-        with cd("Background/build/"):
-            try:
-                os.remove("localPath.txt")
-            except FileNotFoundError:
-                pass
-
-            with open("localPath.txt",'w') as f:
-                f.writelines(f"{cwd}/Background/")
-
-            check_call('cmake ..'.split())
-            check_call('make -j32'.split())
-
-        check_call("chmod +x apollo".split())
+print(REQUIRED)
 
 setup(
     name=NAME,
@@ -111,7 +109,10 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    cmdclass={
-        'install':PostInstall
-    }
+    #cmdclass={
+
+    #    'install':Install_
+    #}
 )
+
+build_diamonds()

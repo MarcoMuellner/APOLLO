@@ -40,7 +40,7 @@ _**APOLLO**_ includes a couple of little demo files, to give you a feel on how t
 ```
 ./apollo demo/1_mini_example.json
 ```
-The results files are than available under ```demo_results/mini_example/``` and consists of the light curve, the 
+The results files are than available under ```demo_results/1_mini_example/``` and consists of the light curve, the 
 power spectral density, a config file and a result file.
 
 Further examples are shown in the documentation.
