@@ -5,7 +5,7 @@ import numpy as np
 
 from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path,internal_path
+from res.conf_file_str import general_background_result_path,internal_path,analysis_folder_prefix
 from uncertainties import ufloat
 from support.printer import print_int
 from support.exceptions import EvidenceFileNotFound
@@ -20,9 +20,9 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
     def __init__(self,kwargs,runID = None):
         '''
         The constructor for the evidence class. Similarly to the other classes, it reads the data from the file
-        :param kicID: The KICId of the star.
-        :type kicID: string
-        :param runID: the RunID of the run. Can be fullBackground or noiseOnly -> see strings.py
+        :param star_id: The KICId of the star.
+        :type star_id: string
+        :param runID: the RunID of the run. Can be Oscillation/Noise  -> see strings.py
         :type runID: string
         '''
         self.logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class BackgroundEvidenceFileModel(BackgroundBaseFileModel):
             self._dataFolder = kwargs[general_background_result_path]
         else:
             self._dataFolder = kwargs[internal_path] + "/Background/results/"
-        file = self._dataFolder + "KIC" + self.kicID + "/" + self.runID + "/background_evidenceInformation.txt"
+        file = self._dataFolder + self.kwargs[analysis_folder_prefix] + self.kicID + "/" + self.runID + "/background_evidenceInformation.txt"
         try:
             values = np.loadtxt(file).T
 

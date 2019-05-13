@@ -6,7 +6,7 @@ from uncertainties import ufloat
 
 from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path,internal_path
+from res.conf_file_str import general_background_result_path,internal_path,analysis_folder_prefix
 from support.printer import print_int
 
 
@@ -20,9 +20,9 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         '''
         Constructor for the summary class. KICID and RunID are set within the Baseclass,
         which provides properties for these parameters.
-        :param kicID: The KICID for the star
-        :type kicID: string
-        :param runID: The RunID for the star, can be fullBackground or noiseOnly
+        :param star_id: The KICID for the star
+        :type star_id: string
+        :param runID: The RunID for the star, can be Oscillation/Noise
         :type runID: string
         '''
         BackgroundBaseFileModel.__init__(self, kwargs, runID)
@@ -95,7 +95,7 @@ class BackgroundParamSummaryModel(BackgroundBaseFileModel):
         else:
             dataFolder = kwargs[internal_path] + "/Background/results/"
 
-        file = dataFolder+"KIC"+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"
+        file = dataFolder+kwargs[analysis_folder_prefix]+self.kicID+"/"+self.runID+"/background_parameterSummary.txt"
         try:
 
             values = np.loadtxt(file).T

@@ -42,7 +42,7 @@ mandatory.
     in APOLLO](https://github.com/MarcoMuellner/Background), if you make any adaptations, as we 
     adapted the Background code to suit APOLLO. Path can be absolute, or relative to working
     directory.
-    - **default** : Background/build/background
+    - **default** : Background/build/
 - **Name** : ```Sequential run```
     - **Type** : _boolean_ (true/false)
     - **doc** : If this is set to true, the code will run each star sequentially, and won't

@@ -16,7 +16,8 @@ from res.strings import *
 from support.printer import print_int
 from data_handler.signal_features import background_model
 
-from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value,internal_mag_value,internal_multiple_mag,internal_path
+from res.conf_file_str import general_kic, general_background_result_path,internal_noise_value,internal_mag_value,\
+    internal_multiple_mag,internal_path,analysis_folder_prefix
 
 
 class BackgroundResults:
@@ -25,16 +26,16 @@ class BackgroundResults:
     DIAMONDS, you should therefore access all Data access through this channel. It also provides some calculation
     methods.
 
-    This class represents a single Run for a single star. So if you want to access both fullBackground and noiseOnly you
-     need to instantiate this class twice with a different runID
+    This class represents a single Run for a single star. So if you want to access both Oscillation and Noise model
+    results you need to instantiate this class twice with a different runID
     '''
 
     def __init__(self, kwargs: Dict, runID: str):
         '''
         The constructor of the class. It sets up all classes that provide an interface to the lower laying files
         from DIAMONDS. It also sets up some other things like names
-        :param kicID: The KicID of the star
-        :param runID: The RunID of the star -> fullBackground or noiseOnly
+        :param star_id: The KicID of the star
+        :param runID: The RunID of the star -> Oscillation or Noise
         :param tEff: The effective temperature of the star. Used for calculations of radius, luminosity and distance
         modulus. An error of 200K is assumed. Optional
         '''
@@ -68,7 +69,8 @@ class BackgroundResults:
         else:
             self._dataFolder = self.kwargs[internal_path] + "/Background/results/"
         self._nyq = float(
-            np.loadtxt(glob.glob(self._dataFolder + 'KIC{}/NyquistFrequency.txt'.format(self.kwargs[general_kic]))[0]))
+            np.loadtxt(glob.glob(self._dataFolder + self.kwargs[analysis_folder_prefix] +
+                                 '{}/NyquistFrequency.txt'.format(self.kwargs[general_kic]))[0]))
         self._names = priorNames
         self._units = priorUnits
         self._psdOnlyFlag = False

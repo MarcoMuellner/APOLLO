@@ -16,10 +16,12 @@ from background_file_handler.fileModels.bg_file_creator import nsmc_configuring_
 from evaluators.compute_delta_nu import get_delta_nu
 from evaluators.compute_nu_max import look_for_nu_max_osc_region
 from evaluators.compute_scaling_relations import ScalingRelations
+
+
 def is_bayes_factor_good(kwargs):
     try:
-        result_full = BackgroundResults(kwargs, runID="FullBackground")
-        result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
+        result_full = BackgroundResults(kwargs, runID="Oscillation")
+        result_noise = BackgroundResults(kwargs, runID="Noise")
     except:
         return True
 
@@ -72,8 +74,8 @@ def create_marginal_distributions_plot(result: BackgroundResults,kwargs : Dict):
 
 
 def compose_results(priors: List[List[float]],nu_max : float, params: Dict,data : np.ndarray, kwargs: Dict)->Tuple[od,np.ndarray,List[str],str]:
-    result_full = BackgroundResults(kwargs, runID="FullBackground")
-    result_noise = BackgroundResults(kwargs, runID="NoiseOnly")
+    result_full = BackgroundResults(kwargs, runID="Oscillation")
+    result_noise = BackgroundResults(kwargs, runID="Noise")
 
     create_parameter_trend_plot(result_full,kwargs)
     create_parameter_trend_plot(result_noise, kwargs)

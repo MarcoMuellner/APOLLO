@@ -91,8 +91,8 @@ strPriorUnitHeight = "ppm$^2$/$\mu$Hz"
 strPriorUnitNuMax = "$\mu$Hz"
 strPriorUnitSigma = "$\mu$Hz"
 #DiamondsModes
-strDiModeNoise = "NoiseOnly"
-strDiModeFull = "FullBackground"
+strDiModeNoise = "Noise"
+strDiModeFull = "Oscillation"
 #Models used for Diamonds
 strDiIntModeNoise = "noise"
 strDiIntModeFull = "standard"

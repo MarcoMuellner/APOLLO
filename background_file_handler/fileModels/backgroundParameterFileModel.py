@@ -4,7 +4,7 @@ import numpy as np
 
 from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path,internal_path
+from res.conf_file_str import general_background_result_path,internal_path,analysis_folder_prefix
 
 
 class BackgroundParameterFileModel(BackgroundBaseFileModel):
@@ -17,8 +17,8 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         :type name:string
         :param unit: The unit contained in the values, i.e. uHz
         :type unit:string
-        :param kicID: the KicID of the Star
-        :type kicID:string
+        :param star_id: the KicID of the Star
+        :type star_id:string
         :param runID: The RunID used by Diamonds (subfolder in results file)!
         :type runID:string
         :param id: Id used between 0 and 9 (last three digits of Filename)
@@ -34,6 +34,7 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         else:
             self._dataFolder = kwargs[internal_path] + "/Background/results/"
 
+        self.kwargs = kwargs
         if (runID is not None and id is not None):
             self._readData()
 
@@ -69,7 +70,7 @@ class BackgroundParameterFileModel(BackgroundBaseFileModel):
         Reads the dataset from the parameterfiled created by DIAMONDS.
         '''
 
-        file = self._dataFolder + 'KIC' + self.kicID + "/" + self.runID + "/background_parameter00" + str(
+        file = self._dataFolder + self.kwargs[analysis_folder_prefix] + self.kicID + "/" + self.runID + "/background_parameter00" + str(
             self._id) + ".txt"
 
         self._parameters = self._readFile(file)

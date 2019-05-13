@@ -5,7 +5,7 @@ import numpy as np
 
 from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
-from res.conf_file_str import general_background_result_path,internal_path
+from res.conf_file_str import general_background_result_path,internal_path,analysis_folder_prefix
 from support.printer import print_int
 
 
@@ -113,6 +113,6 @@ class BackgroundMarginalDistrFileModel(BackgroundBaseFileModel):
         '''
         Reads the Data. Should be only used internally
         '''
-        file = self.dataFolder + "KIC" + self.kicID + "/" + self.runID + "/" + "background_marginalDistribution00"+\
+        file = self.dataFolder + kwargs[analysis_folder_prefix] + self.kicID + "/" + self.runID + "/" + "background_marginalDistribution00"+\
                str(self.id)+".txt"
         self._data = self._readFile(file)

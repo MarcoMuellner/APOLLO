@@ -5,29 +5,34 @@ from res.strings import *
 from support.directoryManager import cd
 import time
 from res.conf_file_str import general_background_result_path,general_binary_path,general_kic\
-    ,internal_noise_value,internal_mag_value,internal_multiple_mag,general_use_pcb,internal_path
+    ,internal_noise_value,internal_mag_value,internal_multiple_mag,general_use_pcb,internal_path\
+    ,analysis_folder_prefix
 from support.printer import print_int
 
 class BackgroundProcess:
     """
     Background Process allows for concurrent runs of diamonds for both modes. Use run() to get it started
     """
-
     def __init__(self,kwargs):
-        if internal_noise_value in kwargs.keys():
-            self.kicID = str(kwargs[general_kic]) + f"_n_{kwargs[internal_noise_value]}"
-        elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
-            self.kicID = str(kwargs[general_kic]) + f"_m_{kwargs[internal_mag_value]}"
-        else:
-            self.kicID = str(kwargs[general_kic])
 
+        #set up naming convention for noise
+        if internal_noise_value in kwargs.keys():
+            self.star_id = str(kwargs[general_kic]) + f"_n_{kwargs[internal_noise_value]}"
+        elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
+            self.star_id = str(kwargs[general_kic]) + f"_m_{kwargs[internal_mag_value]}"
+        else:
+            self.star_id = str(kwargs[general_kic])
+
+        #point to used Background binary
         if general_binary_path in kwargs.keys():
             self.binaryPath = kwargs[general_binary_path]
         else:
             self.binaryPath = kwargs[internal_path] + "/Background/build/"
+
         self.model = strRunIDBoth
         self.kwargs = kwargs
 
+        #point to used Background results path
         if general_background_result_path in kwargs.keys():
             self.resultsPath = kwargs[general_background_result_path]
         else:
@@ -56,52 +61,26 @@ class BackgroundProcess:
     def _getCommandStrings(self):
         cmdStrings = {}
         self.check_paths = {}
-        for runID,diIntMode in self.modes.items():
-            if self.model not in [runID, strRunIDBoth]:
-                print_int(f"Skipping {runID}",self.kwargs)
-                continue
 
-            self.priorChanges[runID] = {}
-            runResPath = f"{self.resultsPath}KIC{self.kicID}/{runID}/"
+        #pcb: If setting is set and false, disable
+        use_pcb = 0 if general_use_pcb in self.kwargs.keys() and not self.kwargs[general_use_pcb] else 1
 
-            binPath = self._getFullPath(self.binaryPath + strDiBinary)
+        binary = self._getFullPath(self.binaryPath + strDiBinary)
 
-            if not os.path.exists(runResPath):
-                print_int(f"Directory {runResPath} does not exist. Creating ...",self.kwargs)
-                os.makedirs(runResPath)
+        for run_id, model in [("Oscillation","ThreeHarvey"),
+                  ("Noise","ThreeHarveyNoGaussian")]:
+            self.check_paths[run_id] = f"{self.resultsPath}{self.kwargs[analysis_folder_prefix]}{self.star_id}/{run_id}/"
+            if not os.path.exists(self.check_paths[run_id]):
+                os.makedirs(self.check_paths[run_id])
 
-            self.check_paths[runID] = runResPath
-
-            print_int(f"{runID}: Results path {runResPath}",self.kwargs)
-
-            model = "ThreeHarveyNoGaussian" if runID == "NoiseOnly" else "ThreeHarvey"
-            if general_use_pcb in self.kwargs.keys():
-                use_pcb = 1 if self.kwargs[general_use_pcb] else 0
-            else:
-                use_pcb = 1
-
-            cmdStrings[runID] = [binPath,"KIC", self.kicID, runID,model,str(use_pcb)]
-            print_int(f"{runID}: Command --> {cmdStrings[runID]}",self.kwargs)
+            cmdStrings[run_id] = [binary, self.kwargs[analysis_folder_prefix], self.star_id,run_id,model,str(use_pcb)]
 
         return cmdStrings
 
     def run(self):
         cmdStrings = self._getCommandStrings()
-        pList = []
-
-        """
-        if general_sequential_run in self.kwargs.keys() and self.kwargs[general_sequential_run]:
-            pool = Pool(processes =2)
-        else:
-            pool = ThreadPool(processes=2)
-
-        pool.starmap(self._runCmd, cmdStrings.items())
-        """
-
         for key,value in cmdStrings.items():
             self._runCmd(key,value)
-
-
 
     def _runBinary(self,cmd):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -110,7 +89,7 @@ class BackgroundProcess:
     def _runCmd(self,runID, cmd):
         for runCounter in range(1,11):
             self.run_count[runID] = runCounter
-            print_int(f"Starting {runID}:no {runCounter}",self.kwargs)
+            print_int(f"Starting {runID} model: run {runCounter}",self.kwargs)
             with cd(self.binaryPath):
                 self.status[runID] = strDiStatRunning
                 p = self._runBinary(cmd)
@@ -134,13 +113,13 @@ class BackgroundProcess:
 
                 if self.status[runID] == strDiStatRunning:
                     self.status[runID] = strDiamondsStatusGood
-                    print_int(f"{runID}: Finished!",self.kwargs)
+                    print_int(f"{runID} model: Finished!",self.kwargs)
                     return
 
                 else:
-                    print_int(f"{runID}: Run {runCounter} --> Repeating run, due to failure due to {self.status[runID]}",self.kwargs)
+                    print_int(f"{runID} model: Run {runCounter} --> Repeating run, due to failure due to {self.status[runID]}",self.kwargs)
 
-        raise ValueError(f"{runID}: FAILED! Tried 10 runs, failed to find result",self.kwargs)
+        raise ValueError(f"{runID} model: FAILED! Tried 10 runs, failed to find result",self.kwargs)
 
 
 
@@ -148,11 +127,11 @@ class BackgroundProcess:
         match = r.findall(line)
         if len(match) > 0 and counter >= 5:
             for it,ratio in match:
-                print_int(f"{runID} : no {runCounter}  --> {it},{ratio}",self.kwargs)
+                print_int(f"{runID} model: run {runCounter}  --> {it},{ratio}",self.kwargs)
 
             counter = 0
         elif len(match) == 0 and counter >= 5:
-            print_int(f"{runID} : no {runCounter} --> {line}",self.kwargs)
+            print_int(f"{runID} model: run {runCounter} --> {line}",self.kwargs)
             counter = 0
         return counter
 

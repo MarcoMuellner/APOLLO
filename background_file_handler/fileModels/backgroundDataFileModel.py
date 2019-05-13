@@ -5,7 +5,7 @@ from typing import Dict
 import numpy as np
 
 from res.strings import *
-from res.conf_file_str import general_background_data_path,internal_path
+from res.conf_file_str import general_background_data_path,internal_path,analysis_folder_prefix
 from support.printer import print_int
 
 from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
@@ -21,8 +21,8 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
     def __init__(self,kwargs):
         '''
         Constructor for the DataFile class. Sets the KicID and kicks of reading of the file.
-        :param kicID: The KICID of the star
-        :type kicID: string
+        :param star_id: The KICID of the star
+        :type star_id: string
         '''
         self.logger = logging.getLogger(__name__)
         BackgroundBaseFileModel.__init__(self,kwargs)
@@ -46,7 +46,7 @@ class BackgroundDataFileModel(BackgroundBaseFileModel):
             dataFolder = kwargs[general_background_data_path]
         else:
             dataFolder = kwargs[internal_path] + "/Background/data/"
-        file = dataFolder+"KIC"+self.kicID+".txt"
+        file = dataFolder+kwargs[analysis_folder_prefix]+self.kicID+".txt"
         try:
             self._psd = np.loadtxt(file)
         except FileNotFoundError as e:

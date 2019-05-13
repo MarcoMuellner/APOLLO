@@ -11,9 +11,9 @@ class BackgroundBaseFileModel:
     def __init__(self,kwargs,runID = None):
         '''
         Constructor of the Baseclass
-        :param kicID: KICId of the star
-        :type kicID: string
-        :param runID: RunID of the star. Can be fullBackground/noiseOnly dependend on which file you want to read
+        :param star_id: KICId of the star
+        :type star_id: string
+        :param runID: RunID of the star. Can be Oscillation/Noise dependend on which file you want to read
         :type runID: string
         '''
         self.logger = logging.getLogger(__name__)

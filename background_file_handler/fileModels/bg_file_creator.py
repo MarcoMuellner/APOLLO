@@ -8,7 +8,7 @@ from res.conf_file_str import general_background_result_path, general_kic, gener
 from data_handler.signal_features import compute_periodogram
 from support.directoryManager import cd
 from res.conf_file_str import internal_noise_value,general_run_diamonds,internal_mag_value,internal_multiple_mag,\
-    internal_path
+    internal_path,analysis_folder_prefix
 from support.printer import print_int
 import shutil
 
@@ -32,11 +32,11 @@ def full_result_path(kwargs: Dict) -> str:
         os.makedirs(bg_result_path)
 
     if internal_noise_value in kwargs.keys():
-        return f"{bg_result_path}KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}"
+        return f"{bg_result_path}{kwargs[analysis_folder_prefix]}{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}"
     elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
-        return f"{bg_result_path}KIC{kwargs[general_kic]}_m_{kwargs[internal_mag_value]}"
+        return f"{bg_result_path}{kwargs[analysis_folder_prefix]}{kwargs[general_kic]}_m_{kwargs[internal_mag_value]}"
     else:
-        return f"{bg_result_path}KIC{kwargs[general_kic]}"
+        return f"{bg_result_path}{kwargs[analysis_folder_prefix]}{kwargs[general_kic]}"
 
 
 def create_files(data: np.ndarray, nyq_f: float, priors: List[List[float]], kwargs: Dict):
@@ -152,10 +152,10 @@ def create_data(f_data: np.ndarray, kwargs: Dict):
         os.makedirs(path)
 
     if internal_noise_value in kwargs.keys():
-        filename = f"KIC{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}.txt"
+        filename = f"{kwargs[analysis_folder_prefix]}{kwargs[general_kic]}_n_{kwargs[internal_noise_value]}.txt"
     elif internal_multiple_mag in kwargs.keys() and kwargs[internal_multiple_mag]:
-        filename = f"KIC{kwargs[general_kic]}_m_{kwargs[internal_mag_value]}.txt"
+        filename = f"{kwargs[analysis_folder_prefix]}{kwargs[general_kic]}_m_{kwargs[internal_mag_value]}.txt"
     else:
-        filename = f"KIC{kwargs[general_kic]}.txt"
+        filename = f"{kwargs[analysis_folder_prefix]}{kwargs[general_kic]}.txt"
 
     save_numpy_array(path, filename, f_data.T)

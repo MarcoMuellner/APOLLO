@@ -6,13 +6,13 @@ import numpy as np
 from background_file_handler.fileModels.backgroundBaseFileModel import BackgroundBaseFileModel
 from res.strings import *
 from support.printer import print_int
-from res.conf_file_str import general_background_result_path,internal_path
+from res.conf_file_str import general_background_result_path,internal_path,analysis_folder_prefix
 
 
 class BackgroundPriorFileModel(BackgroundBaseFileModel):
     '''
     This class represents the priors with which the diamonds run was done. There are multiple ways this class
-    reads the priors. In general, if the runID is None, it will read the fullBackground and noiseOnly priors
+    reads the priors. In general, if the runID is None, it will read the Oscillation/Noise priors
     and are accessible via the getData function using the mode as a parameter. If a runID is provided, it will
     return the correct priors independently of the mode set.
     '''
@@ -20,8 +20,8 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
     def __init__(self,kwargs,runID = None):
         '''
         Constructor for the PriorSetup. KicID and runID are set via the BaseBackgroundFile class.
-        :param kicID: KicID of the star. Optional, but should be set here. If not set via property setter
-        :type kicID: string
+        :param star_id: KicID of the star. Optional, but should be set here. If not set via property setter
+        :type star_id: string
         :param runID: RunID of the star. Optional. If None it will read the ones in the parent directory of the results
         :type runID: string
         '''
@@ -49,7 +49,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         map/tuple according to the mode. If it is not none, it will look indepently, even if you provide a wrong mode.
         :param key: Key within the map. If provided, it will return one tuple. Is part of the parameterNames list
         :type key:string
-        :param mode: Defines the PriorFile that is returned. One for fullBackground and noiseOnly
+        :param mode: Defines the PriorFile that is returned. One for Oscillation/Noise
         :type mode: string
         :return:Dataset
         :rtype:dict/2-D tuple
@@ -83,9 +83,9 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         else:
             dataFolder = self.kwargs[internal_path] + "/Background/results/"
 
-        basePath = dataFolder + "KIC" + self.kicID + "/"
+        basePath = dataFolder + self.kwargs[analysis_folder_prefix] + self.kicID + "/"
         if self.runID is not None:
-            if self.runID == "FullBackground":
+            if self.runID == "Oscillation":
                 filesToLoad.append(basePath + self.runID + "/background_hyperParametersUniform_lower.txt")
                 filesToLoad.append(basePath + self.runID + "/background_hyperParametersGaussian_nu_max.txt")
                 filesToLoad.append(basePath + self.runID + "/background_hyperParametersUniform_upper.txt")
@@ -124,7 +124,7 @@ class BackgroundPriorFileModel(BackgroundBaseFileModel):
         else:
             dataFolder = self.kwargs[internal_path] + "/Background/results/"
 
-        basePath = dataFolder + "KIC" + self.kicID + "/"
+        basePath = dataFolder + self.kwargs[analysis_folder_prefix] + self.kicID + "/"
 
         if len(priors) == 10:
             file = basePath + "background_hyperParameters.txt"
