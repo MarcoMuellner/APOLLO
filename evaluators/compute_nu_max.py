@@ -18,6 +18,7 @@ from FLIPER.FLIPER import FLIPER, ML
 from background_file_handler.backgroundResults import BackgroundResults
 from evaluators.compute_delta_nu import _butter_lowpass_filtfilt, perform_fit
 from data_handler.signal_features import nyqFreq,rebin
+import warnings
 
 
 def f_to_t(f: float) -> float:
@@ -152,8 +153,10 @@ def compute_fliper_exact(data: np.ndarray, kwargs: Dict) -> Union[float, None]:
     Fp7 = Fliper_20_d.fp7[0]
     Fp20 = Fliper_20_d.fp20[0]
     Fp50 = Fliper_20_d.fp50[0]
-    numax = 10 ** (ML().PREDICTION(T_eff, mag, Fp02, Fp07, Fp7, Fp20, Fp50,
-                                   f"{kwargs[internal_path]}/FLIPER/ML_numax_training_paper"))
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore",category=DeprecationWarning)
+        numax = 10 ** (ML().PREDICTION(T_eff, mag, Fp02, Fp07, Fp7, Fp20, Fp50,
+                                       f"{kwargs[internal_path]}/FLIPER/ML_numax_training_paper"))
 
     return float(numax[0])
 

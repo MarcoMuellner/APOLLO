@@ -1,7 +1,6 @@
 {
   "General": {
     "Path for results": "demo_results/1_mini_example/",
-    "Run DIAMONDS": false
   },
   "Analysis": {
     "Paths to lightcurves": "demo/data/",
