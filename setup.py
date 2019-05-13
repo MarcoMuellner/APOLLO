@@ -26,7 +26,9 @@ REQUIRED = [
     'sympy == 1.4',
     'pandas == 0.24.2',
     'asciimatics == 1.11.0',
-    'scikit-learn == 0.19.1'
+    'scikit-learn == 0.19.1',
+    'mkdocs==1.0.4',
+    'pytest==4.5.0'
 ]
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
