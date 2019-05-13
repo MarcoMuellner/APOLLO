@@ -17,23 +17,8 @@ AUTHOR = 'Marco Müllner'
 REQUIRES_PYTHON = '==3.6.0'
 VERSION = '1.0.0'
 
-REQUIRED = [
-    'uncertainties == 3.0.3',
-    'numpy == 1.16.3',
-    'astropy == 3.1.2',
-    'scipy == 1.2.1',
-    'matplotlib == 3.0.3',
-    'sympy == 1.4',
-    'pandas == 0.24.2',
-    'asciimatics == 1.11.0',
-    'scikit-learn == 0.19.1',
-    'mkdocs==1.0.4',
-    'pytest==4.5.0'
-]
-# The rest you shouldn't have to touch too much :)
-# ------------------------------------------------
-# Except, perhaps the License and Trove Classifiers!
-# If you do change the License, remember to change the Trove Classifier for that!
+with open('requirements.txt','r') as f:
+    REQUIRED = f.readlines()
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -43,7 +28,6 @@ try:
 except FileNotFoundError:
     long_description = DESCRIPTION
 
-# Load the package's __version__.py module as a dictionary.
 about = {}
 if not VERSION:
     project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
@@ -111,10 +95,6 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    #cmdclass={
-
-    #    'install':Install_
-    #}
 )
 
 build_diamonds()
