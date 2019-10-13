@@ -1,6 +1,9 @@
 # APOLLO
 
-![Logo](https://raw.githubusercontent.com/MarcoMuellner/APOLLO/master/logo/logo.png?token=ADJ6HMEUZ6ZU6UAY5GT5YSK5VS3Z6)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/MarcoMuellner/APOLLO/master/logo/logo.png?token=ADJ6HMEUZ6ZU6UAY5GT5YSK5VS3Z6">
+</p>
+
 _**APOLLO**_ (bAyesian Pipeline for sOLar Like Oscillators) is a fully integrated, automated pipeline that can detect solar 
 like oscillations in a given star using model Bayesian model comparison. For a full description of the pipeline,
 check the paper [Muellner et al. (2019)](). For the documentation check either [here]() or run it locally
