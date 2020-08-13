@@ -14,6 +14,12 @@ APOLLO is tested and used under Linux as well as under MacOS, which are the oper
 is also assumed that Python3.6, pip, git, cmake and the gcc chain are installed on your system. If they are not installed,
 please do so using your favourite packet manager, for example **brew** on MacOS or **apt** on Debian systems.
 
+**Note**:
+On MacOS you will need to install the OMP library, if you haven't done so yet
+```
+brew install libomp
+
+
 # Installation
 In the first step, clone the repository do your computer using
 ```
