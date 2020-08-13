@@ -18,7 +18,7 @@ please do so using your favourite packet manager, for example **brew** on MacOS 
 On MacOS you will need to install the OMP library, if you haven't done so yet
 ```
 brew install libomp
-
+```
 
 # Installation
 In the first step, clone the repository do your computer using
