@@ -6,7 +6,7 @@
 
 _**APOLLO**_ (bAyesian Pipeline for sOLar Like Oscillators) is a fully integrated, automated pipeline that can detect solar 
 like oscillations in a given star using model Bayesian model comparison. For a full description of the pipeline,
-check the paper [Muellner et al. (2019)](). For the documentation check either [here]() or run it locally
+check the paper [Muellner et al. (2020)](). For the documentation check either [here]() or run it locally
 using```mkdocs serve```.
 
 # Prerequisits
