@@ -1,7 +1,7 @@
 # APOLLO
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/MarcoMuellner/APOLLO/master/logo/logo.png?token=ADJ6HMEUZ6ZU6UAY5GT5YSK5VS3Z6">
+  <img src="https://raw.githubusercontent.com/MarcoMuellner/APOLLO/master/logo/logo.png">
 </p>
 
 _**APOLLO**_ (bAyesian Pipeline for sOLar Like Oscillators) is a fully integrated, automated pipeline that can detect solar 
