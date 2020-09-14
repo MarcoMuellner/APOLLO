@@ -61,4 +61,4 @@ If you have any problems installing or using our code, don't hesitate to open an
 try to help you as soon as possible.
 
 # Citation
-If you use our pipeline for scientific purposes, please cite Muellner et al. (2019). 
+If you use our pipeline for scientific purposes, please cite Muellner et al. (2020). 

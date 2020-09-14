@@ -1,6 +1,6 @@
 {
   "General": {
-    "Path for results": "demo_results/1_mini_example/",
+    "Path for results": "demo_results/1_mini_example/"
   },
   "Analysis": {
     "Paths to lightcurves": "demo/data/",
