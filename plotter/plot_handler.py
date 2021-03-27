@@ -202,13 +202,11 @@ def plot_noise_residual(original_data : np.ndarray, noisy_data: np.ndarray, kwar
 
 
 
-def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, popt: List[float], kwargs: Dict):
+def plot_sigma_clipping(data: np.ndarray, mask: np.ndarray, kwargs: Dict):
     """
-    Plots the sigma clipping
+
     :param data: Dataset of lightcurve
-    :param bins: bins from histogram
-    :param hist: histogram values
-    :param popt: fit from gaussian
+    :param mask: rejected points
     :param kwargs: Run configuration
     """
     fig: Figure = pl.figure(figsize=(10, 6))
@@ -217,28 +215,13 @@ def plot_sigma_clipping(data: np.ndarray, bins: np.ndarray, hist: np.ndarray, po
     if general_kic in kwargs.keys():
         ax.set_title(f"{kwargs[analysis_folder_prefix]}{get_appendix(kwargs)}")
 
-    rect = [0.7, 0.08, 0.3, 0.3]
-    ax1: Axes = add_subplot_axes(ax, rect)
-
     ax.plot(data[0], data[1], 'o', color='k', markersize=2)  # plot data
+    ax.plot(data[0][mask], data[1][mask], 'x', color='r', markersize=2)  # plot data
     ax.set_facecolor('white')
-
-    ax1.plot(bins, hist, 'x', color='k', markersize=4)  # plot histogram
-
-    lin = np.linspace(np.min(bins), np.max(bins), len(bins) * 5)
-    ax1.plot(lin, gaussian(lin, *popt))
-
-    (cen, wid) = (popt[1], popt[2])
-    sigma = 5  # used by the fit!
-    ax1.axvline(cen - sigma * wid, ls='dashed', color='k')
-    ax1.axvline(cen + sigma * wid, ls='dashed', color='k')
 
     ax.set_xlabel("Time (days)")
     ax.set_ylabel("Flux")
-    ax1.set_xlabel('Delta F')
-    ax1.set_ylabel(r'N')
 
-    ax1.set_xlim((cen - sigma * wid * 1.2), (cen + sigma * wid * 1.2))
 
     if plot_show in kwargs.keys() and kwargs[plot_show]:
         pl.show(fig)

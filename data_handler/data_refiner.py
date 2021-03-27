@@ -3,6 +3,8 @@ from typing import Tuple,Dict
 #scientific imports
 import numpy as np
 #project imports
+from astropy.stats import sigma_clip
+
 from fitter.fit_functions import scipyFit,gaussian
 from plotter.plot_handler import plot_sigma_clipping,plot_interpolation,plot_noise_residual
 from res.conf_file_str import internal_noise_value,analysis_obs_time_value,internal_mag_value,analysis_upper_mag_limit,internal_multiple_mag,internal_mag_noise
@@ -196,33 +198,10 @@ def remove_stray(data:np.ndarray,kwargs : Dict) -> np.ndarray:
     :param kwargs: Run configuration
     :return: dataset with removed strays
     """
-    range_data = np.amax(data[1]) - np.amin(data[1])
-    binsize = int(range_data*np.exp(-range_data/9500000)) #empirically brought down to a reasonable value
 
-    bins = np.linspace(np.amin(data[1]), np.amax(data[1]), binsize)
-    hist = np.histogram(data[1], bins=bins, density=True)[0]
-
-    mids = (bins[1:] + bins[:-1]) / 2
-    cen = np.average(mids, weights=hist)
-    wid = np.sqrt(np.average((mids - cen) ** 2, weights=hist))
-
-    p0 = [0, cen, wid]
-    bins = bins[:-1]
-
-    popt, __ = scipyFit(bins, hist, gaussian, p0)
-
-    (cen, wid) = (popt[1], popt[2])
-
-    list_data = []
-    for i in [0,1]:
-        list_data.append(data[i][np.logical_and(data[1] > cen - 4 * wid, data[1] < cen + 4 * wid)])
-
-    data = np.array(list_data)
-
-    data[1] -=cen
-
-    plot_sigma_clipping(data,bins,hist,popt,kwargs)
-
+    clipped = sigma_clip(data[1],sigma=5,maxiters=10)
+    plot_sigma_clipping(data,clipped.mask,kwargs)
+    data = np.array([data[0][~clipped.mask],data[1][~clipped.mask]])
     return data
 
 def get_line(x1,x2,y1,y2,most_common):
@@ -239,7 +218,7 @@ def get_line(x1,x2,y1,y2,most_common):
     a = y1 - b*x1
 
     delta_t = x2 -x1
-    n = delta_t//most_common
+    n = int(delta_t//most_common)
     x = np.linspace(x1+most_common,x2,n,endpoint=False)
     y = a+b*x
     return np.array((x,y))
