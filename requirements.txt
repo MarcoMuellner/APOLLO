@@ -9,3 +9,4 @@ asciimatics==1.11.0
 scikit-learn==0.21.0
 mkdocs==1.0.4
 pytest==4.5.0
+pillow>=10.2.0 # not directly required, pinned by Snyk to avoid a vulnerability
