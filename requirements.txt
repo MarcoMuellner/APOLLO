@@ -1,6 +1,6 @@
 uncertainties==3.0.3
 numpy==1.17.0
-astropy==3.1.2
+astropy==5.3.3
 scipy==1.2.1
 matplotlib==3.0.3
 sympy==1.4
